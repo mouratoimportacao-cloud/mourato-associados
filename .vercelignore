@@ -1,0 +1,10 @@
+.next
+node_modules
+.data
+entrega-agente
+entrega-agente.zip
+dev.db
+*.tsbuildinfo
+dev-*.log
+dev-*.err.log
+prisma.config.ts

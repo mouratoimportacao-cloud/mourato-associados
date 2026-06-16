@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+provider = "sqlite"
+}
+
+model Usuario {
+id        Int      @id @default(autoincrement())
+nome      String
+email     String   @unique
+senha     String
+tipo      String
+createdAt DateTime @default(now())
+}
+
+model Produto {
+id          Int      @id @default(autoincrement())
+nome        String
+marca       String
+categoria   String
+volume      String
+preco       Float?
+estoque     Int      @default(0)
+descricao   String?
+imagem      String?
+createdAt   DateTime @default(now())
+}
+
+model Pedido {
+id         Int      @id @default(autoincrement())
+usuarioId  Int
+total      Float
+status     String
+createdAt  DateTime @default(now())
+}
+
+model Endereco {
+id        Int      @id @default(autoincrement())
+usuarioId Int
+cep       String
+rua       String
+numero    String
+bairro    String
+cidade    String
+estado    String
+}
