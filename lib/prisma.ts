@@ -166,6 +166,7 @@ const globalStore = globalThis as unknown as {
   storeLoaded?: boolean;
   loadingStore?: Promise<void>;
   pgPool?: any;
+  lastLoadedAt?: number;
 };
 
 const storePath = join(process.cwd(), ".data", "store.json");
@@ -314,6 +315,22 @@ async function getPool() {
     ssl: url.includes("localhost") || url.includes("127.0.0.1") ? false : { rejectUnauthorized: false },
   });
 
+  // Inicializa a tabela uma única vez ao criar o pool de conexões
+  try {
+    const client = await globalStore.pgPool.connect();
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS mourato_store (
+        id TEXT PRIMARY KEY,
+        data JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    client.release();
+    console.log("Postgres: Tabela mourato_store inicializada/verificada.");
+  } catch (err) {
+    console.error("Erro ao inicializar tabela mourato_store no Postgres:", err);
+  }
+
   return globalStore.pgPool;
 }
 
@@ -363,14 +380,6 @@ async function loadPostgresStore() {
   if (!pool) return loadLocalStore();
 
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS mourato_store (
-        id TEXT PRIMARY KEY,
-        data JSONB NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      )
-    `);
-
     const result = await pool.query("SELECT data FROM mourato_store WHERE id = $1", ["main"]);
 
     if (!result.rows.length) {
@@ -525,6 +534,8 @@ async function saveStore() {
     saveLocalStore();
   } else {
     await savePostgresStore();
+    // Invalida o cache local atualizando o timestamp de escrita
+    globalStore.lastLoadedAt = Date.now();
   }
 
   // Sincroniza em background sem travar o request do cliente
@@ -534,13 +545,18 @@ async function saveStore() {
 }
 
 async function store() {
+  const now = Date.now();
+  const cacheDuration = 5000; // Cache de 5 segundos para requisições seguidas no Neon
+
   if (shouldUsePostgres()) {
-    // Para banco Postgres remoto (produção no Vercel), SEMPRE recarregamos do banco
-    // para garantir consistência em tempo real e evitar cache sujo entre lambdas serverless.
-    const loadedStore = await loadPostgresStore();
-    globalStore.memoryDb = loadedStore.rows;
-    globalStore.memorySeq = loadedStore.seq;
-    globalStore.storeLoaded = true;
+    const cacheExpired = !globalStore.lastLoadedAt || (now - globalStore.lastLoadedAt > cacheDuration);
+    if (!globalStore.memoryDb || cacheExpired) {
+      const loadedStore = await loadPostgresStore();
+      globalStore.memoryDb = loadedStore.rows;
+      globalStore.memorySeq = loadedStore.seq;
+      globalStore.storeLoaded = true;
+      globalStore.lastLoadedAt = now;
+    }
   } else if (!globalStore.storeLoaded) {
     if (!globalStore.loadingStore) {
       globalStore.loadingStore = (async () => {
