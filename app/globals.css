@@ -101,6 +101,21 @@ h1, h2, h3, h4, .font-serif {
     drop-shadow(0 0 10px rgba(212, 175, 55, 0.22));
 }
 
+.brand-text-relief-gold {
+  color: #000000;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-shadow:
+    -0.5px -0.5px 0 rgba(212, 175, 55, 0.75),
+    0.5px -0.5px 0 rgba(212, 175, 55, 0.75),
+    -0.5px 0.5px 0 rgba(212, 175, 55, 0.75),
+    0.5px 0.5px 0 rgba(212, 175, 55, 0.75),
+    1px 1px 0px #000000,
+    2px 2px 0px rgba(212, 175, 55, 0.5),
+    3px 3px 0px rgba(212, 175, 55, 0.35),
+    0px 0px 15px rgba(212, 175, 55, 0.4);
+}
+
 .admin-brand-logo {
   background: linear-gradient(145deg, #050505, #1b1b1b);
   border: 1px solid rgba(212, 175, 55, 0.28);

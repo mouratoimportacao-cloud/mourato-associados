@@ -17,8 +17,8 @@ export default async function Navbar() {
       <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16">
         <div className="flex justify-between min-h-20 items-center gap-4 py-4">
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-2xl font-serif font-black tracking-[0.1em] text-white hover:text-gold transition-colors duration-300">
-              MOURATO <span className="text-gold font-light">&</span> ASSOCIADOS
+            <Link href="/" className="text-2xl font-serif font-black brand-text-relief-gold transition-all duration-300">
+              MOURATO & ASSOCIADOS
             </Link>
           </div>
 

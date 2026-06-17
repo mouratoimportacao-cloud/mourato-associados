@@ -79,9 +79,11 @@ export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: P
         </select>
       </section>
 
-      {/* 2. Vitrine de Destaques (Carrossel Interativo com Setas) */}
+      {/* 2. Vitrine de Destaques (Carrossel Interativo com Setas) Envelopada em Arco Dourado */}
       {produtosVitrine.length > 0 && (
-        <section className="overflow-hidden border-y border-zinc-900 bg-black py-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[2rem] border-2 border-gold/30 bg-neutral-950 p-6 md:p-8 lg:p-10 shadow-[0_0_35px_rgba(212,175,55,0.07)]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+          
           <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
             <div>
               <span className="text-gold text-[10px] font-bold uppercase tracking-[0.35em] block mb-2 font-sans">
