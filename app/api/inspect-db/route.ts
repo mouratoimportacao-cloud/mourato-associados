@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,57 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 1. Verificar e criar lojista
+    const lojistaEmail = "lojista.teste@mi.com";
+    let lojista = await prisma.usuario.findUnique({ where: { email: lojistaEmail } });
+    let produto = await prisma.produto.findFirst({ where: { nome: "PERFUME IMPERIAL 100ML" } });
+
+    let createdNew = false;
+
+    if (!lojista) {
+      const hashedPassword = await bcrypt.hash("lojistateste123", 10);
+      lojista = await prisma.usuario.create({
+        data: {
+          nome: "Lojista Teste Oficial",
+          email: lojistaEmail,
+          senha: hashedPassword,
+          tipo: "lojista",
+          documento: "00.000.000/0001-00",
+          telefone: "(11) 99999-9999",
+          endereco: "Av. Paulista, 1000",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01310-100",
+          status: "aprovado",
+          codigoRevenda: "revenda-teste",
+          estoquePessoal: {},
+        }
+      });
+      createdNew = true;
+    }
+
+    // 2. Verificar e criar produto
+    if (!produto) {
+      produto = await prisma.produto.create({
+        data: {
+          nome: "PERFUME IMPERIAL 100ML",
+          marca: "M&A Fragrâncias",
+          categoria: "Perfume",
+          volume: "100ml",
+          preco: 350,
+          precoAtacado: 250,
+          estoque: 10,
+          estoqueLojista: 0,
+          vitrine: true,
+          promocaoAtiva: false,
+          descontoPercentual: null,
+          descricao: "Fragrância luxuosa de teste criada automaticamente pelo assistente.",
+          imagem: null,
+        }
+      });
+      createdNew = true;
+    }
+
     const produtos = await prisma.produto.findMany();
     const usuarios = await prisma.usuario.findMany();
     
@@ -22,6 +74,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       usesPostgres,
+      createdNew,
       produtosCount: produtos.length,
       usuariosCount: usuarios.length,
       produtos: produtos.map(p => ({ id: p.id, nome: p.nome, codigo: p.codigo })),
