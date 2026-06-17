@@ -504,18 +504,27 @@ export default function PainelLojistaClient({
 
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  ["Vendas QR", vendasQr.length],
-                  ["Receita", `R$ ${receitaQr.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`],
-                  ["Lucro Líquido", `R$ ${lucroQr.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`],
-                  ["Descontos Dadas", `R$ ${descontoQr.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`],
-                  ["Estoque (Custo)", `R$ ${totalEstoquePessoal.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`],
-                  ["Aberto Fornecedor", `R$ ${valorAbertoFornecedor.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`],
-                ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl bg-white border border-gray-100 p-3 shadow-sm">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
-                    <p className="mt-1.5 text-sm font-black text-gray-900">{value}</p>
-                  </div>
-                ))}
+                  ["Vendas Confirmadas", `${vendasQrConfirmadas.length} de ${vendasQr.length} pagas`],
+                  ["Ganhos (Faturamento)", `R$ ${receitaQr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+                  ["Gastos (Custo de Vendas)", `R$ ${custoVendido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+                  ["Lucro Líquido", `R$ ${lucroQr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+                  ["Descontos Concedidos", `R$ ${descontoQr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+                  ["Meu Estoque (Custo)", `R$ ${totalEstoquePessoal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+                  ["Aberto Fornecedor", `R$ ${valorAbertoFornecedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
+                ].map(([label, value]) => {
+                  let textClass = "text-gray-900";
+                  let bgClass = "bg-white";
+                  if (label.includes("Ganhos")) { textClass = "text-green-700 font-extrabold"; bgClass = "bg-green-50/50"; }
+                  if (label.includes("Gastos")) { textClass = "text-red-700 font-extrabold"; bgClass = "bg-red-50/50"; }
+                  if (label.includes("Lucro")) { textClass = "text-emerald-800 font-black"; bgClass = "bg-emerald-50/70"; }
+
+                  return (
+                    <div key={label} className={`rounded-xl border border-gray-100 p-3 shadow-sm ${bgClass}`}>
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
+                      <p className={`mt-1.5 text-xs sm:text-sm font-black ${textClass}`}>{value}</p>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">

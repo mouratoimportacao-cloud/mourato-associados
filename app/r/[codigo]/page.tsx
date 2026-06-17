@@ -33,12 +33,12 @@ export default async function CatalogoRevendaPage({ params }: { params: Promise<
       <Navbar />
 
       <main className="flex-grow pt-28 pb-20 sm:pt-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
           <header className="mb-10 text-center sm:mb-16">
             <span className="mb-4 block text-[10px] font-bold uppercase tracking-[0.4em] text-luxury-gold">
               Catálogo Oficial
             </span>
-            <h1 className="mb-5 text-4xl font-serif text-luxury-black sm:text-5xl">
+            <h1 className="mb-5 text-4xl font-serif text-white sm:text-5xl">
               Mourato & Associados
             </h1>
             <div className="mx-auto mb-6 h-px w-24 bg-luxury-gold"></div>

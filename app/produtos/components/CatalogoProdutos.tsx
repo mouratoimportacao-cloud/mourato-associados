@@ -135,15 +135,15 @@ export default function CatalogoProdutos({
         {produtosFiltrados.length} {produtosFiltrados.length === 1 ? "produto encontrado" : "produtos encontrados"}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-8 gap-y-16">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 sm:gap-x-8 sm:gap-y-16">
         {produtosFiltrados.map((produto) => {
           const valorAtual = precoPromocional(produto);
 
           return (
-            <div id={`produto-${produto.id}`} key={produto.id} className="group scroll-mt-32 flex flex-col h-full border border-zinc-900 bg-neutral-950 p-4 shadow-2xl hover:shadow-gold/5 hover:border-gold/30 rounded-2xl transition-all duration-500 text-white">
-              <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900/50 mb-6 border border-zinc-900 rounded-xl transition-all duration-500">
+            <div id={`produto-${produto.id}`} key={produto.id} className="group scroll-mt-32 flex flex-col h-full border border-zinc-900 bg-neutral-950 p-2.5 sm:p-4 shadow-2xl hover:shadow-gold/5 hover:border-gold/30 rounded-xl sm:rounded-2xl transition-all duration-500 text-white">
+              <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900/50 mb-3 sm:mb-6 border border-zinc-900 rounded-lg sm:rounded-xl transition-all duration-500">
                 {produto.promocaoAtiva && produto.descontoPercentual ? (
-                  <div className="absolute right-3 top-3 z-10 rounded-full bg-red-600 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
+                  <div className="absolute right-2 top-2 sm:right-3 sm:top-3 z-10 rounded-full bg-red-600 px-2 py-1 sm:px-3 sm:py-2 text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
                     -{produto.descontoPercentual}%
                   </div>
                 ) : null}
@@ -154,15 +154,15 @@ export default function CatalogoProdutos({
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-neutral-900/30 text-zinc-500 italic font-serif text-sm">
+                  <div className="w-full h-full flex items-center justify-center bg-neutral-900/30 text-zinc-500 italic font-serif text-xs">
                     Maison Mourato
                   </div>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-black/90 backdrop-blur-sm">
+                <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-black/90 backdrop-blur-sm">
                   <button
                     type="button"
                     onClick={() => openDetails(produto)}
-                    className="w-full py-2 bg-neutral-900 text-gold text-[10px] font-bold uppercase tracking-widest hover:bg-gold hover:text-black transition-colors rounded cursor-pointer"
+                    className="w-full py-1.5 sm:py-2 bg-neutral-900 text-gold text-[8px] sm:text-[10px] font-bold uppercase tracking-widest hover:bg-gold hover:text-black transition-colors rounded cursor-pointer"
                   >
                     Ver Detalhes
                   </button>
@@ -170,38 +170,38 @@ export default function CatalogoProdutos({
               </div>
 
               <div className="flex flex-col flex-grow space-y-2">
-                <div className="flex justify-between items-start">
-                  <span className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest">{produto.marca}</span>
-                  <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-tighter">{produto.categoria}</span>
+                <div className="flex justify-between items-start gap-1">
+                  <span className="text-[8px] sm:text-[10px] font-bold text-luxury-gold uppercase tracking-widest truncate max-w-[50%]">{produto.marca}</span>
+                  <span className="text-[8px] sm:text-[10px] text-zinc-500 font-medium uppercase tracking-tighter truncate max-w-[50%]">{produto.categoria}</span>
                 </div>
-                <h3 className="text-lg font-serif text-gray-100 leading-tight group-hover:text-gold transition-colors">
-                  <span className="mr-2 rounded bg-neutral-900 px-2 py-0.5 text-[10px] font-black text-zinc-400 font-sans">Cód. {produto.codigo ?? produto.id}</span>
+                <h3 className="text-xs sm:text-lg font-serif text-gray-100 leading-tight group-hover:text-gold transition-colors line-clamp-2">
+                  <span className="mr-1 rounded bg-neutral-900 px-1 py-0.5 text-[8px] sm:text-[10px] font-black text-zinc-400 font-sans">Cód. {produto.codigo ?? produto.id}</span>
                   {produto.nome}
                 </h3>
-                <p className="text-xs text-zinc-500 font-light italic">{produto.volume}</p>
-                {produto.descricao && <p className="text-xs text-zinc-400 font-light leading-relaxed line-clamp-3">{produto.descricao}</p>}
+                <p className="text-[10px] sm:text-xs text-zinc-500 font-light italic">{produto.volume}</p>
+                {produto.descricao && <p className="hidden sm:block text-xs text-zinc-400 font-light leading-relaxed line-clamp-3">{produto.descricao}</p>}
 
-                <div className="pt-4 mt-auto flex justify-between items-center gap-3 border-t border-zinc-900">
+                <div className="pt-2 sm:pt-4 mt-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border-t border-zinc-900">
                   {valorAtual ? (
-                    <div className="rounded-2xl bg-red-950/40 border border-red-900/50 px-3 py-2 text-white shadow-md">
-                      <div className="text-[9px] font-black uppercase tracking-widest text-red-400">Oferta Especial</div>
-                      <div className="text-[10px] line-through text-zinc-500">{moeda(produto.preco)}</div>
-                      <div className="text-lg font-black leading-none text-red-500">{moeda(valorAtual)}</div>
+                    <div className="rounded-xl bg-red-950/40 border border-red-900/50 p-1.5 sm:p-2 text-white shadow-md w-full sm:w-auto">
+                      <div className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest text-red-400">Oferta</div>
+                      <div className="text-[8px] sm:text-[10px] line-through text-zinc-500">{moeda(produto.preco)}</div>
+                      <div className="text-xs sm:text-lg font-black leading-none text-red-500">{moeda(valorAtual)}</div>
                     </div>
                   ) : (
-                    <span className="rounded-full border border-gold/30 bg-gold/10 px-4 py-2 text-sm font-bold text-gold">
+                    <span className="rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-gold w-fit">
                       {moeda(produto.preco)}
                     </span>
                   )}
-                  <span className={`text-[9px] font-bold uppercase tracking-widest ${produto.estoque > 0 ? "text-green-500" : "text-red-400"}`}>
+                  <span className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-widest ${produto.estoque > 0 ? "text-green-500" : "text-red-400"}`}>
                     {produto.estoque > 0 ? "Disponível" : "Esgotado"}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-1 gap-2">
+                <div className="mt-2 sm:mt-3 grid grid-cols-1 gap-1.5">
                   <button
                     type="button"
                     onClick={() => openDetails(produto)}
-                    className="block w-full rounded-full border border-zinc-800 px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest text-zinc-400 transition-colors hover:bg-neutral-900 hover:text-white cursor-pointer"
+                    className="block w-full rounded-full border border-zinc-800 py-2 sm:py-3 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-zinc-400 transition-colors hover:bg-neutral-900 hover:text-white cursor-pointer"
                   >
                     Ver detalhes
                   </button>
@@ -209,13 +209,13 @@ export default function CatalogoProdutos({
                     type="button"
                     onClick={() => handlePayment(produto)}
                     disabled={produto.estoque <= 0 || isPending}
-                    className={`block w-full rounded-full px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                    className={`block w-full rounded-full py-2 sm:py-3 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
                     produto.estoque > 0
                       ? "bg-gold text-black hover:bg-white hover:text-black font-bold"
                       : "bg-neutral-900 text-zinc-500 pointer-events-none"
                   }`}
                   >
-                    {produto.estoque > 0 ? (isPending ? "Registrando..." : "Pagamento") : "Aguardando reposição"}
+                    {produto.estoque > 0 ? (isPending ? "Registrando..." : "Pagamento") : "Reposição"}
                   </button>
                 </div>
               </div>
