@@ -37,7 +37,7 @@ export default async function ProdutosPage() {
       <Navbar />
       
       <main className="flex-grow pt-32 pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16">
           <header className="mb-16 text-center">
             <span className="text-luxury-gold text-[10px] font-bold uppercase tracking-[0.4em] mb-4 block">Perfumaria em Alta</span>
             <h1 className="text-5xl font-serif text-white mb-6">Produtos à Pronta Entrega</h1>
