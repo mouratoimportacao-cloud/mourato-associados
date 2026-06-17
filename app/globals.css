@@ -5,7 +5,7 @@
   --font-sans: var(--font-inter);
   --color-gold: #D4AF37;
   --color-luxury-black: #0D0D0D;
-  --color-luxury-white: #000000;
+  --color-luxury-white: #FFFFFF;
   --color-luxury-gold: #C5A028;
 }
 
@@ -198,4 +198,43 @@ h1, h2, h3, h4, .font-serif {
     width: 100%;
     min-height: 44px;
   }
+}
+
+/* Estilização Global de Formulários para o Tema de Luxo Escuro */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), 
+select, 
+textarea {
+  background-color: #0D0D0D !important;
+  color: #FDFDFD !important;
+  border: 1px solid #222222 !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Estilização explícita para as opções dos dropdowns */
+select option {
+  background-color: #0D0D0D !important;
+  color: #FDFDFD !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus, 
+select:focus, 
+textarea:focus {
+  border-color: #D4AF37 !important;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.18) !important;
+  outline: none !important;
+}
+
+::placeholder {
+  color: #555555 !important;
+  opacity: 1 !important;
+}
+
+/* Correção de cores para preenchimento automático do navegador (Autofill) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #0D0D0D inset !important;
+  -webkit-text-fill-color: #FDFDFD !important;
+  transition: background-color 5000s ease-in-out 0s !important;
 }

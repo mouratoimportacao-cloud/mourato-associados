@@ -46,22 +46,22 @@ export default function CadastroLojistaPage() {
           </p>
         </div>
 
-        <section className="bg-luxury-white border border-luxury-gold/20 p-8 md:p-10 rounded-2xl shadow-2xl">
-          {message && <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-green-700 text-sm">{message}</div>}
-          {error && <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-red-700 text-sm">{error}</div>}
+        <section className="bg-neutral-950 border border-zinc-900 p-8 md:p-10 rounded-2xl shadow-2xl">
+          {message && <div className="mb-4 p-3 bg-green-950/30 border border-green-500/20 rounded-lg text-green-400 text-sm">{message}</div>}
+          {error && <div className="mb-4 p-3 bg-red-950/30 border border-red-500/20 rounded-lg text-red-300 text-sm">{error}</div>}
 
           <form onSubmit={handleCadastro} className="space-y-4">
-            <input name="nome" required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="Nome / Loja" />
+            <input name="nome" required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="Nome / Loja" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input name="documento" required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="CPF ou CNPJ" />
-              <input name="telefone" required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="WhatsApp" />
+              <input name="documento" required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="CPF ou CNPJ" />
+              <input name="telefone" required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="WhatsApp" />
             </div>
-            <input name="email" type="email" required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="E-mail para login" />
-            <input name="endereco" required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="Endereço" />
+            <input name="email" type="email" required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="E-mail para login" />
+            <input name="endereco" required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="Endereço" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input name="cidade" required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="Cidade" />
-              <input name="estado" maxLength={2} required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm uppercase" placeholder="UF" />
-              <input name="cep" required disabled={isPending} className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="CEP" />
+              <input name="cidade" required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="Cidade" />
+              <input name="estado" maxLength={2} required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm uppercase" placeholder="UF" />
+              <input name="cep" required disabled={isPending} className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm" placeholder="CEP" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
@@ -70,7 +70,7 @@ export default function CadastroLojistaPage() {
                 minLength={6}
                 required
                 disabled={isPending}
-                className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm"
+                className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm"
                 placeholder="Senha desejada"
               />
               <input
@@ -79,11 +79,11 @@ export default function CadastroLojistaPage() {
                 minLength={6}
                 required
                 disabled={isPending}
-                className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm"
+                className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-3 border text-sm"
                 placeholder="Confirmar senha"
               />
             </div>
-            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500">
               <input
                 type="checkbox"
                 checked={showPassword}
@@ -92,7 +92,7 @@ export default function CadastroLojistaPage() {
               />
               Visualizar senha
             </label>
-            <button type="submit" disabled={isPending} className="w-full py-3 bg-luxury-black hover:bg-luxury-gold text-white rounded-lg shadow-sm text-sm font-bold uppercase tracking-widest transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50">
+            <button type="submit" disabled={isPending} className="w-full py-3 bg-gold hover:bg-white text-black font-bold rounded-lg shadow-md text-sm font-bold uppercase tracking-widest transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50">
               {isPending ? "Enviando..." : "Enviar Cadastro"}
             </button>
           </form>
