@@ -260,6 +260,7 @@ function canPersistLocally() {
 
 function databaseUrl() {
   let rawUrl = (
+    process.env.MOURATO_DATABASE_URL ||
     process.env.POSTGRES_URL ||
     process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||

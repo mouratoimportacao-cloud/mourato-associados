@@ -29,10 +29,12 @@ export async function GET(request: Request) {
     envKeys: Object.keys(process.env).filter(k => k.includes("POSTGRES") || k.includes("DATABASE") || k.includes("URL")),
     postgresUrlVal: getObfuscatedUrl(process.env.POSTGRES_URL || ""),
     databaseUrlVal: getObfuscatedUrl(process.env.DATABASE_URL || ""),
+    mouratoDatabaseUrlVal: getObfuscatedUrl(process.env.MOURATO_DATABASE_URL || ""),
   };
 
   // 1. Check what databaseUrl() in prisma.ts yields
   let rawUrl = (
+    process.env.MOURATO_DATABASE_URL ||
     process.env.POSTGRES_URL ||
     process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
