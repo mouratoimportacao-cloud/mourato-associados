@@ -265,7 +265,7 @@ function databaseUrl() {
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL_NON_POOLING ||
     ""
-  ).trim();
+  ).replace(/\\r|\\n|\\t/g, "").replace(/\s+/g, "");
 
   // Fallback caso a variável tenha sido criada com algum prefixo no Vercel (ex: LOJA_POSTGRES_URL_POSTGRES_URL)
   if (!rawUrl || rawUrl === "DATABASE_URL" || rawUrl === "POSTGRES_URL") {
@@ -273,7 +273,7 @@ function databaseUrl() {
     const matchingKey = keys.find(k => k.endsWith('_POSTGRES_URL') || k.endsWith('_DATABASE_URL'))
                      || keys.find(k => k.includes('POSTGRES_URL') && k !== 'POSTGRES_URL');
     if (matchingKey) {
-      rawUrl = (process.env[matchingKey] || "").trim();
+      rawUrl = (process.env[matchingKey] || "").replace(/\\r|\\n|\\t/g, "").replace(/\s+/g, "");
     }
   }
 
