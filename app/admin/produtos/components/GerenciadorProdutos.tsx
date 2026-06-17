@@ -127,7 +127,7 @@ export default function GerenciadorProdutos({ produtos }: { produtos: any[] }) {
                 Fechar
               </button>
             </div>
-            <FormProduto editingProduto={editingProduto} onCancelEdit={handleCancel} />
+            <FormProduto key={editingProduto ? editingProduto.id : 'new'} editingProduto={editingProduto} onCancelEdit={handleCancel} />
           </div>
         </div>
       )}

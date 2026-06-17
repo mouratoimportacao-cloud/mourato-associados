@@ -79,12 +79,7 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
   const [isPending, startTransition] = useTransition();
   const maxImageSize = 8 * 1024 * 1024;
 
-  // Reset form when editingProduto is cleared or changed
-  useEffect(() => {
-    if (formRef.current) {
-      formRef.current.reset();
-    }
-  }, [editingProduto]);
+
 
   async function clientAction(formData: FormData) {
     if (fileError) {
