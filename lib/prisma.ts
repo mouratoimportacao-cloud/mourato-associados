@@ -259,13 +259,23 @@ function canPersistLocally() {
 }
 
 function databaseUrl() {
-  const rawUrl = (
+  let rawUrl = (
     process.env.POSTGRES_URL ||
     process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL_NON_POOLING ||
     ""
   );
+
+  // Fallback caso a variável tenha sido criada com algum prefixo no Vercel (ex: LOJA_POSTGRES_URL_POSTGRES_URL)
+  if (!rawUrl || rawUrl === "DATABASE_URL" || rawUrl === "POSTGRES_URL") {
+    const keys = Object.keys(process.env);
+    const matchingKey = keys.find(k => k.endsWith('_POSTGRES_URL') || k.endsWith('_DATABASE_URL'))
+                     || keys.find(k => k.includes('POSTGRES_URL') && k !== 'POSTGRES_URL');
+    if (matchingKey) {
+      rawUrl = process.env[matchingKey] || "";
+    }
+  }
 
   if (!rawUrl || rawUrl === "DATABASE_URL" || rawUrl === "POSTGRES_URL") {
     return "";
