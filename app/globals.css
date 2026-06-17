@@ -4,14 +4,14 @@
   --font-serif: var(--font-playfair);
   --font-sans: var(--font-inter);
   --color-gold: #D4AF37;
-  --color-luxury-black: #1A1A1A;
-  --color-luxury-white: #FDFDFD;
+  --color-luxury-black: #0D0D0D;
+  --color-luxury-white: #000000;
   --color-luxury-gold: #C5A028;
 }
 
 :root {
-  --background: #FDFDFD;
-  --foreground: #1A1A1A;
+  --background: #000000;
+  --foreground: #FDFDFD;
   --font-playfair: Georgia, "Times New Roman", serif;
   --font-inter: Arial, Helvetica, sans-serif;
 }
@@ -32,7 +32,7 @@ h1, h2, h3, h4, .font-serif {
 }
 
 .luxury-shadow {
-  shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.85);
 }
 
 .luxury-border {
@@ -40,11 +40,40 @@ h1, h2, h3, h4, .font-serif {
 }
 
 .btn-luxury {
-  @apply px-8 py-3 bg-luxury-black text-luxury-white font-medium tracking-widest uppercase text-xs transition-all hover:bg-luxury-gold hover:tracking-[0.2em];
+  @apply px-8 py-3 bg-gold text-black font-bold tracking-widest uppercase text-xs transition-all hover:bg-white hover:tracking-[0.2em];
 }
 
 .btn-luxury-outline {
-  @apply px-8 py-3 border border-luxury-black text-luxury-black font-medium tracking-widest uppercase text-xs transition-all hover:bg-luxury-black hover:text-luxury-white;
+  @apply px-8 py-3 border border-gold text-gold font-bold tracking-widest uppercase text-xs transition-all hover:bg-gold hover:text-black;
+}
+
+.social-embossed {
+  background: #0D0D0D;
+  border: 1px solid #1A1A1A;
+  box-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.95), 
+    -3px -3px 6px rgba(255, 255, 255, 0.03),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.social-embossed:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    4px 4px 8px rgba(0, 0, 0, 0.98), 
+    -4px -4px 8px rgba(255, 255, 255, 0.05),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.08);
+  border-color: #D4AF37;
+}
+
+.social-embossed-disabled {
+  background: #0D0D0D;
+  border: 1px solid #161616;
+  box-shadow: 
+    inset 2px 2px 4px rgba(0, 0, 0, 0.9), 
+    inset -2px -2px 4px rgba(255, 255, 255, 0.01);
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 @keyframes luxury-marquee {

@@ -2,6 +2,7 @@
 
 import { prisma } from "../../../lib/prisma";
 import { revalidatePath } from "next/cache";
+import * as XLSX from "xlsx";
 async function imageToDataUrl(file: File) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
@@ -159,5 +160,121 @@ export async function deleteProduto(id: number) {
   } catch (error) {
     console.error("Erro ao excluir produto:", error);
     return { success: false, error: "Erro ao excluir produto" };
+  }
+}
+
+export async function importarProdutosPlanilha(base64Data: string) {
+  try {
+    const buffer = Buffer.from(base64Data, "base64");
+    const workbook = XLSX.read(buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet) as any[];
+
+    let updatedCount = 0;
+    let ignoredCount = 0;
+    const warnings: string[] = [];
+
+    for (const row of rows) {
+      const getVal = (possibleKeys: string[]) => {
+        const foundKey = Object.keys(row).find(k => {
+          const normK = k.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+          return possibleKeys.some(pk => normK === pk);
+        });
+        return foundKey ? row[foundKey] : undefined;
+      };
+
+      const codigoRaw = getVal(["codigo", "cod"]);
+      const produtoNome = getVal(["produto", "nome"]);
+      const custoDolarRaw = getVal(["custo usd", "custo dolar", "custo u$d", "custousd"]);
+      const cotacaoDolarRaw = getVal(["cotacao usd", "cotacao dolar", "cotacaousd", "cotacao"]);
+      const precoVendaRaw = getVal(["preco de venda", "preco venda", "preco", "precodevenda"]);
+      const quantidadeEstoqueRaw = getVal(["quantidade estoque", "quantidade", "estoque", "quantidadeestoque"]);
+
+      if (codigoRaw === undefined) {
+        ignoredCount++;
+        continue;
+      }
+
+      const codigo = Number(codigoRaw);
+      if (isNaN(codigo)) {
+        ignoredCount++;
+        warnings.push(`Linha com código inválido ignorada: ${codigoRaw}`);
+        continue;
+      }
+
+      const produto = await prisma.produto.findFirst({
+        where: { codigo }
+      });
+
+      if (!produto) {
+        ignoredCount++;
+        warnings.push(`Produto com código ${codigo} não encontrado no sistema.`);
+        continue;
+      }
+
+      const updateData: any = {};
+
+      if (quantidadeEstoqueRaw !== undefined) {
+        const estoqueVal = parseInt(String(quantidadeEstoqueRaw));
+        if (!isNaN(estoqueVal)) {
+          updateData.estoque = estoqueVal;
+          updateData.estoqueLojista = estoqueVal;
+        }
+      }
+
+      if (precoVendaRaw !== undefined) {
+        const precoVal = parseFloat(String(precoVendaRaw));
+        if (!isNaN(precoVal)) {
+          updateData.preco = precoVal;
+        }
+      }
+
+      if (custoDolarRaw !== undefined) {
+        const custoVal = parseFloat(String(custoDolarRaw));
+        if (!isNaN(custoVal)) {
+          updateData.custoDolar = custoVal;
+        }
+      }
+
+      if (cotacaoDolarRaw !== undefined) {
+        const cotacaoVal = parseFloat(String(cotacaoDolarRaw));
+        if (!isNaN(cotacaoVal)) {
+          updateData.cotacaoDolar = cotacaoVal;
+        }
+      }
+
+      if (produtoNome !== undefined && String(produtoNome).trim()) {
+        updateData.nome = String(produtoNome).trim();
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await prisma.produto.update({
+          where: { id: produto.id },
+          data: updateData
+        });
+        updatedCount++;
+      } else {
+        ignoredCount++;
+      }
+    }
+
+    revalidatePath("/admin/produtos");
+    revalidatePath("/produtos");
+    revalidatePath("/");
+
+    return {
+      success: true,
+      updatedCount,
+      ignoredCount,
+      warnings
+    };
+
+  } catch (error: any) {
+    console.error("Erro ao importar planilha:", error);
+    return {
+      success: false,
+      error: error.message || "Erro desconhecido ao processar planilha"
+    };
   }
 }

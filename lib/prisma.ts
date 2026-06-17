@@ -463,15 +463,74 @@ function saveLocalStore() {
   );
 }
 
+async function syncToGithub(contentStr: string) {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO;
+  if (!token || !repo) return;
+
+  try {
+    const url = `https://api.github.com/repos/${repo}/contents/.data/store.json`;
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/vnd.github.v3+json",
+      "User-Agent": "Mourato-Associados-App",
+      "Content-Type": "application/json"
+    };
+
+    let sha: string | undefined;
+    try {
+      const getRes = await fetch(url, { headers });
+      if (getRes.ok) {
+        const getJson = await getRes.json();
+        sha = getJson.sha;
+      }
+    } catch (err) {
+      console.warn("GitHub Sync: falha ao buscar metadados do arquivo:", err);
+    }
+
+    const putRes = await fetch(url, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({
+        message: "database sync: update store.json backup",
+        content: Buffer.from(contentStr).toString("base64"),
+        sha
+      })
+    });
+
+    if (!putRes.ok) {
+      const errText = await putRes.text();
+      console.error("GitHub Sync erro no commit:", errText);
+    } else {
+      console.log("GitHub Sync: store.json atualizado no GitHub com sucesso.");
+    }
+  } catch (error) {
+    console.error("GitHub Sync falhou:", error);
+  }
+}
+
 async function saveStore() {
   if (!globalStore.memoryDb || !globalStore.memorySeq) return;
 
+  const contentStr = JSON.stringify(
+    {
+      rows: globalStore.memoryDb,
+      seq: globalStore.memorySeq,
+    },
+    null,
+    2
+  );
+
   if (!shouldUsePostgres()) {
     saveLocalStore();
-    return;
+  } else {
+    await savePostgresStore();
   }
 
-  await savePostgresStore();
+  // Sincroniza em background sem travar o request do cliente
+  syncToGithub(contentStr).catch((err) =>
+    console.error("GitHub Sync background error:", err)
+  );
 }
 
 async function store() {

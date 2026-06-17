@@ -13,11 +13,11 @@ export default async function Footer() {
   ];
 
   return (
-    <footer className="bg-luxury-black text-luxury-white py-20">
+    <footer className="bg-black text-white py-20 border-t border-gold/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
-            <h2 className="text-2xl font-serif font-black tracking-tighter mb-6">
+            <h2 className="text-2xl font-serif font-black tracking-[0.1em] mb-6">
               MOURATO <span className="text-luxury-gold font-light">&</span> ASSOCIADOS
             </h2>
             <p className="text-gray-400 text-sm max-w-sm leading-relaxed font-light">
@@ -28,9 +28,9 @@ export default async function Footer() {
           <div>
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-6 text-luxury-gold">Explorar</h3>
             <ul className="space-y-4 text-sm text-gray-400 font-light">
-              <li><Link href="/produtos" className="hover:text-luxury-white transition-colors">Catálogo Completo</Link></li>
-              <li><Link href="/lojista" className="hover:text-luxury-white transition-colors">Área do Lojista</Link></li>
-              <li><Link href="/lojista/cadastro" className="hover:text-luxury-white transition-colors">Cadastro de Lojista</Link></li>
+              <li><Link href="/produtos" className="hover:text-luxury-gold transition-colors">Catálogo Completo</Link></li>
+              <li><Link href="/lojista" className="hover:text-luxury-gold transition-colors">Área do Lojista</Link></li>
+              <li><Link href="/lojista/cadastro" className="hover:text-luxury-gold transition-colors">Cadastro de Lojista</Link></li>
             </ul>
           </div>
 
@@ -46,18 +46,18 @@ export default async function Footer() {
                     rel="noopener noreferrer"
                     aria-label={social.label}
                     title={social.label}
-                    className="inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/10 shadow-sm transition-transform hover:scale-110"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full social-embossed p-3"
                   >
-                    <img src={social.icon} alt="" className="h-full w-full object-cover" />
+                    <img src={social.icon} alt="" className="h-full w-full object-contain filter invert brightness-0" />
                   </a>
                 ) : (
                   <span
                     key={social.label}
                     aria-label={`${social.label} sem link configurado`}
                     title={`${social.label}: sem link configurado`}
-                    className="inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/10 shadow-sm opacity-45 grayscale cursor-not-allowed"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full social-embossed-disabled p-3"
                   >
-                    <img src={social.icon} alt="" className="h-full w-full object-cover" />
+                    <img src={social.icon} alt="" className="h-full w-full object-contain filter invert brightness-0 opacity-50" />
                   </span>
                 )
               )}
@@ -65,9 +65,9 @@ export default async function Footer() {
             </div>
 
             <div
-              className="mt-6 inline-block cursor-default rounded-xl border border-luxury-gold/40 bg-white p-4 shadow-xl"
+              className="mt-6 inline-block cursor-default rounded-xl border border-luxury-gold/20 bg-neutral-900 p-4 shadow-xl"
             >
-              <img src={qrUrl} alt="QR Code do site Mourato & Associados" className="h-40 w-40 object-contain" />
+              <img src={qrUrl} alt="QR Code do site Mourato & Associados" className="h-40 w-40 object-contain filter invert" />
             </div>
             <p className="mt-3 text-[10px] uppercase tracking-widest text-gray-500">
               QR Code para poster e catálogo físico
