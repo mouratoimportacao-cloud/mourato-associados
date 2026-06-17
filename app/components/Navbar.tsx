@@ -47,7 +47,7 @@ export default async function Navbar() {
                   title={social.label}
                   className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full social-embossed p-2.5"
                 >
-                  <img src={social.icon} alt="" className="h-full w-full object-contain filter invert brightness-0 group-hover:filter-none" />
+                  <img src={social.icon} alt="" className="h-full w-full object-contain filter invert group-hover:scale-110 transition-transform duration-300" />
                 </a>
               ) : (
                 <span
@@ -56,7 +56,7 @@ export default async function Navbar() {
                   title={`${social.label}: sem link configurado`}
                   className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full social-embossed-disabled p-2.5"
                 >
-                  <img src={social.icon} alt="" className="h-full w-full object-contain filter invert brightness-0 opacity-50" />
+                  <img src={social.icon} alt="" className="h-full w-full object-contain filter invert opacity-30" />
                 </span>
               )
             )}
@@ -93,7 +93,7 @@ export default async function Navbar() {
                 title={social.label}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full social-embossed p-2.5"
               >
-                <img src={social.icon} alt="" className="h-full w-full object-contain filter invert brightness-0" />
+                <img src={social.icon} alt="" className="h-full w-full object-contain filter invert" />
               </a>
             ) : (
               <span
@@ -102,7 +102,7 @@ export default async function Navbar() {
                 title={`${social.label}: sem link configurado`}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full social-embossed-disabled p-2.5"
               >
-                <img src={social.icon} alt="" className="h-full w-full object-contain filter invert brightness-0 opacity-50" />
+                <img src={social.icon} alt="" className="h-full w-full object-contain filter invert opacity-30" />
               </span>
             )
           )}
