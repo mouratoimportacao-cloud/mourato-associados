@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import FormProduto from "./FormProduto";
 import ListaProdutos from "./ListaProdutos";
-import { importarProdutosPlanilha } from "../actions";
+import ImportPreviewModal from "./ImportPreviewModal";
 
 interface Produto {
   id: number;
@@ -27,7 +27,8 @@ interface Produto {
 export default function GerenciadorProdutos({ produtos }: { produtos: any[] }) {
   const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isImporting, startImportTransition] = useTransition();
+  const [importBase64, setImportBase64] = useState<string | null>(null);
+  const [isReadingFile, setIsReadingFile] = useState(false);
 
   const handleEdit = (produto: Produto) => {
     setEditingProduto(produto);
@@ -43,39 +44,19 @@ export default function GerenciadorProdutos({ produtos }: { produtos: any[] }) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!window.confirm("Deseja realmente atualizar o estoque e preços dos produtos usando as informações desta planilha?")) {
-      event.target.value = "";
-      return;
-    }
-
+    setIsReadingFile(true);
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => {
       const result = reader.result as string;
       const base64Data = result.split(",")[1];
-
-      startImportTransition(async () => {
-        try {
-          const res = await importarProdutosPlanilha(base64Data);
-          if (res.success) {
-            let msg = `Planilha processada com sucesso!\n\n- Produtos atualizados: ${res.updatedCount}\n- Linhas ignoradas: ${res.ignoredCount}`;
-            if (res.warnings && res.warnings.length > 0) {
-              msg += `\n\nAlertas:\n${res.warnings.slice(0, 5).join("\n")}`;
-              if (res.warnings.length > 5) msg += `\n...e mais ${res.warnings.length - 5} alertas.`;
-            }
-            alert(msg);
-          } else {
-            alert("Erro na importação: " + res.error);
-          }
-        } catch (err: any) {
-          alert("Erro catastrófico ao importar: " + err.message);
-        } finally {
-          event.target.value = "";
-        }
-      });
+      setImportBase64(base64Data);
+      setIsReadingFile(false);
+      event.target.value = ""; // Reset file input
     };
     reader.onerror = () => {
       alert("Erro ao ler o arquivo.");
+      setIsReadingFile(false);
       event.target.value = "";
     };
   };
@@ -88,12 +69,12 @@ export default function GerenciadorProdutos({ produtos }: { produtos: any[] }) {
           <p className="text-xs text-gray-400 uppercase tracking-widest">Role a lista sem perder os botões de ação</p>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
-          <label className={`relative flex items-center justify-center bg-emerald-600 text-white px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-emerald-700 transition-colors cursor-pointer ${isImporting ? 'opacity-50 cursor-wait' : ''}`}>
-            <span>{isImporting ? "Importando..." : "Importar Planilha"}</span>
+          <label className={`relative flex items-center justify-center bg-emerald-600 text-white px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-emerald-700 transition-colors cursor-pointer ${isReadingFile ? 'opacity-50 cursor-wait' : ''}`}>
+            <span>{isReadingFile ? "Lendo arquivo..." : "Importar Planilha"}</span>
             <input
               type="file"
               accept=".xlsx,.xls,.ods,.csv"
-              disabled={isImporting}
+              disabled={isReadingFile}
               onChange={handleImportPlanilha}
               className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
             />
@@ -130,6 +111,17 @@ export default function GerenciadorProdutos({ produtos }: { produtos: any[] }) {
             <FormProduto key={editingProduto ? editingProduto.id : 'new'} editingProduto={editingProduto} onCancelEdit={handleCancel} />
           </div>
         </div>
+      )}
+
+      {importBase64 && (
+        <ImportPreviewModal
+          base64Data={importBase64}
+          onClose={() => setImportBase64(null)}
+          onSuccess={() => {
+            // Trigger a page reload to fetch the newly imported products
+            window.location.reload();
+          }}
+        />
       )}
     </div>
   );
