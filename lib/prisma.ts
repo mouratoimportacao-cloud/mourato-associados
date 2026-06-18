@@ -206,35 +206,35 @@ const globalStore = globalThis as unknown as {
 const storePath = join(process.cwd(), ".data", "store.json");
 
 const initialProducts: MemoryRow[] = [
-  { id: 1, nome: "MARC JOSEPH 100ML", marca: "Marc Joseph", categoria: "Perfume", volume: "100ml", preco: 290, precoAtacado: 210, imagem: "/marketing/marc-joseph-paris.png" },
-  { id: 2, nome: "PARTY GIRL NIGHT 85ML", marca: "Milestone", categoria: "Perfume", volume: "85ml", preco: 280, precoAtacado: 150, imagem: "/marketing/party-girl-night.png" },
-  { id: 3, nome: "LA SIENE 100ML", marca: "Boulevard", categoria: "Perfume", volume: "100ml", preco: 260, precoAtacado: 208, imagem: "/marketing/la-seine.png" },
-  { id: 4, nome: "AL FARAS MENTHYST 100ML", marca: "Al Faras", categoria: "Perfume Árabe", volume: "100ml", preco: 280, precoAtacado: 160, imagem: "/marketing/arabesque-amethyst.png" },
-  { id: 5, nome: "MUSK ESSENTIAL 100ML", marca: "Adyan", categoria: "Perfume Árabe", volume: "100ml", preco: 280, precoAtacado: 180, imagem: "/marketing/musk-essential.png" },
-  { id: 6, nome: "7 EME FOR MAN 100ML", marca: "Boulevard", categoria: "Perfume Masculino", volume: "100ml", preco: 280, precoAtacado: 215, imagem: "/marketing/7-eme.png" },
+  { id: 1, nome: "MARC JOSEPH 100ML", marca: "Marc Joseph", categoria: "Perfume", volume: "100ml", preco: 290, precoAtacado: 210, imagem: "/marketing/marc-joseph-paris.webp" },
+  { id: 2, nome: "PARTY GIRL NIGHT 85ML", marca: "Milestone", categoria: "Perfume", volume: "85ml", preco: 280, precoAtacado: 150, imagem: "/marketing/party-girl-night.webp" },
+  { id: 3, nome: "LA SIENE 100ML", marca: "Boulevard", categoria: "Perfume", volume: "100ml", preco: 260, precoAtacado: 208, imagem: "/marketing/la-seine.webp" },
+  { id: 4, nome: "AL FARAS MENTHYST 100ML", marca: "Al Faras", categoria: "Perfume Árabe", volume: "100ml", preco: 280, precoAtacado: 160, imagem: "/marketing/arabesque-amethyst.webp" },
+  { id: 5, nome: "MUSK ESSENTIAL 100ML", marca: "Adyan", categoria: "Perfume Árabe", volume: "100ml", preco: 280, precoAtacado: 180, imagem: "/marketing/musk-essential.webp" },
+  { id: 6, nome: "7 EME FOR MAN 100ML", marca: "Boulevard", categoria: "Perfume Masculino", volume: "100ml", preco: 280, precoAtacado: 215, imagem: "/marketing/7-eme.webp" },
   { id: 7, nome: "PALAIS ROYAL 100M", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 300, precoAtacado: 225, imagem: null },
-  { id: 8, nome: "SHARF 100ML", marca: "Adyan", categoria: "Perfume Árabe", volume: "100ml", preco: 330, precoAtacado: 190, imagem: "/marketing/sharf.png" },
+  { id: 8, nome: "SHARF 100ML", marca: "Adyan", categoria: "Perfume Árabe", volume: "100ml", preco: 330, precoAtacado: 190, imagem: "/marketing/sharf.webp" },
   { id: 9, nome: "MAHIB 100ML", marca: "M&A Fragrâncias", categoria: "Perfume Árabe", volume: "100ml", preco: 330, precoAtacado: 180, imagem: null },
   { id: 10, nome: "GLAMOR 100ML", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 330, precoAtacado: 200, imagem: null },
   { id: 11, nome: "MAJESTIC 100ML", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 330, precoAtacado: 200, imagem: null },
-  { id: 12, nome: "NORAH AMOUR 100ML", marca: "Adyan", categoria: "Perfume Árabe", volume: "100ml", preco: 300, precoAtacado: 200, imagem: "/marketing/norah-amour.png" },
-  { id: 13, nome: "SAHIB 100ML", marca: "Ajyad", categoria: "Perfume Árabe", volume: "100ml", preco: 280, precoAtacado: 170, imagem: "/marketing/sahib.png" },
-  { id: 14, nome: "CHAMP DE MARS 100ML", marca: "Boulevard", categoria: "Perfume Masculino", volume: "100ml", preco: 290, precoAtacado: 210, imagem: "/marketing/champ-de-mars.jpg" },
-  { id: 15, nome: "LETTRE DE VOLTAIRE 100ML", marca: "Boulevard", categoria: "Perfume Masculino", volume: "100ml", preco: 280, precoAtacado: 210, imagem: "/marketing/lettre-de-voltaire.png" },
-  { id: 16, nome: "AUTOGRAPH by", marca: "Hamidi", categoria: "Perfume Árabe", volume: "100ml", preco: 300, precoAtacado: 190, imagem: "/marketing/autograph.jpg" },
-  { id: 17, nome: "Very Girl", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 300, precoAtacado: 170, imagem: "/marketing/good-girl-glam.png" },
+  { id: 12, nome: "NORAH AMOUR 100ML", marca: "Adyan", categoria: "Perfume Árabe", volume: "100ml", preco: 300, precoAtacado: 200, imagem: "/marketing/norah-amour.webp" },
+  { id: 13, nome: "SAHIB 100ML", marca: "Ajyad", categoria: "Perfume Árabe", volume: "100ml", preco: 280, precoAtacado: 170, imagem: "/marketing/sahib.webp" },
+  { id: 14, nome: "CHAMP DE MARS 100ML", marca: "Boulevard", categoria: "Perfume Masculino", volume: "100ml", preco: 290, precoAtacado: 210, imagem: "/marketing/champ-de-mars.webp" },
+  { id: 15, nome: "LETTRE DE VOLTAIRE 100ML", marca: "Boulevard", categoria: "Perfume Masculino", volume: "100ml", preco: 280, precoAtacado: 210, imagem: "/marketing/lettre-de-voltaire.webp" },
+  { id: 16, nome: "AUTOGRAPH by", marca: "Hamidi", categoria: "Perfume Árabe", volume: "100ml", preco: 300, precoAtacado: 190, imagem: "/marketing/autograph.webp" },
+  { id: 17, nome: "Very Girl", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 300, precoAtacado: 170, imagem: "/marketing/good-girl-glam.webp" },
   { id: 18, nome: "212 Amor", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 400, precoAtacado: 250, imagem: null },
   { id: 19, nome: "Boss", marca: "M&A Fragrâncias", categoria: "Perfume Masculino", volume: "100ml", preco: 400, precoAtacado: 250, imagem: null },
   { id: 20, nome: "Salvage", marca: "M&A Fragrâncias", categoria: "Perfume Masculino", volume: "100ml", preco: 450, precoAtacado: 280, imagem: null },
   { id: 21, nome: "Invictus", marca: "M&A Fragrâncias", categoria: "Perfume Masculino", volume: "100ml", preco: 400, precoAtacado: 250, imagem: null },
   { id: 22, nome: "Paradox", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 490, precoAtacado: 290, imagem: null },
   { id: 23, nome: "One Million", marca: "M&A Fragrâncias", categoria: "Perfume Masculino", volume: "100ml", preco: 440, precoAtacado: 260, imagem: null },
-  { id: 24, nome: "La Vida Es Bella", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "75ml", preco: 450, precoAtacado: 260, imagem: "/marketing/la-vida-es-bella.png" },
-  { id: 25, nome: "Pink Sexy Scandal", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 280, precoAtacado: 190, imagem: "/marketing/pink-sexy-scandal.png" },
-  { id: 26, nome: "Yara", marca: "Lattafa", categoria: "Perfume Árabe", volume: "100ml", preco: 290, precoAtacado: 180, imagem: "/marketing/yara.png" },
+  { id: 24, nome: "La Vida Es Bella", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "75ml", preco: 450, precoAtacado: 260, imagem: "/marketing/la-vida-es-bella.webp" },
+  { id: 25, nome: "Pink Sexy Scandal", marca: "M&A Fragrâncias", categoria: "Perfume", volume: "100ml", preco: 280, precoAtacado: 190, imagem: "/marketing/pink-sexy-scandal.webp" },
+  { id: 26, nome: "Yara", marca: "Lattafa", categoria: "Perfume Árabe", volume: "100ml", preco: 290, precoAtacado: 180, imagem: "/marketing/yara.webp" },
   { id: 27, nome: "karseel", marca: "Karseell", categoria: "Cosmético", volume: "Unidade", preco: 100, precoAtacado: 75, imagem: null },
   { id: 28, nome: "Kit Coconut Passion Hidratante 236ml + Body Splash 250ml", marca: "M&A Fragrâncias", categoria: "Cosmético", volume: "Kit", preco: 180, precoAtacado: 130, imagem: null },
-  { id: 29, nome: "kit Mine Yara 25ML", marca: "Lattafa", categoria: "Perfume Árabe", volume: "25ml", preco: 300, precoAtacado: 230, imagem: "/marketing/kit-yara.png" },
+  { id: 29, nome: "kit Mine Yara 25ML", marca: "Lattafa", categoria: "Perfume Árabe", volume: "25ml", preco: 300, precoAtacado: 230, imagem: "/marketing/kit-yara.webp" },
 ].map((produto, index) => ({
   codigo: produto.id,
   custoDolar: null,
@@ -278,12 +278,19 @@ function mergeInitialProducts(produtos: MemoryRow[]) {
 }
 
 function withProdutoDefaults(produto: MemoryRow): MemoryRow {
+  let imagem = produto.imagem;
+  if (typeof imagem === "string") {
+    if (imagem.startsWith("/marketing/") || imagem.startsWith("/uploads/")) {
+      imagem = imagem.replace(/\.(png|jpg|jpeg)$/i, ".webp");
+    }
+  }
   return {
     codigo: Number(produto.codigo ?? produto.id ?? 0) || null,
     vitrine: false,
     promocaoAtiva: false,
     descontoPercentual: null,
     ...produto,
+    imagem,
     estoque: Number(produto.estoque ?? 0),
     estoqueLojista: Number(produto.estoqueLojista ?? 0),
   };
