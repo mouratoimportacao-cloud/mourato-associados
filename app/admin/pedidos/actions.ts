@@ -61,23 +61,16 @@ export async function atualizarStatusPedido(formData: FormData) {
       });
 
       const quantidade = Number(pedido.quantidade);
-      const jaPaga = Number(pedido.quantidadePagaFornecedor || 0);
-      const restante = Math.max(0, quantidade - jaPaga);
-      const precoUnitario = Number(
-        pedido.precoUnitario || produto?.precoAtacado || 0
-      );
-      const totalPagoFornecedor =
-        Number(pedido.totalPagoFornecedor || 0) + restante * precoUnitario;
 
-      if (restante > 0 && produto) {
+      if (produto) {
         // Decrementa estoque do fornecedor (produto.estoque global)
         await prisma.produto.update({
           where: { id: produto.id },
           data: {
-            estoque: Math.max(0, Number(produto.estoque || 0) - restante),
+            estoque: Math.max(0, Number(produto.estoque || 0) - quantidade),
             estoqueLojista: Math.max(
               0,
-              Number(produto.estoqueLojista || 0) - restante
+              Number(produto.estoqueLojista || 0) - quantidade
             ),
           },
         });
@@ -92,7 +85,7 @@ export async function atualizarStatusPedido(formData: FormData) {
           } as Record<string, number>;
           const chave = String(pedido.produtoId);
           estoquePessoal[chave] =
-            Number(estoquePessoal[chave] || 0) + restante;
+            Number(estoquePessoal[chave] || 0) + quantidade;
           await prisma.usuario.update({
             where: { id: lojista.id },
             data: { estoquePessoal },
@@ -100,14 +93,40 @@ export async function atualizarStatusPedido(formData: FormData) {
         }
       }
 
-      // Atualiza controle financeiro do pedido
+      // Atualiza controle financeiro do pedido — Apenas se o status de destino for "pago"
+      if (status === "pago") {
+        await prisma.pedido.update({
+          where: { id: pedidoId },
+          data: {
+            quantidadePagaFornecedor: quantidade,
+            totalPagoFornecedor: pedido.total,
+            saldoFornecedor: 0,
+            tipoFluxo: "compra_fornecedor",
+            status: "pago",
+          },
+        });
+      } else {
+        // Se for "enviado" ou "entregue", apenas atualiza status, mantendo saldo devedor intacto
+        await prisma.pedido.update({
+          where: { id: pedidoId },
+          data: {
+            tipoFluxo: "compra_fornecedor",
+            status,
+          },
+        });
+      }
+    }
+
+    // ── FORNECEDOR: Atualização financeira caso transite para "pago" após já ter sido entregue/enviado ──
+    const isTransitioningToPago = status === "pago" && pedido.status !== "pago";
+    if (fluxoFornecedor && isTransitioningToPago && !entraEmEntrega) {
       await prisma.pedido.update({
         where: { id: pedidoId },
         data: {
-          quantidadePagaFornecedor: quantidade,
-          totalPagoFornecedor,
+          quantidadePagaFornecedor: Number(pedido.quantidade || 0),
+          totalPagoFornecedor: pedido.total,
           saldoFornecedor: 0,
-          tipoFluxo: "compra_fornecedor",
+          status: "pago",
         },
       });
     }

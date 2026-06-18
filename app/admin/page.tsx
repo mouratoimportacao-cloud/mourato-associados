@@ -44,18 +44,21 @@ export default async function AdminPage() {
     (String(pedido.tipoFluxo || "") === "venda_qr" || String(pedido.pagamento || "").includes("Venda via QR do lojista")) &&
     ["pago", "enviado", "entregue"].includes(String(pedido.status || ""))
   );
-  const receitaFornecedor = comprasFornecedor.reduce((acc: number, pedido: any) => {
+  const faturamentoAtacado = comprasFornecedor.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0);
+  const totalPagoLojistas = comprasFornecedor.reduce((acc: number, pedido: any) => {
     if (pedido.totalPagoFornecedor !== null && pedido.totalPagoFornecedor !== undefined) {
       return acc + Number(pedido.totalPagoFornecedor || 0);
     }
     return ["pago", "enviado", "entregue"].includes(String(pedido.status || "")) ? acc + Number(pedido.total || 0) : acc;
   }, 0);
   const receitaVendasQr = vendasQrConfirmadas.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0);
-  const totalFaturamento = receitaFornecedor + receitaVendasQr;
+  const totalFaturamento = faturamentoAtacado + receitaVendasQr;
+  
   const custoMercadorias = vendasQrConfirmadas.reduce((acc: number, pedido: any) => {
     const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
     return acc + Number(pedido.custoUnitario || produto?.precoAtacado || 0) * Number(pedido.quantidade || 1);
   }, 0);
+
   const descontoConcedido = vendasQrConfirmadas.reduce((acc: number, pedido: any) => {
     const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
     const precoTabela = Number(pedido.precoTabela || produto?.preco || 0);
@@ -63,13 +66,20 @@ export default async function AdminPage() {
     const desconto = precoTabela > precoVendido ? (precoTabela - precoVendido) * Number(pedido.quantidade || 1) : 0;
     return acc + desconto;
   }, 0);
+
   const lucroBruto = receitaVendasQr - custoMercadorias;
+
   const valorEmAbertoFornecedor = comprasFornecedor.reduce((acc: number, pedido: any) => {
     if (pedido.saldoFornecedor !== null && pedido.saldoFornecedor !== undefined) {
       return acc + Number(pedido.saldoFornecedor || 0);
     }
     return pedido.status === "pendente fornecedor" ? acc + Number(pedido.total || 0) : acc;
   }, 0);
+
+  const totalQuitado = totalPagoLojistas + receitaVendasQr;
+  const totalPendente = valorEmAbertoFornecedor;
+  const receitaBruta = totalFaturamento;
+
   const produtosVendidos = vendasQrConfirmadas.reduce((map: Map<string, number>, pedido: any) => {
     const nome = String(pedido.produtoNome || "Produto");
     map.set(nome, (map.get(nome) || 0) + Number(pedido.quantidade || 1));
@@ -103,16 +113,40 @@ export default async function AdminPage() {
     { label: "Pedidos", value: countPedidos, icon: "🛒", color: "bg-green-50 text-green-600" },
     { label: "Lojistas", value: countLojistas, icon: "🏪", color: "bg-purple-50 text-purple-600" },
     { 
-      label: "Estoque R$", 
-      value: `R$ ${totalEstoqueProdutos.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
+      label: "Faturamento Total", 
+      value: `R$ ${totalFaturamento.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 
       icon: "💰", 
       color: "bg-amber-50 text-amber-600" 
     },
     { 
-      label: "Faturamento", 
-      value: `R$ ${totalFaturamento.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
-      icon: "💰", 
+      label: "Faturamento em Aberto", 
+      value: `R$ ${valorEmAbertoFornecedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 
+      icon: "⏳", 
+      color: "bg-red-50 text-red-600" 
+    },
+    { 
+      label: "Total Quitado", 
+      value: `R$ ${totalQuitado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 
+      icon: "✅", 
+      color: "bg-green-50 text-green-600" 
+    },
+    { 
+      label: "Total Pendente", 
+      value: `R$ ${totalPendente.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 
+      icon: "⚠️", 
       color: "bg-amber-50 text-amber-600" 
+    },
+    { 
+      label: "Receita Bruta", 
+      value: `R$ ${receitaBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 
+      icon: "📊", 
+      color: "bg-indigo-50 text-indigo-600" 
+    },
+    { 
+      label: "Lucro Bruto", 
+      value: `R$ ${lucroBruto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 
+      icon: "📈", 
+      color: "bg-emerald-50 text-emerald-600" 
     },
   ];
 
@@ -149,7 +183,7 @@ export default async function AdminPage() {
           <Link href="/admin/radar" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>🎯</span> Radar
           </Link>
-          <Link href="/admin#dre" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+          <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>📊</span> DRE
           </Link>
           <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
@@ -192,7 +226,7 @@ export default async function AdminPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {metrics.map((metric, i) => (
             <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex justify-between items-start mb-4">

@@ -70,6 +70,8 @@ type UsuarioData = {
   codigoRevenda?: string | null;
   estoquePessoal?: Record<string, number> | null;
   precosVenda?: Record<string, number> | null;
+  limiteAprovado?: number | null;
+  historicoPagamentos?: any[] | null;
 };
 
 type PedidoData = {
@@ -156,6 +158,8 @@ const columns = {
     "codigoRevenda",
     "estoquePessoal",
     "precosVenda",
+    "limiteAprovado",
+    "historicoPagamentos",
     "createdAt",
   ],
 } as const;

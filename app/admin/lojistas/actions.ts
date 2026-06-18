@@ -109,6 +109,8 @@ export async function createLojista(formData: FormData) {
         status: "aprovado",
         codigoRevenda: gerarCodigoRevenda(nome),
         estoquePessoal: {},
+        limiteAprovado: 0,
+        historicoPagamentos: [],
       },
     });
 
@@ -307,5 +309,198 @@ export async function registrarPagamentoFornecedor(formData: FormData) {
 
   } catch (error) {
     console.error("Erro ao registrar pagamento do fornecedor:", error);
+  }
+}
+
+// ─── updateLojistaLimite ──────────────────────────────────────────────────────
+export async function updateLojistaLimite(lojistaId: number, limiteAprovado: number) {
+  if (limiteAprovado < 0) {
+    return { success: false, error: "O limite não pode ser negativo." };
+  }
+
+  try {
+    await prisma.usuario.update({
+      where: { id: lojistaId },
+      data: { limiteAprovado },
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/lojistas");
+    revalidatePath(`/admin/lojistas/${lojistaId}`);
+    revalidatePath("/lojista/painel");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao atualizar limite:", error);
+    return { success: false, error: "Erro ao atualizar limite." };
+  }
+}
+
+export async function updateLojistaLimiteAction(formData: FormData) {
+  const lojistaId = Number(formData.get("lojistaId"));
+  const limiteAprovado = Number(formData.get("limiteAprovado") || 0);
+  await updateLojistaLimite(lojistaId, limiteAprovado);
+}
+
+// ─── registrarPagamentoParcialLojista ─────────────────────────────────────────
+export async function registrarPagamentoParcialLojista(
+  lojistaId: number,
+  valorPagamento: number,
+  observacao?: string
+) {
+  if (!lojistaId || !valorPagamento || valorPagamento <= 0) {
+    return { success: false, error: "Valor de pagamento inválido." };
+  }
+
+  try {
+    const lojista = await prisma.usuario.findUnique({
+      where: { id: lojistaId },
+    });
+
+    if (!lojista) {
+      return { success: false, error: "Lojista não encontrado." };
+    }
+
+    // Load pending comprasFornecedor orders that have saldoFornecedor > 0
+    const pedidos = await prisma.pedido.findMany({
+      where: {
+        usuarioId: lojistaId,
+        status: { notIn: ["cancelado"] },
+      },
+      orderBy: { createdAt: "asc" }, // oldest first
+    });
+
+    const comprasFornecedor = pedidos.filter((pedido: any) =>
+      String(pedido.tipoFluxo || "") === "compra_fornecedor" ||
+      String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
+      String(pedido.pagamento || "").includes("Compra do fornecedor") ||
+      pedido.status === "pendente fornecedor"
+    );
+
+    let restante = valorPagamento;
+
+    // Amortize across the orders
+    for (const pedido of comprasFornecedor) {
+      if (restante <= 0) break;
+
+      const total = Number(pedido.total || 0);
+      const totalPagoAnterior = pedido.totalPagoFornecedor !== null && pedido.totalPagoFornecedor !== undefined
+        ? Number(pedido.totalPagoFornecedor || 0)
+        : ["pago", "enviado", "entregue"].includes(pedido.status)
+          ? total
+          : 0;
+
+      const saldoAtual = pedido.saldoFornecedor !== null && pedido.saldoFornecedor !== undefined
+        ? Number(pedido.saldoFornecedor || 0)
+        : total - totalPagoAnterior;
+
+      if (saldoAtual <= 0) continue;
+
+      const amortizar = Math.min(restante, saldoAtual);
+      const novoTotalPago = totalPagoAnterior + amortizar;
+      const novoSaldo = Math.max(0, total - novoTotalPago);
+
+      restante -= amortizar;
+
+      // Update the order
+      await prisma.pedido.update({
+        where: { id: pedido.id },
+        data: {
+          totalPagoFornecedor: novoTotalPago,
+          saldoFornecedor: novoSaldo,
+          status: novoSaldo <= 0 
+            ? (["enviado", "entregue"].includes(pedido.status) ? pedido.status : "pago")
+            : pedido.status,
+        },
+      });
+    }
+
+    // Save payment in history
+    const historico = Array.isArray(lojista.historicoPagamentos) ? lojista.historicoPagamentos : [];
+    const novoPagamento = {
+      id: Math.random().toString(36).substring(2, 9),
+      data: new Date().toISOString(),
+      valor: valorPagamento,
+      observacao: observacao || "Pagamento registrado pelo administrador",
+    };
+    
+    await prisma.usuario.update({
+      where: { id: lojistaId },
+      data: {
+        historicoPagamentos: [...historico, novoPagamento],
+      },
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/lojistas");
+    revalidatePath(`/admin/lojistas/${lojistaId}`);
+    revalidatePath("/lojista/painel");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao registrar pagamento parcial:", error);
+    return { success: false, error: "Erro ao registrar pagamento." };
+  }
+}
+
+export async function registrarPagamentoParcialLojistaAction(formData: FormData) {
+  const lojistaId = Number(formData.get("lojistaId"));
+  const valorPagamento = Number(formData.get("valorPagamento") || 0);
+  const observacao = String(formData.get("observacao") || "").trim();
+  
+  if (lojistaId && valorPagamento > 0) {
+    await registrarPagamentoParcialLojista(lojistaId, valorPagamento, observacao);
+  }
+}
+
+// ─── quitarSaldoLojista ───────────────────────────────────────────────────────
+export async function quitarSaldoLojista(lojistaId: number) {
+  try {
+    const lojista = await prisma.usuario.findUnique({ where: { id: lojistaId } });
+    if (!lojista) return { success: false, error: "Lojista não encontrado." };
+
+    const pedidos = await prisma.pedido.findMany({
+      where: { usuarioId: lojistaId },
+    });
+
+    const comprasFornecedor = pedidos.filter((pedido: any) =>
+      pedido.status !== "cancelado" && (
+        String(pedido.tipoFluxo || "") === "compra_fornecedor" ||
+        String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
+        String(pedido.pagamento || "").includes("Compra do fornecedor") ||
+        pedido.status === "pendente fornecedor"
+      )
+    );
+
+    const saldoDevedor = comprasFornecedor.reduce((acc: number, pedido: any) => {
+      const total = Number(pedido.total || 0);
+      const totalPago = pedido.totalPagoFornecedor !== null && pedido.totalPagoFornecedor !== undefined
+        ? Number(pedido.totalPagoFornecedor || 0)
+        : ["pago", "enviado", "entregue"].includes(pedido.status) ? total : 0;
+      const saldo = pedido.saldoFornecedor !== null && pedido.saldoFornecedor !== undefined
+        ? Number(pedido.saldoFornecedor || 0)
+        : total - totalPago;
+      return acc + saldo;
+    }, 0);
+
+    if (saldoDevedor <= 0) {
+      return { success: false, error: "O lojista não possui saldo devedor." };
+    }
+
+    return await registrarPagamentoParcialLojista(
+      lojistaId,
+      saldoDevedor,
+      "Quitação integral do saldo devedor"
+    );
+  } catch (error) {
+    console.error("Erro ao quitar saldo:", error);
+    return { success: false, error: "Erro ao quitar saldo." };
+  }
+}
+
+export async function quitarSaldoLojistaAction(formData: FormData) {
+  const lojistaId = Number(formData.get("lojistaId"));
+  if (lojistaId) {
+    await quitarSaldoLojista(lojistaId);
   }
 }
