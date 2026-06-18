@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { criarPedidoLojista } from "../actions";
+import { useMemo, useState } from "react";
 
 interface Produto {
   id: number;
@@ -37,31 +36,21 @@ function precoPromocional(produto: Produto) {
   return preco * (1 - desconto / 100);
 }
 
-export default function ListaProdutosLojista({ produtos }: { produtos: Produto[] }) {
+export default function ListaProdutosLojista({ 
+  produtos,
+  onAddToCart
+}: { 
+  produtos: Produto[];
+  onAddToCart: (produtoId: number, quantidade: number) => void;
+}) {
   const [categoria, setCategoria] = useState("todos");
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  function handleComprarSubmit(event: React.FormEvent<HTMLFormElement>, produtoNome: string) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const quantidade = String(formData.get("quantidade") || "1");
-
-    if (!window.confirm(`Deseja comprar ${quantidade} unidade(s) de ${produtoNome} do fornecedor?`)) {
-      return;
-    }
-
-    startTransition(async () => {
-      await criarPedidoLojista(formData);
-      window.location.reload();
-    });
-  }
 
   const categorias = useMemo(
     () => ["todos", ...Array.from(new Set([...categoriasBase, ...produtos.map((produto) => produto.categoria).filter(Boolean)])).sort()],
     [produtos]
   );
+  
   const produtosFiltrados = useMemo(
     () => {
       const ordenados = [...produtos].sort((a, b) => {
@@ -80,8 +69,8 @@ export default function ListaProdutosLojista({ produtos }: { produtos: Produto[]
       <section className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-gray-100 bg-gray-50 px-6 py-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">Lista de produtos</h2>
-            <p className="text-xs text-gray-500">Mostrando {produtosFiltrados.length} de {produtos.length} produtos disponíveis para lojista</p>
+            <h2 className="text-lg font-bold text-gray-800">Produtos do Fornecedor</h2>
+            <p className="text-xs text-gray-500">Mostrando {produtosFiltrados.length} de {produtos.length} produtos disponíveis</p>
           </div>
           <select
             value={categoria}
@@ -102,9 +91,9 @@ export default function ListaProdutosLojista({ produtos }: { produtos: Produto[]
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Produto</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Tipo</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Valores</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Disponível</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Comprar do fornecedor</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Preço Lojista</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Estoque Fornecedor</th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Ações</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
@@ -144,59 +133,36 @@ export default function ListaProdutosLojista({ produtos }: { produtos: Produto[]
                       <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
                         {produto.categoria}
                       </span>
-                      {produto.promocaoAtiva && produto.descontoPercentual ? (
-                        <div className="mt-2 w-fit px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-50 text-red-700 border border-red-100">
-                          Promo {produto.descontoPercentual}%
-                        </div>
-                      ) : null}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-black text-gray-900">Custo: {moeda(produto.precoAtacado)}</div>
-                      {valorPromocional ? (
-                        <div className="text-xs text-red-600 font-bold">
-                          Sugestão: {moeda(valorPromocional)} <span className="text-gray-400 line-through">{moeda(produto.preco)}</span>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-gray-500">Sugestão: {moeda(produto.preco)}</div>
-                      )}
+                    <td className="px-6 py-4 whitespace-nowrap font-black text-gray-900">
+                      {moeda(produto.precoAtacado)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={produto.estoque > 0 ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
-                        Fornecedor: {produto.estoque || 0} un.
+                        {produto.estoque || 0} un.
                       </span>
-                      <div className="text-xs text-gray-500">Meu estoque: {produto.estoqueLojista || 0} un.</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <form
-                        onSubmit={(e) => handleComprarSubmit(e, produto.nome)}
-                        className="admin-action-row justify-end"
-                      >
-                        <input type="hidden" name="produtoId" value={produto.id} />
+                      <div className="flex items-center gap-2 justify-end">
                         <input
-                          name="quantidade"
+                          id={`qty-desktop-${produto.id}`}
                           type="number"
                           min={1}
                           defaultValue={1}
-                          disabled={isPending}
-                          className="w-20 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-luxury-gold disabled:bg-gray-100 font-bold"
+                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold font-bold text-center"
                         />
-                        <select
-                          name="pagamento"
-                          disabled={isPending}
-                          className="w-36 rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold disabled:bg-gray-100 font-bold"
-                        >
-                          <option value="Pedido ao fornecedor">Fornecedor</option>
-                          <option value="Pix fornecedor">Pix fornecedor</option>
-                          <option value="Acerto local">Acerto local</option>
-                        </select>
                         <button
-                          type="submit"
-                          disabled={isPending}
-                          className="rounded-lg bg-luxury-black px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-luxury-gold disabled:opacity-50 disabled:cursor-not-allowed min-w-[150px]"
+                          type="button"
+                          onClick={() => {
+                            const inputEl = document.getElementById(`qty-desktop-${produto.id}`) as HTMLInputElement;
+                            const qty = Number(inputEl?.value || 1);
+                            onAddToCart(produto.id, qty);
+                          }}
+                          className="rounded-lg bg-luxury-black hover:bg-luxury-gold text-white hover:text-black px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer"
                         >
-                          {isPending ? "Processando…" : "Comprar estoque"}
+                          Adicionar ao Pedido
                         </button>
-                      </form>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -215,7 +181,6 @@ export default function ListaProdutosLojista({ produtos }: { produtos: Produto[]
         {/* MOBILE CARDS VIEW (Fornecedor) */}
         <div className="md:hidden space-y-4 max-h-[70vh] overflow-y-auto p-1.5 bg-gray-50">
           {produtosFiltrados.map((produto) => {
-            const valorPromocional = precoPromocional(produto);
             return (
               <div key={produto.id} className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm space-y-3">
                 {/* 1. Header: Foto + Nome */}
@@ -251,64 +216,41 @@ export default function ListaProdutosLojista({ produtos }: { produtos: Produto[]
                 {/* 2. Grid de Valores e Estoque */}
                 <div className="grid grid-cols-2 gap-2 bg-gray-50 rounded-xl p-3 text-[10px]">
                   <div>
-                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Preços</p>
-                    <p className="font-black text-gray-900 text-xs mt-0.5">Custo: {moeda(produto.precoAtacado)}</p>
-                    {valorPromocional ? (
-                      <p className="text-[9px] text-red-600 font-bold mt-0.5">
-                        Sugestão: {moeda(valorPromocional)} <span className="text-gray-400 line-through text-[8px]">{moeda(produto.preco)}</span>
-                      </p>
-                    ) : (
-                      <p className="text-[9px] text-gray-500 mt-0.5">Sugestão: {moeda(produto.preco)}</p>
-                    )}
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Preço Lojista</p>
+                    <p className="font-black text-gray-900 text-xs mt-0.5">{moeda(produto.precoAtacado)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Disponibilidade</p>
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Estoque Fornecedor</p>
                     <p className={`font-bold mt-0.5 text-xs ${produto.estoque > 0 ? "text-green-600" : "text-red-500"}`}>
-                      Fornecedor: {produto.estoque || 0} un.
+                      {produto.estoque || 0} un.
                     </p>
-                    <p className="text-[9px] text-gray-500 mt-0.5 font-semibold">Meu Estoque: {produto.estoqueLojista || 0} un.</p>
                   </div>
                 </div>
 
-                {/* 3. Formulário de Compra */}
-                <form
-                  onSubmit={(e) => handleComprarSubmit(e, produto.nome)}
-                  className="flex flex-col gap-2 pt-1.5 border-t border-gray-100"
-                >
-                  <input type="hidden" name="produtoId" value={produto.id} />
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[8px] font-black uppercase text-gray-400 tracking-wider mb-1">Quantidade</label>
-                      <input
-                        name="quantidade"
-                        type="number"
-                        min={1}
-                        defaultValue={1}
-                        disabled={isPending}
-                        className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-luxury-gold bg-white font-bold disabled:bg-gray-100"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[8px] font-black uppercase text-gray-400 tracking-wider mb-1">Pagamento</label>
-                      <select
-                        name="pagamento"
-                        disabled={isPending}
-                        className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold font-bold disabled:bg-gray-100"
-                      >
-                        <option value="Pedido ao fornecedor">Fornecedor</option>
-                        <option value="Pix fornecedor">Pix fornecedor</option>
-                        <option value="Acerto local">Acerto local</option>
-                      </select>
-                    </div>
+                {/* 3. Mobile Add to Order */}
+                <div className="flex gap-2 pt-2 border-t border-gray-100 items-end">
+                  <div className="w-20">
+                    <label className="block text-[8px] font-black uppercase text-gray-400 tracking-wider mb-1">Qtd</label>
+                    <input
+                      id={`qty-mobile-${produto.id}`}
+                      type="number"
+                      min={1}
+                      defaultValue={1}
+                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-luxury-gold bg-white font-bold text-center"
+                    />
                   </div>
                   <button
-                    type="submit"
-                    disabled={isPending}
-                    className="w-full rounded-lg bg-luxury-black py-2 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-luxury-gold active:bg-luxury-gold disabled:opacity-50"
+                    type="button"
+                    onClick={() => {
+                      const inputEl = document.getElementById(`qty-mobile-${produto.id}`) as HTMLInputElement;
+                      const qty = Number(inputEl?.value || 1);
+                      onAddToCart(produto.id, qty);
+                    }}
+                    className="flex-grow rounded-lg bg-luxury-black py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-luxury-gold transition-colors cursor-pointer text-center"
                   >
-                    {isPending ? "Processando…" : "Comprar estoque"}
+                    Adicionar ao Pedido
                   </button>
-                </form>
+                </div>
               </div>
             );
           })}
@@ -356,19 +298,12 @@ export default function ListaProdutosLojista({ produtos }: { produtos: Produto[]
                     <span className="font-bold text-gray-900">{moeda(precoPromocional(selectedProduto) || selectedProduto.preco)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Disponível</span>
+                    <span className="text-gray-500">Estoque Fornecedor</span>
                     <span className={selectedProduto.estoque > 0 ? "font-bold text-green-600" : "font-bold text-red-500"}>
-                      Fornecedor: {selectedProduto.estoque || 0} un.
+                      {selectedProduto.estoque || 0} un.
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Meu estoque</span>
-                    <span className="font-bold text-gray-900">{selectedProduto.estoqueLojista || 0} un.</span>
-                  </div>
                 </div>
-                <p className="text-xs text-gray-400">
-                  O valor lojista é fixo. Você pode definir sua margem de venda acima da sugestão.
-                </p>
               </div>
             </div>
           </div>

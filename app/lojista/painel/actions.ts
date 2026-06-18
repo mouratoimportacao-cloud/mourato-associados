@@ -209,3 +209,84 @@ export async function confirmarVendaLojista(
 export async function confirmarVendaLojistaAction(formData: FormData): Promise<void> {
   await confirmarVendaLojista(formData);
 }
+
+export async function criarPedidosLojistaCarrinho(
+  itens: { produtoId: number; quantidade: number }[]
+): Promise<{ success: boolean; error?: string }> {
+  const session = await getLojistaSession();
+  if (!session) return { success: false, error: "Sessão expirada. Faça login novamente." };
+
+  if (!itens || itens.length === 0) {
+    return { success: false, error: "Pedido vazio." };
+  }
+
+  try {
+    const lojista = await prisma.usuario.findUnique({ where: { id: session.id } });
+    if (!lojista) return { success: false, error: "Lojista não encontrado." };
+
+    for (const item of itens) {
+      const produto = await prisma.produto.findUnique({ where: { id: item.produtoId } });
+      if (!produto) continue;
+
+      const precoAtacado = Number(produto.precoAtacado || 0);
+
+      // Verificar se já existe pedido pendente para o mesmo produto
+      const pedidoExistente = await prisma.pedido.findFirst({
+        where: {
+          usuarioId: session.id,
+          produtoId: item.produtoId,
+          status: "pendente fornecedor",
+        },
+      });
+
+      if (pedidoExistente) {
+        const novaQuantidade = Number(pedidoExistente.quantidade || 0) + item.quantidade;
+        const novoTotal = precoAtacado * novaQuantidade;
+
+        await prisma.pedido.update({
+          where: { id: pedidoExistente.id },
+          data: {
+            quantidade: novaQuantidade,
+            total: novoTotal,
+            saldoFornecedor: novoTotal,
+            observacao: `${pedidoExistente.observacao || ""} | Adicionado mais ${item.quantidade} un. via carrinho agrupado.`,
+          },
+        });
+      } else {
+        const total = precoAtacado * item.quantidade;
+
+        await prisma.pedido.create({
+          data: {
+            usuarioId: session.id,
+            produtoId: produto.id,
+            produtoNome: produto.nome,
+            quantidade: item.quantidade,
+            precoUnitario: precoAtacado,
+            precoTabela: Number(produto.preco || 0),
+            custoUnitario: precoAtacado,
+            descontoConcedido: 0,
+            lucroBruto: 0,
+            tipoFluxo: "compra_fornecedor",
+            quantidadePagaFornecedor: 0,
+            totalPagoFornecedor: 0,
+            saldoFornecedor: total,
+            pagamento: "Pedido ao fornecedor",
+            observacao: `Lojista solicitou ${item.quantidade} unidade(s) ao fornecedor no pedido agrupado.`,
+            total,
+            status: "pendente fornecedor",
+          },
+        });
+      }
+    }
+
+    revalidatePath("/lojista/painel");
+    revalidatePath("/admin");
+    revalidatePath("/admin/pedidos");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao criar pedidos do lojista pelo carrinho:", error);
+    return { success: false, error: "Erro ao enviar pedido ao fornecedor. Tente novamente." };
+  }
+}
+
