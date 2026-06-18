@@ -152,7 +152,7 @@ export default function CarrinhoWidget() {
       {/* Drawer Lateral */}
       <div
         className={`fixed right-0 top-0 bottom-0 w-full sm:w-[460px] bg-neutral-950 border-l border-gold/15 shadow-2xl z-50 flex flex-col transition-transform duration-300 transform ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+          isOpen ? "translate-x-0" : "translate-x-full pointer-events-none invisible"
         }`}
       >
         {/* Header */}
