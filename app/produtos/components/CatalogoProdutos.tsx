@@ -233,22 +233,22 @@ export default function CatalogoProdutos({
       {selectedProduto && (
         <div className="fixed inset-0 z-50 bg-black/80 px-3 py-4 sm:px-6 sm:py-8 backdrop-blur-sm overflow-y-auto">
           <div className="mx-auto flex min-h-full max-w-5xl items-center justify-center">
-            <div className="relative w-full overflow-hidden rounded-none sm:rounded-2xl bg-neutral-950 border border-zinc-900 text-white shadow-2xl">
+            <div className="relative w-full overflow-hidden rounded-none sm:rounded-2xl bg-white border border-gray-200 text-gray-900 shadow-2xl">
               <button
                 type="button"
                 onClick={() => setSelectedProduto(null)}
-                className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900/90 text-2xl leading-none text-white border border-zinc-800 shadow-md hover:bg-gold hover:text-black cursor-pointer"
+                className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-2xl leading-none text-gray-700 border border-gray-200 shadow-md hover:bg-gray-200 cursor-pointer"
                 aria-label="Fechar detalhes"
               >
                 ×
               </button>
 
               <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="min-h-80 bg-neutral-900/30 border-r border-zinc-900 flex items-center justify-center">
+                <div className="min-h-80 bg-gray-50 border-r border-gray-100 flex items-center justify-center">
                   {selectedProduto.imagem ? (
                     <img src={selectedProduto.imagem} alt={selectedProduto.nome} className="h-full max-h-[70vh] w-full object-cover" />
                   ) : (
-                    <div className="flex min-h-80 h-full items-center justify-center text-4xl font-serif italic text-zinc-700">
+                    <div className="flex min-h-80 h-full items-center justify-center text-4xl font-serif italic text-zinc-400">
                       M&A
                     </div>
                   )}
@@ -260,7 +260,7 @@ export default function CatalogoProdutos({
                       {selectedProduto.categoria}
                     </span>
                     <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
-                      selectedProduto.estoque > 0 ? "bg-green-950/40 text-green-400 border border-green-900/50" : "bg-red-950/40 text-red-400 border border-red-900/50"
+                      selectedProduto.estoque > 0 ? "bg-green-50 text-green-750 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
                     }`}>
                       {selectedProduto.estoque > 0 ? "Disponível" : "Esgotado"}
                     </span>
@@ -272,35 +272,35 @@ export default function CatalogoProdutos({
                   </div>
 
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">{selectedProduto.marca}</p>
-                  <h3 className="mt-2 text-3xl sm:text-4xl font-serif leading-tight text-white">{selectedProduto.nome}</h3>
-                  <p className="mt-2 text-sm font-light italic text-zinc-500">Código {selectedProduto.codigo ?? selectedProduto.id} / {selectedProduto.volume}</p>
+                  <h3 className="mt-2 text-3xl sm:text-4xl font-serif leading-tight text-gray-900">{selectedProduto.nome}</h3>
+                  <p className="mt-2 text-sm font-light italic text-gray-500">Código {selectedProduto.codigo ?? selectedProduto.id} / {selectedProduto.volume}</p>
 
-                  <div className="mt-6 rounded-2xl border border-zinc-900 bg-neutral-900/30 p-5">
-                    <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Descrição</p>
-                    <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+                  <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50/50 p-5">
+                    <p className="text-xs font-black uppercase tracking-widest text-gray-400">Descrição</p>
+                    <p className="mt-3 text-sm leading-relaxed text-gray-600">
                       {selectedProduto.descricao || "Descrição em atualização. Consulte nossa equipe para confirmar notas, fixação e disponibilidade."}
                     </p>
                   </div>
 
                   <div className="mt-6">
                     {precoPromocional(selectedProduto) ? (
-                      <div className="rounded-3xl bg-red-950/40 border border-red-900/50 p-5 text-white shadow-md">
+                      <div className="rounded-3xl bg-red-50 border border-red-100 p-5 text-red-700 shadow-sm">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs font-black uppercase tracking-widest text-red-400">Oferta Especial</span>
-                          <span className="text-sm line-through text-zinc-500">{moeda(selectedProduto.preco)}</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-red-600">Oferta Especial</span>
+                          <span className="text-sm line-through text-gray-400">{moeda(selectedProduto.preco)}</span>
                         </div>
-                        <div className="mt-2 text-3xl font-black text-red-500">{moeda(precoPromocional(selectedProduto))}</div>
+                        <div className="mt-2 text-3xl font-black text-red-750">{moeda(precoPromocional(selectedProduto))}</div>
                       </div>
                     ) : (
                       <div className="rounded-3xl border border-gold/30 bg-gold/10 p-5">
-                        <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Preço</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-gold">Preço</p>
                         <div className="mt-2 text-3xl font-black text-gold">{moeda(selectedProduto.preco)}</div>
                       </div>
                     )}
                   </div>
 
                   {paymentMessage && (
-                    <div className="mt-5 rounded-2xl border border-amber-900/50 bg-amber-950/40 p-4 text-sm font-semibold leading-relaxed text-amber-300">
+                    <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-relaxed text-amber-850">
                       {paymentMessage}
                     </div>
                   )}
@@ -313,15 +313,15 @@ export default function CatalogoProdutos({
                       className={`rounded-full px-5 py-4 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${
                         selectedProduto.estoque > 0
                           ? "bg-gold text-black hover:bg-white hover:text-black font-bold"
-                          : "bg-neutral-900 text-zinc-500"
+                          : "bg-gray-100 text-gray-400 pointer-events-none"
                       }`}
                     >
-                      {selectedProduto.estoque > 0 ? (isPending ? "Registrando..." : "Pagamento") : "Aguardando reposição"}
+                      {selectedProduto.estoque > 0 ? (isPending ? "Registrando..." : "Pagamento") : "Reposição"}
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedProduto(null)}
-                      className="rounded-full border border-zinc-800 px-5 py-4 text-xs font-black uppercase tracking-widest text-zinc-400 hover:bg-neutral-900 hover:text-white cursor-pointer"
+                      className="rounded-full border border-gray-200 px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-100 hover:text-gray-700 cursor-pointer"
                     >
                       Voltar ao catálogo
                     </button>

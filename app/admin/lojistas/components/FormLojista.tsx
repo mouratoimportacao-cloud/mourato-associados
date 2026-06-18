@@ -44,7 +44,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
             name="nome"
             required
             disabled={isPending}
-            className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+            className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
             placeholder="Nome do lojista ou loja"
           />
         </div>
@@ -56,7 +56,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
               name="documento"
               required
               disabled={isPending}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
               placeholder="CPF ou CNPJ"
             />
           </div>
@@ -66,7 +66,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
               name="telefone"
               required
               disabled={isPending}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
               placeholder="(00) 00000-0000"
             />
           </div>
@@ -79,7 +79,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
             type="email"
             required
             disabled={isPending}
-            className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+            className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
             placeholder="lojista@email.com"
           />
         </div>
@@ -89,7 +89,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
           <input
             name="endereco"
             disabled={isPending}
-            className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+            className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
             placeholder="Rua, número e bairro"
           />
         </div>
@@ -100,7 +100,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
             <input
               name="cidade"
               disabled={isPending}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
               placeholder="Cidade"
             />
           </div>
@@ -110,7 +110,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
               name="estado"
               maxLength={2}
               disabled={isPending}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm uppercase"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm uppercase bg-white text-gray-900"
               placeholder="SP"
             />
           </div>
@@ -119,7 +119,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
             <input
               name="cep"
               disabled={isPending}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
               placeholder="00000-000"
             />
           </div>
@@ -134,7 +134,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
               minLength={6}
               required
               disabled={isPending}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
               placeholder="Mínimo 6 caracteres"
             />
           </div>
@@ -146,7 +146,7 @@ export default function FormLojista({ onSaved }: { onSaved?: () => void }) {
               minLength={6}
               required
               disabled={isPending}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-luxury-gold focus:border-luxury-gold p-2.5 border transition-all text-sm bg-white text-gray-900"
               placeholder="Digite novamente"
             />
           </div>

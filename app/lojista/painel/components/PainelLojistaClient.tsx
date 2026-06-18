@@ -639,7 +639,7 @@ export default function PainelLojistaClient({
                   value={popupPagamento}
                   onChange={(e) => setPopupPagamento(e.target.value)}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white text-gray-900"
                 >
                   <option value="Dinheiro">💵 Dinheiro</option>
                   <option value="Pix">📱 Pix</option>
@@ -660,7 +660,7 @@ export default function PainelLojistaClient({
                   value={popupDescontoPercentual || ""}
                   onChange={(e) => setPopupDescontoPercentual(Math.min(90, Math.max(0, Number(e.target.value))))}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white text-gray-900"
                 />
                 {popupCustoUnitario > 0 && popupPrecoTabela > 0 && (
                   <span className="text-[9px] text-gray-400 block text-right mt-0.5">

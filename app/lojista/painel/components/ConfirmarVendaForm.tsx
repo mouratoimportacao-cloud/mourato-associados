@@ -59,7 +59,7 @@ export default function ConfirmarVendaForm({
       <select
         name="pagamento"
         disabled={isPending}
-        className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white w-full sm:w-auto"
+        className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white text-gray-900 w-full sm:w-auto"
       >
         <option value="Dinheiro">💵 Dinheiro</option>
         <option value="Pix">📱 Pix</option>
@@ -78,7 +78,7 @@ export default function ConfirmarVendaForm({
           step="1"
           placeholder="Desconto %"
           disabled={isPending}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white text-gray-900"
         />
         {custoUnitario > 0 && precoTabela > 0 && (
           <span className="text-[10px] text-gray-400 text-right">
