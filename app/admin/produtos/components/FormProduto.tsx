@@ -1,7 +1,7 @@
 "use client";
 
 import { createProduto, updateProduto } from "../actions";
-import { ChangeEvent, useEffect, useRef, useState, useTransition } from "react";
+import { ChangeEvent, useRef, useState, useTransition } from "react";
 
 interface Produto {
   id: number;
@@ -21,6 +21,22 @@ interface Produto {
   descontoPercentual?: number | null;
   imagem: string | null;
   descricao: string | null;
+  // Campos novos
+  categoria_principal?: string | null;
+  tags?: string[] | null;
+  concentracao?: string | null;
+  origem?: string | null;
+  tipo_perfume?: string | null;
+  genero?: string | null;
+  familia_olfativa?: string[] | null;
+  notas_topo?: string | null;
+  notas_coracao?: string | null;
+  notas_fundo?: string | null;
+  fixacao_estimada?: string | null;
+  projecao?: string | null;
+  ocasiao_uso?: string[] | null;
+  similaridade_inspiracao?: string | null;
+  descricao_olfativa?: string | null;
 }
 
 function compressImageToWebP(file: File, maxWidth = 800, quality = 0.75): Promise<Blob> {
@@ -73,13 +89,42 @@ interface FormProdutoProps {
   onCancelEdit: () => void;
 }
 
+const tagOptions = [
+  "Perfume Árabe", "Importado", "Feminino", "Masculino", "Unissex", 
+  "Nicho", "Contratipo", "Lançamento", "Mais Vendido", "Premium"
+];
+
+const familiaOptions = [
+  "Oriental", "Amadeirado", "Aromático", "Floral", "Cítrico", 
+  "Gourmand", "Aquático", "Frutado", "Fougère", "Especiado"
+];
+
+const ocasiaoOptions = [
+  "Dia", "Noite", "Trabalho", "Academia", "Festa", "Encontro", "Verão", "Inverno"
+];
+
 export default function FormProduto({ editingProduto, onCancelEdit }: FormProdutoProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [fileError, setFileError] = useState("");
   const [isPending, startTransition] = useTransition();
   const maxImageSize = 8 * 1024 * 1024;
 
+  const getArrayValue = (val: any): string[] => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+    if (typeof val === "string") {
+      return val.split(",").map(v => v.trim()).filter(Boolean);
+    }
+    return [];
+  };
 
+  const currentTags = getArrayValue(editingProduto?.tags);
+  const currentFamilias = getArrayValue(editingProduto?.familia_olfativa);
+  const currentOcasioes = getArrayValue(editingProduto?.ocasiao_uso);
 
   async function clientAction(formData: FormData) {
     if (fileError) {
@@ -146,9 +191,10 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
           }
         }}
         key={editingProduto ? editingProduto.id : 'new'}
-        className="space-y-4"
+        className="space-y-6"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* NOME */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Nome do Produto</label>
             <input
@@ -160,6 +206,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="Ex: 212 VIP Rose"
             />
           </div>
+
+          {/* MARCA */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Marca</label>
             <input
@@ -171,25 +219,25 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="Ex: Carolina Herrera"
             />
           </div>
+
+          {/* CATEGORIA PRINCIPAL */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Categoria</label>
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Categoria Principal</label>
             <select
-              name="categoria"
+              name="categoria_principal"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.categoria || "Perfume"}
+              defaultValue={editingProduto?.categoria_principal || editingProduto?.categoria || "Perfume"}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border bg-neutral-900 transition-all text-sm text-white"
             >
               <option value="Perfume">Perfume</option>
-              <option value="Perfume Feminino">Perfume Feminino</option>
-              <option value="Perfume Masculino">Perfume Masculino</option>
-              <option value="Perfume Árabe">Perfume Árabe</option>
-              <option value="Oud">Oud</option>
               <option value="Cosmético">Cosmético</option>
-              <option value="Skincare">Skincare</option>
-              <option value="Outros">Outros</option>
+              <option value="Acessório">Acessório</option>
+              <option value="Kit">Kit</option>
             </select>
           </div>
+
+          {/* VOLUME */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Volume</label>
             <input
@@ -201,7 +249,241 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="Ex: 100ml"
             />
           </div>
-          <div className="space-y-1">
+
+          {/* TAGS (MultiSelect Checkboxes) */}
+          <div className="col-span-1 md:col-span-2 space-y-2">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Tags (Múltipla Seleção)</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 bg-neutral-900/40 p-4 rounded-xl border border-zinc-900">
+              {tagOptions.map((tag) => (
+                <label key={tag} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    name="tags"
+                    value={tag}
+                    disabled={isPending}
+                    defaultChecked={currentTags.includes(tag)}
+                    className="h-4 w-4 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
+                  />
+                  {tag}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* SEÇÃO NOVA: INFORMAÇÕES OLFATIVAS */}
+          <div className="col-span-1 md:col-span-2 border-t border-zinc-800/80 pt-6 mt-2">
+            <h3 className="text-sm font-serif font-black uppercase text-gold tracking-widest mb-5 flex items-center gap-2">
+              <span className="w-1.5 h-4 bg-gold rounded-full"></span>
+              Informações Olfativas
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* CONCENTRAÇÃO */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Concentração</label>
+                <select
+                  name="concentracao"
+                  disabled={isPending}
+                  defaultValue={editingProduto?.concentracao || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
+                >
+                  <option value="">Sem especificação</option>
+                  <option value="Body Splash">Body Splash</option>
+                  <option value="Eau de Cologne">Eau de Cologne</option>
+                  <option value="Eau de Toilette (EDT)">Eau de Toilette (EDT)</option>
+                  <option value="Eau de Parfum (EDP)">Eau de Parfum (EDP)</option>
+                  <option value="Parfum">Parfum</option>
+                  <option value="Extrait de Parfum">Extrait de Parfum</option>
+                </select>
+              </div>
+
+              {/* ORIGEM */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Origem</label>
+                <select
+                  name="origem"
+                  disabled={isPending}
+                  defaultValue={editingProduto?.origem || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
+                >
+                  <option value="">Sem especificação</option>
+                  <option value="Nacional">Nacional</option>
+                  <option value="Importado">Importado</option>
+                  <option value="Árabe">Árabe</option>
+                  <option value="Inspirado">Inspirado</option>
+                </select>
+              </div>
+
+              {/* TIPO DE PERFUME */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Tipo de Perfume</label>
+                <select
+                  name="tipo_perfume"
+                  disabled={isPending}
+                  defaultValue={editingProduto?.tipo_perfume || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
+                >
+                  <option value="">Sem especificação</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Nicho">Nicho</option>
+                  <option value="Contratipo">Contratipo</option>
+                  <option value="Inspirado">Inspirado</option>
+                  <option value="Exclusivo">Exclusivo</option>
+                </select>
+              </div>
+
+              {/* GÊNERO */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Gênero</label>
+                <select
+                  name="genero"
+                  disabled={isPending}
+                  defaultValue={editingProduto?.genero || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
+                >
+                  <option value="">Sem especificação</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Feminino">Feminino</option>
+                  <option value="Unissex">Unissex</option>
+                </select>
+              </div>
+
+              {/* FAMÍLIA OLFATIVA (MultiSelect Checkboxes) */}
+              <div className="col-span-1 md:col-span-2 space-y-2">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Família Olfativa</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 bg-neutral-900/40 p-4 rounded-xl border border-zinc-900">
+                  {familiaOptions.map((fam) => (
+                    <label key={fam} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        name="familia_olfativa"
+                        value={fam}
+                        disabled={isPending}
+                        defaultChecked={currentFamilias.includes(fam)}
+                        className="h-4 w-4 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
+                      />
+                      {fam}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* PIRÂMIDE OLFATIVA */}
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-900/10 p-4 rounded-xl border border-zinc-900/50">
+                <div className="space-y-1 col-span-1">
+                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Notas de Topo</label>
+                  <input
+                    name="notas_topo"
+                    disabled={isPending}
+                    defaultValue={editingProduto?.notas_topo || ""}
+                    className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-xs text-white"
+                    placeholder="Bergamota, Limão Siciliano..."
+                  />
+                </div>
+                <div className="space-y-1 col-span-1">
+                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Notas de Coração</label>
+                  <input
+                    name="notas_coracao"
+                    disabled={isPending}
+                    defaultValue={editingProduto?.notas_coracao || ""}
+                    className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-xs text-white"
+                    placeholder="Lavanda, Jasmim, Canela..."
+                  />
+                </div>
+                <div className="space-y-1 col-span-1">
+                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Notas de Fundo</label>
+                  <input
+                    name="notas_fundo"
+                    disabled={isPending}
+                    defaultValue={editingProduto?.notas_fundo || ""}
+                    className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-xs text-white"
+                    placeholder="Âmbar, Musk, Baunilha..."
+                  />
+                </div>
+              </div>
+
+              {/* PERFORMANCE (FIXAÇÃO E PROJEÇÃO) */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Fixação Estimada</label>
+                <select
+                  name="fixacao_estimada"
+                  disabled={isPending}
+                  defaultValue={editingProduto?.fixacao_estimada || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
+                >
+                  <option value="">Sem especificação</option>
+                  <option value="Baixa">Baixa</option>
+                  <option value="Média">Média</option>
+                  <option value="Alta">Alta</option>
+                  <option value="Extrema">Extrema</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Projeção</label>
+                <select
+                  name="projecao"
+                  disabled={isPending}
+                  defaultValue={editingProduto?.projecao || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
+                >
+                  <option value="">Sem especificação</option>
+                  <option value="Suave">Suave</option>
+                  <option value="Moderada">Moderada</option>
+                  <option value="Forte">Forte</option>
+                  <option value="Muito Forte">Muito Forte</option>
+                </select>
+              </div>
+
+              {/* OCASIÃO DE USO (MultiSelect Checkboxes) */}
+              <div className="col-span-1 md:col-span-2 space-y-2">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Ocasião de Uso</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-neutral-900/40 p-4 rounded-xl border border-zinc-900">
+                  {ocasiaoOptions.map((o) => (
+                    <label key={o} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        name="ocasiao_uso"
+                        value={o}
+                        disabled={isPending}
+                        defaultChecked={currentOcasioes.includes(o)}
+                        className="h-4 w-4 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
+                      />
+                      {o}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* SIMILARIDADE / INSPIRAÇÃO */}
+              <div className="space-y-1 col-span-1 md:col-span-2">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Inspirado em / Similaridade</label>
+                <input
+                  name="similaridade_inspiracao"
+                  disabled={isPending}
+                  defaultValue={editingProduto?.similaridade_inspiracao || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white"
+                  placeholder="Ex: Sauvage, 212 VIP, One Million..."
+                />
+              </div>
+
+              {/* DESCRIÇÃO OLFATIVA */}
+              <div className="space-y-1 col-span-1 md:col-span-2">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Descrição Olfativa Curta</label>
+                <textarea
+                  name="descricao_olfativa"
+                  rows={2}
+                  disabled={isPending}
+                  defaultValue={editingProduto?.descricao_olfativa || ""}
+                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white resize-none"
+                  placeholder="Fragrância sofisticada com abertura cítrica vibrante e corpo amadeirado..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* PREÇO SUGERIDO */}
+          <div className="space-y-1 border-t border-zinc-800 pt-6 col-span-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Preço Sugerido ao Cliente (R$)</label>
             <input
               name="preco"
@@ -214,8 +496,10 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="0.00"
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Preço Fixo do Lojista / Atacado (R$)</label>
+
+          {/* PREÇO LOJISTA / ATACADO */}
+          <div className="space-y-1 border-t border-zinc-800 pt-6 col-span-1">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Preço Lojista / Atacado (R$)</label>
             <input
               name="precoAtacado"
               type="number"
@@ -227,6 +511,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="0.00"
             />
           </div>
+
+          {/* ESTOQUE GERAL */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Estoque Geral</label>
             <input
@@ -239,6 +525,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="0"
             />
           </div>
+
+          {/* ESTOQUE LOJISTA */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Qtd. para Lojista</label>
             <input
@@ -251,6 +539,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="0"
             />
           </div>
+
+          {/* COMPRA EM DÓLAR */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Compra em Dólar (US$)</label>
             <input
@@ -263,6 +553,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               placeholder="0.00"
             />
           </div>
+
+          {/* COTAÇÃO DÓLAR */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Cotação Dólar (R$)</label>
             <input
@@ -277,6 +569,7 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
           </div>
         </div>
 
+        {/* VITRINE E PROMOÇÃO */}
         <div className="rounded-xl border border-amber-500/20 bg-amber-950/15 p-4 space-y-4">
           <div>
             <h3 className="text-sm font-bold text-amber-500">Vitrine e Promoção</h3>
@@ -325,6 +618,7 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
           </div>
         </div>
 
+        {/* IMAGEM FILE */}
         <div className="space-y-1">
           <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Imagem do Produto</label>
           <input
@@ -341,18 +635,20 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
           )}
         </div>
 
+        {/* DESCRIÇÃO COMPLETA */}
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Descrição Detalhada</label>
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Descrição Detalhada / Comercial</label>
           <textarea
             name="descricao"
             rows={3}
             disabled={isPending}
             defaultValue={editingProduto?.descricao || ""}
             className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all resize-none text-sm bg-neutral-900 text-white"
-            placeholder="Descreva as notas, benefícios e características..."
+            placeholder="Descreva os benefícios e características para o catálogo..."
           />
         </div>
 
+        {/* BOTÕES DE AÇÃO */}
         <div className="flex gap-3 pt-2">
           {editingProduto && (
             <button

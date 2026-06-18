@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import FiltrosProdutos from "../../../components/FiltrosProdutos";
 
 interface Produto {
   id: number;
@@ -17,6 +18,22 @@ interface Produto {
   descontoPercentual?: number | null;
   imagem: string | null;
   descricao: string | null;
+  // Campos novos
+  categoria_principal?: string | null;
+  tags?: string[] | null;
+  concentracao?: string | null;
+  origem?: string | null;
+  tipo_perfume?: string | null;
+  genero?: string | null;
+  familia_olfativa?: string[] | null;
+  notas_topo?: string | null;
+  notas_coracao?: string | null;
+  notas_fundo?: string | null;
+  fixacao_estimada?: string | null;
+  projecao?: string | null;
+  ocasiao_uso?: string[] | null;
+  similaridade_inspiracao?: string | null;
+  descricao_olfativa?: string | null;
 }
 
 const categoriasBase = ["Perfume", "Perfume Feminino", "Perfume Masculino", "Perfume Árabe", "Oud", "Cosmético", "Skincare", "Outros"];
@@ -43,13 +60,29 @@ export default function ListaProdutosLojista({
   produtos: Produto[];
   onAddToCart: (produtoId: number, quantidade: number) => void;
 }) {
-  const [categoria, setCategoria] = useState("todos");
+  const [filtros, setFiltros] = useState<any>({
+    origem: "todos",
+    genero: "todos",
+    concentracao: "todos",
+    categoriaPrincipal: "todos",
+    tags: [],
+    familiaOlfativa: [],
+    ocasiaoUso: []
+  });
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
 
-  const categorias = useMemo(
-    () => ["todos", ...Array.from(new Set([...categoriasBase, ...produtos.map((produto) => produto.categoria).filter(Boolean)])).sort()],
-    [produtos]
-  );
+  const getArrayValue = (val: any): string[] => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+    if (typeof val === "string") {
+      return val.split(",").map(v => v.trim()).filter(Boolean);
+    }
+    return [];
+  };
   
   const produtosFiltrados = useMemo(
     () => {
@@ -59,30 +92,67 @@ export default function ListaProdutosLojista({
         if (promoA !== promoB) return promoB - promoA;
         return a.nome.localeCompare(b.nome, "pt-BR");
       });
-      return categoria === "todos" ? ordenados : ordenados.filter((produto) => produto.categoria === categoria);
+
+      return ordenados.filter((produto) => {
+        // Categoria Principal
+        if (filtros.categoriaPrincipal !== "todos") {
+          const cat = produto.categoria_principal || produto.categoria || "";
+          if (cat.toLowerCase() !== filtros.categoriaPrincipal.toLowerCase()) return false;
+        }
+        
+        // Origem
+        if (filtros.origem !== "todos") {
+          if (produto.origem !== filtros.origem) return false;
+        }
+        
+        // Gênero
+        if (filtros.genero !== "todos") {
+          if (produto.genero !== filtros.genero) return false;
+        }
+        
+        // Concentração
+        if (filtros.concentracao !== "todos") {
+          if (produto.concentracao !== filtros.concentracao) return false;
+        }
+        
+        // Tags
+        if (filtros.tags && filtros.tags.length > 0) {
+          const pTags = getArrayValue(produto.tags);
+          const match = filtros.tags.every((t: string) => pTags.includes(t));
+          if (!match) return false;
+        }
+        
+        // Família Olfativa
+        if (filtros.familiaOlfativa && filtros.familiaOlfativa.length > 0) {
+          const pFamilias = getArrayValue(produto.familia_olfativa);
+          const match = filtros.familiaOlfativa.every((f: string) => pFamilias.includes(f));
+          if (!match) return false;
+        }
+        
+        // Ocasião de Uso
+        if (filtros.ocasiaoUso && filtros.ocasiaoUso.length > 0) {
+          const pOcasioes = getArrayValue(produto.ocasiao_uso);
+          const match = filtros.ocasiaoUso.every((o: string) => pOcasioes.includes(o));
+          if (!match) return false;
+        }
+        
+        return true;
+      });
     },
-    [categoria, produtos]
+    [filtros, produtos]
   );
 
   return (
     <>
       <section className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-gray-100 bg-gray-50 px-6 py-4">
-          <div>
-            <h2 className="text-lg font-bold text-gray-800">Produtos do Fornecedor</h2>
-            <p className="text-xs text-gray-500">Mostrando {produtosFiltrados.length} de {produtos.length} produtos disponíveis</p>
+        <div className="border-b border-gray-100 bg-gray-50 px-6 py-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 font-sans">Produtos do Fornecedor</h2>
+              <p className="text-xs text-gray-500 font-sans">Mostrando {produtosFiltrados.length} de {produtos.length} produtos disponíveis</p>
+            </div>
           </div>
-          <select
-            value={categoria}
-            onChange={(event) => setCategoria(event.target.value)}
-            className="w-full md:w-64 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-luxury-gold"
-          >
-            {categorias.map((item) => (
-              <option key={item} value={item}>
-                {item === "todos" ? "Todos os tipos" : item}
-              </option>
-            ))}
-          </select>
+          <FiltrosProdutos theme="light" onChange={setFiltros} />
         </div>
 
         <div className="admin-table-scroll max-h-[72vh] overflow-auto hidden md:block">

@@ -22,6 +22,21 @@ const targetFields = [
   { key: "estoqueLojista", label: "Estoque Lojista", desc: "Quantidade separada para lojistas", required: false },
   { key: "imagem", label: "Imagem (URL)", desc: "Link para foto do produto", required: false },
   { key: "descricao", label: "Descrição", desc: "Notas olfativas e detalhes", required: false },
+  { key: "categoria_principal", label: "Categoria Principal", desc: "Perfume, Cosmético, Acessório, Kit", required: false },
+  { key: "tags", label: "Tags / Etiquetas", desc: "Separe por vírgula ou '+'", required: false },
+  { key: "concentracao", label: "Concentração", desc: "Body Splash, Cologne, EDT, EDP, Parfum, Extrait", required: false },
+  { key: "origem", label: "Origem", desc: "Nacional, Importado, Árabe, Inspirado", required: false },
+  { key: "tipo_perfume", label: "Tipo de Perfume", desc: "Designer, Nicho, Contratipo, Inspirado, Exclusivo", required: false },
+  { key: "genero", label: "Gênero", desc: "Masculino, Feminino, Unissex", required: false },
+  { key: "familia_olfativa", label: "Família Olfativa", desc: "Oriental, Amadeirado, etc. (separe por vírgula)", required: false },
+  { key: "notas_topo", label: "Notas de Topo", desc: "Notas de saída", required: false },
+  { key: "notas_coracao", label: "Notas de Coração", desc: "Notas de corpo", required: false },
+  { key: "notas_fundo", label: "Notas de Fundo", desc: "Notas de base", required: false },
+  { key: "fixacao_estimada", label: "Fixação Estimada", desc: "Ex: 6h, 12h", required: false },
+  { key: "projecao", label: "Projeção", desc: "Rastro do perfume", required: false },
+  { key: "ocasiao_uso", label: "Ocasião de Uso", desc: "Dia, Noite, etc. (separe por vírgula)", required: false },
+  { key: "similaridade_inspiracao", label: "Similaridade / Inspiração", desc: "Perfume no qual é inspirado", required: false },
+  { key: "descricao_olfativa", label: "Descrição Olfativa", desc: "Características olfativas detalhadas", required: false },
 ];
 
 export default function ImportPreviewModal({ base64Data, onClose, onSuccess }: ImportPreviewModalProps) {

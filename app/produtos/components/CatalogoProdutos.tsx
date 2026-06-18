@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import FiltrosProdutos from "../../components/FiltrosProdutos";
 
 type Produto = {
   id: number;
@@ -17,6 +18,21 @@ type Produto = {
   imagem: string | null;
   promocaoAtiva?: boolean;
   descontoPercentual?: number | null;
+  categoria_principal?: string | null;
+  tags?: string[] | null;
+  concentracao?: string | null;
+  origem?: string | null;
+  tipo_perfume?: string | null;
+  genero?: string | null;
+  familia_olfativa?: string[] | null;
+  notas_topo?: string | null;
+  notas_coracao?: string | null;
+  notas_fundo?: string | null;
+  fixacao_estimada?: string | null;
+  projecao?: string | null;
+  ocasiao_uso?: string[] | null;
+  similaridade_inspiracao?: string | null;
+  descricao_olfativa?: string | null;
 };
 
 function moeda(valor: number | null | undefined) {
@@ -43,6 +59,15 @@ export default function CatalogoProdutos({
 }) {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("todos");
+  const [filtros, setFiltros] = useState<any>({
+    origem: "todos",
+    genero: "todos",
+    concentracao: "todos",
+    categoriaPrincipal: "todos",
+    tags: [],
+    familiaOlfativa: [],
+    ocasiaoUso: []
+  });
   const searchParams = useSearchParams();
 
   // Sincroniza busca da URL
@@ -74,23 +99,45 @@ export default function CatalogoProdutos({
     [produtos]
   );
 
+  const getArrayValue = (val: any): string[] => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+    if (typeof val === "string") {
+      return val.split(",").map(v => v.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
   const produtosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
 
     return produtosOrdenados.filter((produto) => {
-      // 1. Filtragem de Categoria
-      let passaCategoria = false;
-      if (categoria === "todos") {
-        passaCategoria = true;
-      } else if (categoria === "Promoções") {
-        passaCategoria = Boolean(produto.promocaoAtiva);
-      } else if (categoria === "Kits") {
-        passaCategoria =
-          produto.nome.toLowerCase().includes("kit") ||
-          produto.volume.toLowerCase().includes("kit") ||
-          produto.categoria.toLowerCase().includes("kit");
-      } else {
-        passaCategoria = produto.categoria === categoria;
+      // 1. Filtragem da Categoria do Menu/Navbar (Legado)
+      if (categoria !== "todos") {
+        if (categoria === "Promoções") {
+          if (!produto.promocaoAtiva) return false;
+        } else if (categoria === "Kits") {
+          const isKit =
+            produto.nome.toLowerCase().includes("kit") ||
+            produto.volume.toLowerCase().includes("kit") ||
+            produto.categoria.toLowerCase().includes("kit") ||
+            (produto.categoria_principal || "").toLowerCase().includes("kit");
+          if (!isKit) return false;
+        } else if (categoria === "Perfume Árabe") {
+          const isArab = 
+            produto.categoria === "Perfume Árabe" || 
+            getArrayValue(produto.tags).includes("Perfume Árabe");
+          if (!isArab) return false;
+        } else {
+          const matchesLegacyCat = 
+            produto.categoria === categoria || 
+            produto.categoria_principal === categoria;
+          if (!matchesLegacyCat) return false;
+        }
       }
 
       // 2. Filtragem de Busca
@@ -98,11 +145,57 @@ export default function CatalogoProdutos({
         !termo ||
         produto.nome.toLowerCase().includes(termo) ||
         produto.marca.toLowerCase().includes(termo) ||
-        produto.categoria.toLowerCase().includes(termo);
+        produto.categoria.toLowerCase().includes(termo) ||
+        (produto.categoria_principal || "").toLowerCase().includes(termo) ||
+        (produto.descricao || "").toLowerCase().includes(termo) ||
+        (produto.similaridade_inspiracao || "").toLowerCase().includes(termo);
+      if (!passaBusca) return false;
 
-      return passaCategoria && passaBusca;
+      // 3. Filtragem de Categoria Principal Avançada
+      if (filtros.categoriaPrincipal !== "todos") {
+        const cat = produto.categoria_principal || produto.categoria || "";
+        if (cat.toLowerCase() !== filtros.categoriaPrincipal.toLowerCase()) return false;
+      }
+
+      // 4. Origem
+      if (filtros.origem !== "todos") {
+        if (produto.origem !== filtros.origem) return false;
+      }
+
+      // 5. Gênero
+      if (filtros.genero !== "todos") {
+        if (produto.genero !== filtros.genero) return false;
+      }
+
+      // 6. Concentração
+      if (filtros.concentracao !== "todos") {
+        if (produto.concentracao !== filtros.concentracao) return false;
+      }
+
+      // 7. Tags (MultiSelect)
+      if (filtros.tags && filtros.tags.length > 0) {
+        const pTags = getArrayValue(produto.tags);
+        const match = filtros.tags.every((t: string) => pTags.includes(t));
+        if (!match) return false;
+      }
+
+      // 8. Família Olfativa (MultiSelect)
+      if (filtros.familiaOlfativa && filtros.familiaOlfativa.length > 0) {
+        const pFamilias = getArrayValue(produto.familia_olfativa);
+        const match = filtros.familiaOlfativa.every((f: string) => pFamilias.includes(f));
+        if (!match) return false;
+      }
+
+      // 9. Ocasião de Uso (MultiSelect)
+      if (filtros.ocasiaoUso && filtros.ocasiaoUso.length > 0) {
+        const pOcasioes = getArrayValue(produto.ocasiao_uso);
+        const match = filtros.ocasiaoUso.every((o: string) => pOcasioes.includes(o));
+        if (!match) return false;
+      }
+
+      return true;
     });
-  }, [busca, categoria, produtosOrdenados]);
+  }, [busca, categoria, filtros, produtosOrdenados]);
 
   function handleAddToCart(produto: Produto) {
     try {
@@ -157,6 +250,10 @@ export default function CatalogoProdutos({
         </div>
         <Link href="/lojista" className="btn-luxury-outline text-center">Área Lojista</Link>
       </section>
+
+      <div className="mb-8">
+        <FiltrosProdutos theme="dark" onChange={setFiltros} />
+      </div>
 
       <p className="mb-8 text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">
         {produtosFiltrados.length} {produtosFiltrados.length === 1 ? "produto encontrado" : "produtos encontrados"}

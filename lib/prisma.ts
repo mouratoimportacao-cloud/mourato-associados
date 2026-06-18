@@ -50,6 +50,21 @@ type ProdutoData = {
   descontoPercentual?: number | null;
   descricao?: string | null;
   imagem?: string | null;
+  categoria_principal?: string | null;
+  tags?: string[] | null;
+  concentracao?: string | null;
+  origem?: string | null;
+  tipo_perfume?: string | null;
+  genero?: string | null;
+  familia_olfativa?: string[] | null;
+  notas_topo?: string | null;
+  notas_coracao?: string | null;
+  notas_fundo?: string | null;
+  fixacao_estimada?: string | null;
+  projecao?: string | null;
+  ocasiao_uso?: string[] | null;
+  similaridade_inspiracao?: string | null;
+  descricao_olfativa?: string | null;
 };
 
 type UsuarioData = {
@@ -117,6 +132,21 @@ const columns = {
     "descricao",
     "imagem",
     "createdAt",
+    "categoria_principal",
+    "tags",
+    "concentracao",
+    "origem",
+    "tipo_perfume",
+    "genero",
+    "familia_olfativa",
+    "notas_topo",
+    "notas_coracao",
+    "notas_fundo",
+    "fixacao_estimada",
+    "projecao",
+    "ocasiao_uso",
+    "similaridade_inspiracao",
+    "descricao_olfativa",
   ],
   Pedido: [
     "id",

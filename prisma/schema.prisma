@@ -18,16 +18,31 @@ createdAt DateTime @default(now())
 }
 
 model Produto {
-id          Int      @id @default(autoincrement())
-nome        String
-marca       String
-categoria   String
-volume      String
-preco       Float?
-estoque     Int      @default(0)
-descricao   String?
-imagem      String?
-createdAt   DateTime @default(now())
+id                      Int      @id @default(autoincrement())
+nome                    String
+marca                   String
+categoria               String
+volume                  String
+preco                   Float?
+estoque                 Int      @default(0)
+descricao               String?
+imagem                  String?
+createdAt               DateTime @default(now())
+categoria_principal     String?
+tags                    String?
+concentracao            String?
+origem                  String?
+tipo_perfume            String?
+genero                  String?
+familia_olfativa        String?
+notas_topo              String?
+notas_coracao           String?
+notas_fundo             String?
+fixacao_estimada        String?
+projecao                String?
+ocasiao_uso             String?
+similaridade_inspiracao String?
+descricao_olfativa      String?
 }
 
 model Pedido {

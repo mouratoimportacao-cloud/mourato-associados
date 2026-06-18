@@ -16,7 +16,8 @@ async function imageToDataUrl(file: File) {
 export async function createProduto(formData: FormData) {
   const nome = formData.get("nome") as string;
   const marca = formData.get("marca") as string;
-  const categoria = formData.get("categoria") as string;
+  const categoria_principal = (formData.get("categoria_principal") as string) || "Perfume";
+  const tags = formData.getAll("tags") as string[];
   const volume = formData.get("volume") as string;
   const precoRaw = formData.get("preco") as string;
   const precoAtacadoRaw = formData.get("precoAtacado") as string;
@@ -29,6 +30,21 @@ export async function createProduto(formData: FormData) {
   const descontoPercentualRaw = formData.get("descontoPercentual") as string;
   const descricao = formData.get("descricao") as string;
 
+  // Novos campos técnicos
+  const concentracao = formData.get("concentracao") as string;
+  const origem = formData.get("origem") as string;
+  const tipo_perfume = formData.get("tipo_perfume") as string;
+  const genero = formData.get("genero") as string;
+  const familia_olfativa = formData.getAll("familia_olfativa") as string[];
+  const notas_topo = formData.get("notas_topo") as string;
+  const notas_coracao = formData.get("notas_coracao") as string;
+  const notas_fundo = formData.get("notas_fundo") as string;
+  const fixacao_estimada = formData.get("fixacao_estimada") as string;
+  const projecao = formData.get("projecao") as string;
+  const ocasiao_uso = formData.getAll("ocasiao_uso") as string[];
+  const similaridade_inspiracao = formData.get("similaridade_inspiracao") as string;
+  const descricao_olfativa = formData.get("descricao_olfativa") as string;
+
   const preco = precoRaw ? parseFloat(precoRaw) : null;
   const precoAtacado = precoAtacadoRaw ? parseFloat(precoAtacadoRaw) : null;
   const custoDolar = custoDolarRaw ? parseFloat(custoDolarRaw) : null;
@@ -36,6 +52,12 @@ export async function createProduto(formData: FormData) {
   const estoque = estoqueRaw ? parseInt(estoqueRaw) : 0;
   const estoqueLojista = estoqueLojistaRaw ? parseInt(estoqueLojistaRaw) : estoque;
   const descontoPercentual = descontoPercentualRaw ? parseFloat(descontoPercentualRaw) : null;
+
+  // Retrocompatibilidade de Categoria
+  let categoria = categoria_principal;
+  if (categoria_principal === "Perfume" && tags.includes("Perfume Árabe")) {
+    categoria = "Perfume Árabe";
+  }
 
   try {
     let imagem: string | null = null;
@@ -68,6 +90,22 @@ export async function createProduto(formData: FormData) {
         descontoPercentual,
         descricao,
         imagem,
+        // Novos campos
+        categoria_principal,
+        tags,
+        concentracao,
+        origem,
+        tipo_perfume,
+        genero,
+        familia_olfativa,
+        notas_topo,
+        notas_coracao,
+        notas_fundo,
+        fixacao_estimada,
+        projecao,
+        ocasiao_uso,
+        similaridade_inspiracao,
+        descricao_olfativa,
       },
     });
 
@@ -84,7 +122,8 @@ export async function createProduto(formData: FormData) {
 export async function updateProduto(id: number, formData: FormData) {
   const nome = formData.get("nome") as string;
   const marca = formData.get("marca") as string;
-  const categoria = formData.get("categoria") as string;
+  const categoria_principal = (formData.get("categoria_principal") as string) || "Perfume";
+  const tags = formData.getAll("tags") as string[];
   const volume = formData.get("volume") as string;
   const precoRaw = formData.get("preco") as string;
   const precoAtacadoRaw = formData.get("precoAtacado") as string;
@@ -97,6 +136,21 @@ export async function updateProduto(id: number, formData: FormData) {
   const descontoPercentualRaw = formData.get("descontoPercentual") as string;
   const descricao = formData.get("descricao") as string;
 
+  // Novos campos técnicos
+  const concentracao = formData.get("concentracao") as string;
+  const origem = formData.get("origem") as string;
+  const tipo_perfume = formData.get("tipo_perfume") as string;
+  const genero = formData.get("genero") as string;
+  const familia_olfativa = formData.getAll("familia_olfativa") as string[];
+  const notas_topo = formData.get("notas_topo") as string;
+  const notas_coracao = formData.get("notas_coracao") as string;
+  const notas_fundo = formData.get("notas_fundo") as string;
+  const fixacao_estimada = formData.get("fixacao_estimada") as string;
+  const projecao = formData.get("projecao") as string;
+  const ocasiao_uso = formData.getAll("ocasiao_uso") as string[];
+  const similaridade_inspiracao = formData.get("similaridade_inspiracao") as string;
+  const descricao_olfativa = formData.get("descricao_olfativa") as string;
+
   const preco = precoRaw ? parseFloat(precoRaw) : null;
   const precoAtacado = precoAtacadoRaw ? parseFloat(precoAtacadoRaw) : null;
   const custoDolar = custoDolarRaw ? parseFloat(custoDolarRaw) : null;
@@ -104,6 +158,12 @@ export async function updateProduto(id: number, formData: FormData) {
   const estoque = estoqueRaw ? parseInt(estoqueRaw) : 0;
   const estoqueLojista = estoqueLojistaRaw ? parseInt(estoqueLojistaRaw) : estoque;
   const descontoPercentual = descontoPercentualRaw ? parseFloat(descontoPercentualRaw) : null;
+
+  // Retrocompatibilidade de Categoria
+  let categoria = categoria_principal;
+  if (categoria_principal === "Perfume" && tags.includes("Perfume Árabe")) {
+    categoria = "Perfume Árabe";
+  }
 
   try {
     let imagem: string | null = undefined as any;
@@ -128,6 +188,22 @@ export async function updateProduto(id: number, formData: FormData) {
       promocaoAtiva,
       descontoPercentual,
       descricao,
+      // Novos campos
+      categoria_principal,
+      tags,
+      concentracao,
+      origem,
+      tipo_perfume,
+      genero,
+      familia_olfativa,
+      notas_topo,
+      notas_coracao,
+      notas_fundo,
+      fixacao_estimada,
+      projecao,
+      ocasiao_uso,
+      similaridade_inspiracao,
+      descricao_olfativa,
     };
 
     if (imagem !== undefined) {
@@ -177,7 +253,22 @@ const FIELD_ALIASES: Record<string, string[]> = {
   estoqueGeral: ["estoque geral", "estoque", "quantidade", "qtd", "estoque total", "geral", "stock"],
   estoqueLojista: ["estoque lojista", "estoque atacado", "qtd lojista", "quantidade lojista"],
   imagem: ["imagem", "url", "foto", "image", "pic", "link"],
-  descricao: ["descricao", "detalhes", "observacao", "description", "obs"]
+  descricao: ["descricao", "detalhes", "observacao", "description", "obs"],
+  categoria_principal: ["categoria principal", "secao principal", "categoria_principal", "main_category"],
+  tags: ["tags", "etiquetas", "tags do produto", "tag"],
+  concentracao: ["concentracao", "concentração", "concentration"],
+  origem: ["origem", "origin"],
+  tipo_perfume: ["tipo de perfume", "tipo", "tipo_perfume", "type"],
+  genero: ["genero", "gênero", "gender", "sexo"],
+  familia_olfativa: ["familia olfativa", "família olfativa", "familia", "olfative family"],
+  notas_topo: ["notas de topo", "topo", "notas_topo", "saida", "notas de saida", "top notes"],
+  notas_coracao: ["notas de coracao", "notas de coração", "coracao", "coração", "notas_coracao", "corpo", "notas de corpo", "heart notes", "middle notes"],
+  notas_fundo: ["notas de fundo", "fundo", "notas_fundo", "base", "notas de base", "base notes"],
+  fixacao_estimada: ["fixacao estimada", "fixação estimada", "fixacao", "fixação", "durabilidade", "longevity"],
+  projecao: ["projecao", "projeção", "rastro", "rastro do perfume", "sillage", "projection"],
+  ocasiao_uso: ["ocasiao de uso", "ocasião de uso", "ocasiao", "ocasião", "occasions"],
+  similaridade_inspiracao: ["similaridade inspiracao", "similaridade inspiração", "similaridade", "inspiracao", "inspiração", "inspirado em", "similarity", "inspiration"],
+  descricao_olfativa: ["descricao olfativa", "descrição olfativa", "olfactive description"]
 };
 
 const ARABIC_TERMS = ["yara", "lattafa", "oud", "musk", "sharf", "mahib", "sahib", "norah", "al faras", "adyan", "ajyad", "hamidi", "árabe", "arab", "dubai", "oriental", "perfume árabe"];
@@ -286,6 +377,20 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         return colName ? row[colName] : undefined;
       };
 
+      const getArrayFromCell = (field: string) => {
+        const val = getVal(field);
+        if (val === undefined || val === null) return [];
+        if (Array.isArray(val)) return val.map(v => String(v).trim()).filter(Boolean);
+        const str = String(val).trim();
+        if (!str) return [];
+        return str.split(/[,\;+]/).map(item => item.trim()).filter(Boolean);
+      };
+
+      const getStringFromCell = (field: string) => {
+        const val = getVal(field);
+        return val !== undefined && val !== null ? String(val).trim() : null;
+      };
+
       const codigoRaw = getVal("codigo");
       let codigo: number | undefined = undefined;
       if (codigoRaw !== undefined) {
@@ -338,6 +443,53 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         categoria = "Perfume Árabe";
         warnings.push('Categoria alterada para "Perfume Árabe" por conter termos/marcas árabes.');
       }
+
+      // Categoria principal e Tags
+      let categoriaPrincipalRaw = getVal("categoria_principal");
+      let categoria_principal = categoriaPrincipalRaw !== undefined ? String(categoriaPrincipalRaw).trim() : "";
+      if (!categoria_principal) {
+        if (categoria.includes("Perfume") || categoria === "Oud") {
+          categoria_principal = "Perfume";
+        } else if (categoria === "Cosmético" || categoria === "Skincare") {
+          categoria_principal = "Cosmético";
+        } else if (categoria === "Acessório") {
+          categoria_principal = "Acessório";
+        } else if (categoria === "Kit") {
+          categoria_principal = "Kit";
+        } else {
+          categoria_principal = "Perfume";
+        }
+      }
+
+      const tags = getArrayFromCell("tags");
+      if ((categoria === "Perfume Árabe" || isArabicProduct(nome, marca)) && !tags.includes("Perfume Árabe")) {
+        tags.push("Perfume Árabe");
+      }
+      if (categoria === "Perfume Feminino" && !tags.includes("Feminino")) {
+        tags.push("Feminino");
+      }
+      if (categoria === "Perfume Masculino" && !tags.includes("Masculino")) {
+        tags.push("Masculino");
+      }
+
+      let finalCategoria = categoria_principal;
+      if (categoria_principal === "Perfume" && tags.includes("Perfume Árabe")) {
+        finalCategoria = "Perfume Árabe";
+      }
+
+      const concentracao = getStringFromCell("concentracao");
+      const origem = getStringFromCell("origem");
+      const tipo_perfume = getStringFromCell("tipo_perfume");
+      const genero = getStringFromCell("genero");
+      const familia_olfativa = getArrayFromCell("familia_olfativa");
+      const notas_topo = getStringFromCell("notas_topo");
+      const notas_coracao = getStringFromCell("notas_coracao");
+      const notas_fundo = getStringFromCell("notas_fundo");
+      const fixacao_estimada = getStringFromCell("fixacao_estimada");
+      const projecao = getStringFromCell("projecao");
+      const ocasiao_uso = getArrayFromCell("ocasiao_uso");
+      const similaridade_inspiracao = getStringFromCell("similaridade_inspiracao");
+      const descricao_olfativa = getStringFromCell("descricao_olfativa");
 
       const precoCustoRaw = getVal("precoCusto");
       const precoCusto = parseBrazilianNumber(precoCustoRaw);
@@ -418,7 +570,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         codigo,
         nome,
         marca,
-        categoria,
+        categoria: finalCategoria,
         volume,
         precoCusto: precoCusto || 0,
         precoLojista: precoLojista || 0,
@@ -426,7 +578,22 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         estoqueGeral,
         estoqueLojista,
         imagem,
-        descricao
+        descricao,
+        categoria_principal,
+        tags,
+        concentracao,
+        origem,
+        tipo_perfume,
+        genero,
+        familia_olfativa,
+        notas_topo,
+        notas_coracao,
+        notas_fundo,
+        fixacao_estimada,
+        projecao,
+        ocasiao_uso,
+        similaridade_inspiracao,
+        descricao_olfativa
       };
 
       const diff: any = {};
@@ -515,7 +682,22 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         estoqueGeral,
         estoqueLojista,
         imagem,
-        descricao
+        descricao,
+        categoria_principal,
+        tags,
+        concentracao,
+        origem,
+        tipo_perfume,
+        genero,
+        familia_olfativa,
+        notas_topo,
+        notas_coracao,
+        notas_fundo,
+        fixacao_estimada,
+        projecao,
+        ocasiao_uso,
+        similaridade_inspiracao,
+        descricao_olfativa
       } = mappedData;
 
       const savePayload = {
@@ -530,7 +712,22 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         estoque: estoqueGeral,
         estoqueLojista,
         descricao,
-        imagem: imagem || null
+        imagem: imagem || null,
+        categoria_principal,
+        tags,
+        concentracao,
+        origem,
+        tipo_perfume,
+        genero,
+        familia_olfativa,
+        notas_topo,
+        notas_coracao,
+        notas_fundo,
+        fixacao_estimada,
+        projecao,
+        ocasiao_uso,
+        similaridade_inspiracao,
+        descricao_olfativa
       };
 
       if (status === "update" && dbId) {
