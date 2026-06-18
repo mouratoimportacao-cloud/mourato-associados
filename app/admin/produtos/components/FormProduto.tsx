@@ -90,17 +90,7 @@ interface FormProdutoProps {
 }
 
 const tagOptions = [
-  "Perfume Árabe", "Importado", "Feminino", "Masculino", "Unissex", 
-  "Nicho", "Contratipo", "Lançamento", "Mais Vendido", "Premium"
-];
-
-const familiaOptions = [
-  "Oriental", "Amadeirado", "Aromático", "Floral", "Cítrico", 
-  "Gourmand", "Aquático", "Frutado", "Fougère", "Especiado"
-];
-
-const ocasiaoOptions = [
-  "Dia", "Noite", "Trabalho", "Academia", "Festa", "Encontro", "Verão", "Inverno"
+  "Perfume Árabe", "Importado", "Feminino", "Masculino", "Unissex"
 ];
 
 export default function FormProduto({ editingProduto, onCancelEdit }: FormProdutoProps) {
@@ -297,77 +287,6 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
                 </select>
               </div>
 
-              {/* ORIGEM */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Origem</label>
-                <select
-                  name="origem"
-                  disabled={isPending}
-                  defaultValue={editingProduto?.origem || ""}
-                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
-                >
-                  <option value="">Sem especificação</option>
-                  <option value="Nacional">Nacional</option>
-                  <option value="Importado">Importado</option>
-                  <option value="Árabe">Árabe</option>
-                  <option value="Inspirado">Inspirado</option>
-                </select>
-              </div>
-
-              {/* TIPO DE PERFUME */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Tipo de Perfume</label>
-                <select
-                  name="tipo_perfume"
-                  disabled={isPending}
-                  defaultValue={editingProduto?.tipo_perfume || ""}
-                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
-                >
-                  <option value="">Sem especificação</option>
-                  <option value="Designer">Designer</option>
-                  <option value="Nicho">Nicho</option>
-                  <option value="Contratipo">Contratipo</option>
-                  <option value="Inspirado">Inspirado</option>
-                  <option value="Exclusivo">Exclusivo</option>
-                </select>
-              </div>
-
-              {/* GÊNERO */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Gênero</label>
-                <select
-                  name="genero"
-                  disabled={isPending}
-                  defaultValue={editingProduto?.genero || ""}
-                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
-                >
-                  <option value="">Sem especificação</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Feminino">Feminino</option>
-                  <option value="Unissex">Unissex</option>
-                </select>
-              </div>
-
-              {/* FAMÍLIA OLFATIVA (MultiSelect Checkboxes) */}
-              <div className="col-span-1 md:col-span-2 space-y-2">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Família Olfativa</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 bg-neutral-900/40 p-4 rounded-xl border border-zinc-900">
-                  {familiaOptions.map((fam) => (
-                    <label key={fam} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        name="familia_olfativa"
-                        value={fam}
-                        disabled={isPending}
-                        defaultChecked={currentFamilias.includes(fam)}
-                        className="h-4 w-4 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
-                      />
-                      {fam}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               {/* PIRÂMIDE OLFATIVA */}
               <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-900/10 p-4 rounded-xl border border-zinc-900/50">
                 <div className="space-y-1 col-span-1">
@@ -399,59 +318,6 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
                     className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-xs text-white"
                     placeholder="Âmbar, Musk, Baunilha..."
                   />
-                </div>
-              </div>
-
-              {/* PERFORMANCE (FIXAÇÃO E PROJEÇÃO) */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Fixação Estimada</label>
-                <select
-                  name="fixacao_estimada"
-                  disabled={isPending}
-                  defaultValue={editingProduto?.fixacao_estimada || ""}
-                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
-                >
-                  <option value="">Sem especificação</option>
-                  <option value="Baixa">Baixa</option>
-                  <option value="Média">Média</option>
-                  <option value="Alta">Alta</option>
-                  <option value="Extrema">Extrema</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Projeção</label>
-                <select
-                  name="projecao"
-                  disabled={isPending}
-                  defaultValue={editingProduto?.projecao || ""}
-                  className="w-full rounded-lg border-zinc-800 p-2.5 border bg-neutral-900 text-sm text-white focus:ring-2 focus:ring-gold"
-                >
-                  <option value="">Sem especificação</option>
-                  <option value="Suave">Suave</option>
-                  <option value="Moderada">Moderada</option>
-                  <option value="Forte">Forte</option>
-                  <option value="Muito Forte">Muito Forte</option>
-                </select>
-              </div>
-
-              {/* OCASIÃO DE USO (MultiSelect Checkboxes) */}
-              <div className="col-span-1 md:col-span-2 space-y-2">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Ocasião de Uso</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-neutral-900/40 p-4 rounded-xl border border-zinc-900">
-                  {ocasiaoOptions.map((o) => (
-                    <label key={o} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        name="ocasiao_uso"
-                        value={o}
-                        disabled={isPending}
-                        defaultChecked={currentOcasioes.includes(o)}
-                        className="h-4 w-4 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
-                      />
-                      {o}
-                    </label>
-                  ))}
                 </div>
               </div>
 

@@ -45,12 +45,7 @@ const tags = [
   "Importado",
   "Feminino",
   "Masculino",
-  "Unissex",
-  "Nicho",
-  "Contratipo",
-  "Lançamento",
-  "Mais Vendido",
-  "Premium"
+  "Unissex"
 ];
 const ocasioes = ["Dia", "Noite", "Trabalho", "Academia", "Festa", "Encontro", "Verão", "Inverno"];
 
@@ -182,7 +177,7 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
       {/* COLLAPSIBLE ACCORDION AREA */}
       {isOpen && (
         <div className="mt-5 pt-5 border-t border-zinc-900/60 dark:border-zinc-800/40 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* CATEGORIA PRINCIPAL */}
             <div className="space-y-1.5">
@@ -198,44 +193,6 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
                 {categorias.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* ORIGEM */}
-            <div className="space-y-1.5">
-              <label className={`text-[10px] font-bold uppercase tracking-wider block ${textSecondary}`}>
-                Origem
-              </label>
-              <select
-                value={origem}
-                onChange={(e) => setOrigem(e.target.value)}
-                className={`w-full text-xs font-semibold rounded-lg p-2 focus:ring-1 focus:ring-gold ${bgInput} ${selectTextColor}`}
-              >
-                <option value="todos">Todas as Origens</option>
-                {origens.map((orig) => (
-                  <option key={orig} value={orig}>
-                    {orig}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* GÊNERO */}
-            <div className="space-y-1.5">
-              <label className={`text-[10px] font-bold uppercase tracking-wider block ${textSecondary}`}>
-                Gênero
-              </label>
-              <select
-                value={genero}
-                onChange={(e) => setGenero(e.target.value)}
-                className={`w-full text-xs font-semibold rounded-lg p-2 focus:ring-1 focus:ring-gold ${bgInput} ${selectTextColor}`}
-              >
-                <option value="todos">Todos os Gêneros</option>
-                {generos.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
                   </option>
                 ))}
               </select>
@@ -261,77 +218,27 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-            
-            {/* FAMÍLIAS OLFATIVAS */}
-            <div className="space-y-2">
-              <label className={`text-[10px] font-bold uppercase tracking-wider block ${textSecondary}`}>
-                Família Olfativa
-              </label>
-              <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-2 bg-neutral-900/10 dark:bg-neutral-900/40 rounded-xl border border-zinc-900/40">
-                {familias.map((fam) => {
-                  const checked = selectedFamilias.includes(fam);
-                  return (
-                    <label key={fam} className="flex items-center gap-2 text-[11px] cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => handleToggleFamilia(fam)}
-                        className="h-3.5 w-3.5 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
-                      />
-                      <span className={checked ? "font-bold text-gold" : checkboxLabelColor}>{fam}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
+          <div className="space-y-2 pt-2">
             {/* TAGS */}
-            <div className="space-y-2">
-              <label className={`text-[10px] font-bold uppercase tracking-wider block ${textSecondary}`}>
-                Tags
-              </label>
-              <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-2 bg-neutral-900/10 dark:bg-neutral-900/40 rounded-xl border border-zinc-900/40">
-                {tags.map((tag) => {
-                  const checked = selectedTags.includes(tag);
-                  return (
-                    <label key={tag} className="flex items-center gap-2 text-[11px] cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => handleToggleTag(tag)}
-                        className="h-3.5 w-3.5 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
-                      />
-                      <span className={checked ? "font-bold text-gold" : checkboxLabelColor}>{tag}</span>
-                    </label>
-                  );
-                })}
-              </div>
+            <label className={`text-[10px] font-bold uppercase tracking-wider block ${textSecondary}`}>
+              Tags
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 p-3 bg-neutral-900/10 dark:bg-neutral-900/40 rounded-xl border border-zinc-900/40">
+              {tags.map((tag) => {
+                const checked = selectedTags.includes(tag);
+                return (
+                  <label key={tag} className="flex items-center gap-2 text-[11px] cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleToggleTag(tag)}
+                      className="h-3.5 w-3.5 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
+                    />
+                    <span className={checked ? "font-bold text-gold" : checkboxLabelColor}>{tag}</span>
+                  </label>
+                );
+              })}
             </div>
-
-            {/* OCASIÕES DE USO */}
-            <div className="space-y-2">
-              <label className={`text-[10px] font-bold uppercase tracking-wider block ${textSecondary}`}>
-                Ocasião de Uso
-              </label>
-              <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-2 bg-neutral-900/10 dark:bg-neutral-900/40 rounded-xl border border-zinc-900/40">
-                {ocasioes.map((oca) => {
-                  const checked = selectedOcasioes.includes(oca);
-                  return (
-                    <label key={oca} className="flex items-center gap-2 text-[11px] cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => handleToggleOcasiao(oca)}
-                        className="h-3.5 w-3.5 rounded border-zinc-800 text-gold focus:ring-gold bg-zinc-950"
-                      />
-                      <span className={checked ? "font-bold text-gold" : checkboxLabelColor}>{oca}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
           </div>
         </div>
       )}

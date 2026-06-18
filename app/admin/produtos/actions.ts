@@ -192,19 +192,34 @@ export async function updateProduto(id: number, formData: FormData) {
       categoria_principal,
       tags,
       concentracao,
-      origem,
-      tipo_perfume,
-      genero,
-      familia_olfativa,
       notas_topo,
       notas_coracao,
       notas_fundo,
-      fixacao_estimada,
-      projecao,
-      ocasiao_uso,
       similaridade_inspiracao,
       descricao_olfativa,
     };
+
+    if (formData.has("origem")) {
+      updateData.origem = formData.get("origem") as string;
+    }
+    if (formData.has("tipo_perfume")) {
+      updateData.tipo_perfume = formData.get("tipo_perfume") as string;
+    }
+    if (formData.has("genero")) {
+      updateData.genero = formData.get("genero") as string;
+    }
+    if (formData.has("familia_olfativa")) {
+      updateData.familia_olfativa = formData.getAll("familia_olfativa") as string[];
+    }
+    if (formData.has("fixacao_estimada")) {
+      updateData.fixacao_estimada = formData.get("fixacao_estimada") as string;
+    }
+    if (formData.has("projecao")) {
+      updateData.projecao = formData.get("projecao") as string;
+    }
+    if (formData.has("ocasiao_uso")) {
+      updateData.ocasiao_uso = formData.getAll("ocasiao_uso") as string[];
+    }
 
     if (imagem !== undefined) {
       updateData.imagem = imagem;
