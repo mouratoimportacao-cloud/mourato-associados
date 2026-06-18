@@ -17,7 +17,7 @@ export default async function PainelLojistaPage() {
   }
 
   const produtos = await prisma.produto.findMany({
-    orderBy: { nome: "asc" },
+    orderBy: { id: "asc" },
   });
   const lojistaAtual = await prisma.usuario.findUnique({
     where: { id: session.id },

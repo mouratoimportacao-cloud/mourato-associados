@@ -48,7 +48,7 @@ export default async function Footer() {
                     title={social.label}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-full social-embossed p-3"
                   >
-                    <img src={social.icon} alt="" className="h-full w-full object-contain filter invert group-hover:scale-110 transition-transform duration-300" />
+                    <img src={social.icon} alt="" className="h-full w-full object-contain group-hover:scale-110 transition-transform duration-300" />
                   </a>
                 ) : (
                   <span
@@ -57,7 +57,7 @@ export default async function Footer() {
                     title={`${social.label}: sem link configurado`}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-full social-embossed-disabled p-3"
                   >
-                    <img src={social.icon} alt="" className="h-full w-full object-contain filter invert opacity-30" />
+                    <img src={social.icon} alt="" className="h-full w-full object-contain opacity-30" />
                   </span>
                 )
               )}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import VitrineCarrossel from "./VitrineCarrossel";
 import CatalogoProdutos from "./CatalogoProdutos";
 
@@ -20,27 +21,60 @@ type Produto = {
   vitrine?: boolean;
 };
 
-const categoriasBase = ["Perfume", "Perfume Feminino", "Perfume Masculino", "Perfume Árabe", "Oud", "Cosmético", "Skincare", "Outros"];
-
 export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: Produto[]; lojistaId?: number | null }) {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("todos");
+  const searchParams = useSearchParams();
+
+  // Carrega busca da URL se houver
+  useEffect(() => {
+    const query = searchParams.get("busca") || "";
+    setBusca(query);
+  }, [searchParams]);
+
+  // Escuta os eventos globais da Navbar (Busca e Categoria)
+  useEffect(() => {
+    const handleSearch = (e: Event) => {
+      setBusca((e as CustomEvent<string>).detail || "");
+    };
+    const handleCategory = (e: Event) => {
+      setCategoria((e as CustomEvent<string>).detail || "todos");
+    };
+
+    window.addEventListener("search-changed", handleSearch);
+    window.addEventListener("category-changed", handleCategory);
+
+    return () => {
+      window.removeEventListener("search-changed", handleSearch);
+      window.removeEventListener("category-changed", handleCategory);
+    };
+  }, []);
 
   const produtosOrdenados = useMemo(
-    () => [...produtos].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
+    () => [...produtos].sort((a, b) => a.id - b.id),
     [produtos]
-  );
-
-  const categorias = useMemo(
-    () => ["todos", ...Array.from(new Set([...categoriasBase, ...produtosOrdenados.map((produto) => produto.categoria).filter(Boolean)])).sort()],
-    [produtosOrdenados]
   );
 
   const produtosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
 
     return produtosOrdenados.filter((produto) => {
-      const passaCategoria = categoria === "todos" || produto.categoria === categoria;
+      // 1. Filtragem de Categoria
+      let passaCategoria = false;
+      if (categoria === "todos") {
+        passaCategoria = true;
+      } else if (categoria === "Promoções") {
+        passaCategoria = Boolean(produto.promocaoAtiva);
+      } else if (categoria === "Kits") {
+        passaCategoria =
+          produto.nome.toLowerCase().includes("kit") ||
+          produto.volume.toLowerCase().includes("kit") ||
+          produto.categoria.toLowerCase().includes("kit");
+      } else {
+        passaCategoria = produto.categoria === categoria;
+      }
+
+      // 2. Filtragem de Busca
       const passaBusca =
         !termo ||
         produto.nome.toLowerCase().includes(termo) ||
@@ -58,28 +92,7 @@ export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: P
 
   return (
     <div className="space-y-12">
-      {/* 1. Busca e Filtros - Posicionados acima da Vitrine */}
-      <section className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-4 bg-neutral-950 p-4 border border-zinc-900 rounded-3xl shadow-2xl">
-        <input
-          value={busca}
-          onChange={(event) => setBusca(event.target.value)}
-          placeholder="Buscar por perfume, marca ou tipo..."
-          className="w-full rounded-full border border-zinc-800 bg-black px-6 py-3 text-sm text-gray-200 placeholder-gray-500 shadow-inner outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
-        />
-        <select
-          value={categoria}
-          onChange={(event) => setCategoria(event.target.value)}
-          className="w-full rounded-full border border-zinc-800 bg-black px-6 py-3 text-sm font-semibold text-gray-400 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20 cursor-pointer"
-        >
-          {categorias.map((item) => (
-            <option key={item} value={item} className="bg-black text-gray-200">
-              {item === "todos" ? "Todas as categorias" : item}
-            </option>
-          ))}
-        </select>
-      </section>
-
-      {/* 2. Vitrine de Destaques (Carrossel Interativo com Setas) Envelopada em Arco Dourado */}
+      {/* Vitrine de Destaques */}
       {produtosVitrine.length > 0 && (
         <section className="relative overflow-hidden rounded-[2rem] border-2 border-gold/30 bg-neutral-950 p-6 md:p-8 lg:p-10 shadow-[0_0_35px_rgba(212,175,55,0.07)]">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
@@ -99,12 +112,11 @@ export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: P
         </section>
       )}
 
-      {/* 3. Grade Principal de Produtos */}
+      {/* Grade Principal de Produtos */}
       <section>
         <CatalogoProdutos 
           produtos={produtosFiltrados} 
           lojistaId={lojistaId} 
-          hideSearch={true} // Oculta a busca padrão interna
         />
       </section>
     </div>

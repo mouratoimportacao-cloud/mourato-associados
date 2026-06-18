@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
-import { registrarIntencaoCompra } from "../actions";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Produto = {
   id: number;
@@ -18,8 +18,6 @@ type Produto = {
   promocaoAtiva?: boolean;
   descontoPercentual?: number | null;
 };
-
-const categoriasBase = ["Perfume", "Perfume Feminino", "Perfume Masculino", "Perfume Árabe", "Oud", "Cosmético", "Skincare", "Outros"];
 
 function moeda(valor: number | null | undefined) {
   return valor ? `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Sob consulta";
@@ -38,36 +36,64 @@ function precoPromocional(produto: Produto) {
 
 export default function CatalogoProdutos({ 
   produtos, 
-  lojistaId, 
-  hideSearch = false 
+  lojistaId 
 }: { 
   produtos: Produto[]; 
   lojistaId?: number | null; 
-  hideSearch?: boolean; 
 }) {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("todos");
-  const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
-  const [paymentMessage, setPaymentMessage] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+
+  // Sincroniza busca da URL
+  useEffect(() => {
+    const query = searchParams.get("busca") || "";
+    setBusca(query);
+  }, [searchParams]);
+
+  // Escuta os eventos globais da Navbar (Busca e Categoria)
+  useEffect(() => {
+    const handleSearch = (e: Event) => {
+      setBusca((e as CustomEvent<string>).detail || "");
+    };
+    const handleCategory = (e: Event) => {
+      setCategoria((e as CustomEvent<string>).detail || "todos");
+    };
+
+    window.addEventListener("search-changed", handleSearch);
+    window.addEventListener("category-changed", handleCategory);
+
+    return () => {
+      window.removeEventListener("search-changed", handleSearch);
+      window.removeEventListener("category-changed", handleCategory);
+    };
+  }, []);
 
   const produtosOrdenados = useMemo(
-    () => [...produtos].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
+    () => [...produtos].sort((a, b) => a.id - b.id),
     [produtos]
   );
 
-  const categorias = useMemo(
-    () => ["todos", ...Array.from(new Set([...categoriasBase, ...produtosOrdenados.map((produto) => produto.categoria).filter(Boolean)])).sort()],
-    [produtosOrdenados]
-  );
-
   const produtosFiltrados = useMemo(() => {
-    if (hideSearch) return produtosOrdenados;
-
     const termo = busca.trim().toLowerCase();
 
     return produtosOrdenados.filter((produto) => {
-      const passaCategoria = categoria === "todos" || produto.categoria === categoria;
+      // 1. Filtragem de Categoria
+      let passaCategoria = false;
+      if (categoria === "todos") {
+        passaCategoria = true;
+      } else if (categoria === "Promoções") {
+        passaCategoria = Boolean(produto.promocaoAtiva);
+      } else if (categoria === "Kits") {
+        passaCategoria =
+          produto.nome.toLowerCase().includes("kit") ||
+          produto.volume.toLowerCase().includes("kit") ||
+          produto.categoria.toLowerCase().includes("kit");
+      } else {
+        passaCategoria = produto.categoria === categoria;
+      }
+
+      // 2. Filtragem de Busca
       const passaBusca =
         !termo ||
         produto.nome.toLowerCase().includes(termo) ||
@@ -76,27 +102,50 @@ export default function CatalogoProdutos({
 
       return passaCategoria && passaBusca;
     });
-  }, [busca, categoria, produtosOrdenados, hideSearch]);
+  }, [busca, categoria, produtosOrdenados]);
 
-  function openDetails(produto: Produto) {
-    setSelectedProduto(produto);
-    setPaymentMessage("");
-  }
-
-  function handlePayment(produto: Produto) {
-    setSelectedProduto(produto);
-    setPaymentMessage("");
-
-    startTransition(async () => {
-      const result = await registrarIntencaoCompra(produto.id, lojistaId || null);
-      setPaymentMessage(result.message);
-
-      if (result.success) {
-        if (typeof window !== "undefined" && (window as any).triggerPwaInstall) {
-          (window as any).triggerPwaInstall();
-        }
+  function handleAddToCart(produto: Produto) {
+    try {
+      const cartRaw = localStorage.getItem("ma-cart") || "[]";
+      let cart: any[] = [];
+      try {
+        cart = JSON.parse(cartRaw);
+      } catch (e) {
+        cart = [];
       }
-    });
+
+      const valorAtual = precoPromocional(produto) || Number(produto.preco || 0);
+      const existingIndex = cart.findIndex((item) => item.id === produto.id);
+
+      if (existingIndex > -1) {
+        const newQty = cart[existingIndex].quantidade + 1;
+        if (newQty > produto.estoque) {
+          alert(`Desculpe, estoque insuficiente. Limite de ${produto.estoque} unidades.`);
+          return;
+        }
+        cart[existingIndex].quantidade = newQty;
+      } else {
+        cart.push({
+          id: produto.id,
+          codigo: produto.codigo,
+          nome: produto.nome,
+          marca: produto.marca,
+          categoria: produto.categoria,
+          volume: produto.volume,
+          preco: valorAtual,
+          precoOriginal: Number(produto.preco || 0),
+          imagem: produto.imagem,
+          quantidade: 1,
+          estoqueMaximo: produto.estoque,
+        });
+      }
+
+      localStorage.setItem("ma-cart", JSON.stringify(cart));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new CustomEvent("open-cart"));
+    } catch (error) {
+      console.error("Erro ao adicionar ao carrinho:", error);
+    }
   }
 
   return (
@@ -108,28 +157,6 @@ export default function CatalogoProdutos({
         </div>
         <Link href="/lojista" className="btn-luxury-outline text-center">Área Lojista</Link>
       </section>
-
-      {!hideSearch && (
-        <section className="mb-10 grid grid-cols-1 md:grid-cols-[1fr_260px] gap-4 bg-neutral-950 p-4 border border-zinc-900 rounded-3xl shadow-2xl">
-          <input
-            value={busca}
-            onChange={(event) => setBusca(event.target.value)}
-            placeholder="Buscar por perfume, marca ou tipo..."
-            className="w-full rounded-full border border-zinc-800 bg-black px-6 py-3 text-sm text-gray-200 placeholder-gray-500 shadow-inner outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
-          />
-          <select
-            value={categoria}
-            onChange={(event) => setCategoria(event.target.value)}
-            className="w-full rounded-full border border-zinc-800 bg-black px-6 py-3 text-sm font-semibold text-gray-400 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20 cursor-pointer"
-          >
-            {categorias.map((item) => (
-              <option key={item} value={item} className="bg-black text-gray-200">
-                {item === "todos" ? "Todas as categorias" : item}
-              </option>
-            ))}
-          </select>
-        </section>
-      )}
 
       <p className="mb-8 text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">
         {produtosFiltrados.length} {produtosFiltrados.length === 1 ? "produto encontrado" : "produtos encontrados"}
@@ -158,15 +185,6 @@ export default function CatalogoProdutos({
                     Maison Mourato
                   </div>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-black/90 backdrop-blur-sm">
-                  <button
-                    type="button"
-                    onClick={() => openDetails(produto)}
-                    className="w-full py-1.5 sm:py-2 bg-neutral-900 text-gold text-[8px] sm:text-[10px] font-bold uppercase tracking-widest hover:bg-gold hover:text-black transition-colors rounded cursor-pointer"
-                  >
-                    Ver Detalhes
-                  </button>
-                </div>
               </div>
 
               <div className="flex flex-col flex-grow space-y-2">
@@ -197,25 +215,18 @@ export default function CatalogoProdutos({
                     {produto.estoque > 0 ? "Disponível" : "Esgotado"}
                   </span>
                 </div>
-                <div className="mt-2 sm:mt-3 grid grid-cols-1 gap-1.5">
+                <div className="mt-2 sm:mt-3">
                   <button
                     type="button"
-                    onClick={() => openDetails(produto)}
-                    className="block w-full rounded-full border border-zinc-800 py-2 sm:py-3 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-zinc-400 transition-colors hover:bg-neutral-900 hover:text-white cursor-pointer"
-                  >
-                    Ver detalhes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePayment(produto)}
-                    disabled={produto.estoque <= 0 || isPending}
-                    className={`block w-full rounded-full py-2 sm:py-3 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                    onClick={() => handleAddToCart(produto)}
+                    disabled={produto.estoque <= 0}
+                    className={`block w-full rounded-full py-2.5 sm:py-3 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
                     produto.estoque > 0
                       ? "bg-gold text-black hover:bg-white hover:text-black font-bold"
                       : "bg-neutral-900 text-zinc-500 pointer-events-none"
                   }`}
                   >
-                    {produto.estoque > 0 ? (isPending ? "Registrando..." : "Pagamento") : "Reposição"}
+                    {produto.estoque > 0 ? "Adicionar ao carrinho" : "Reposição"}
                   </button>
                 </div>
               </div>
@@ -227,109 +238,6 @@ export default function CatalogoProdutos({
       {produtosFiltrados.length === 0 && (
         <div className="py-32 text-center">
           <p className="text-gray-400 font-serif italic text-xl">Nenhum produto encontrado com esse filtro.</p>
-        </div>
-      )}
-
-      {selectedProduto && (
-        <div className="fixed inset-0 z-50 bg-black/80 px-3 py-4 sm:px-6 sm:py-8 backdrop-blur-sm overflow-y-auto">
-          <div className="mx-auto flex min-h-full max-w-5xl items-center justify-center">
-            <div className="relative w-full overflow-hidden rounded-none sm:rounded-2xl bg-white border border-gray-200 text-gray-900 shadow-2xl">
-              <button
-                type="button"
-                onClick={() => setSelectedProduto(null)}
-                className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-2xl leading-none text-gray-700 border border-gray-200 shadow-md hover:bg-gray-200 cursor-pointer"
-                aria-label="Fechar detalhes"
-              >
-                ×
-              </button>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="min-h-80 bg-gray-50 border-r border-gray-100 flex items-center justify-center">
-                  {selectedProduto.imagem ? (
-                    <img src={selectedProduto.imagem} alt={selectedProduto.nome} className="h-full max-h-[70vh] w-full object-cover" />
-                  ) : (
-                    <div className="flex min-h-80 h-full items-center justify-center text-4xl font-serif italic text-zinc-400">
-                      M&A
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col p-6 sm:p-8 lg:p-10">
-                  <div className="mb-5 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-gold/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gold border border-gold/20">
-                      {selectedProduto.categoria}
-                    </span>
-                    <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
-                      selectedProduto.estoque > 0 ? "bg-green-50 text-green-750 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
-                    }`}>
-                      {selectedProduto.estoque > 0 ? "Disponível" : "Esgotado"}
-                    </span>
-                    {selectedProduto.promocaoAtiva && selectedProduto.descontoPercentual ? (
-                      <span className="rounded-full bg-red-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
-                        -{selectedProduto.descontoPercentual}% OFF
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">{selectedProduto.marca}</p>
-                  <h3 className="mt-2 text-3xl sm:text-4xl font-serif leading-tight text-gray-900">{selectedProduto.nome}</h3>
-                  <p className="mt-2 text-sm font-light italic text-gray-500">Código {selectedProduto.codigo ?? selectedProduto.id} / {selectedProduto.volume}</p>
-
-                  <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50/50 p-5">
-                    <p className="text-xs font-black uppercase tracking-widest text-gray-400">Descrição</p>
-                    <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                      {selectedProduto.descricao || "Descrição em atualização. Consulte nossa equipe para confirmar notas, fixação e disponibilidade."}
-                    </p>
-                  </div>
-
-                  <div className="mt-6">
-                    {precoPromocional(selectedProduto) ? (
-                      <div className="rounded-3xl bg-red-50 border border-red-100 p-5 text-red-700 shadow-sm">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs font-black uppercase tracking-widest text-red-600">Oferta Especial</span>
-                          <span className="text-sm line-through text-gray-400">{moeda(selectedProduto.preco)}</span>
-                        </div>
-                        <div className="mt-2 text-3xl font-black text-red-750">{moeda(precoPromocional(selectedProduto))}</div>
-                      </div>
-                    ) : (
-                      <div className="rounded-3xl border border-gold/30 bg-gold/10 p-5">
-                        <p className="text-xs font-black uppercase tracking-widest text-gold">Preço</p>
-                        <div className="mt-2 text-3xl font-black text-gold">{moeda(selectedProduto.preco)}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {paymentMessage && (
-                    <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-relaxed text-amber-850">
-                      {paymentMessage}
-                    </div>
-                  )}
-
-                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handlePayment(selectedProduto)}
-                      disabled={selectedProduto.estoque <= 0 || isPending}
-                      className={`rounded-full px-5 py-4 text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${
-                        selectedProduto.estoque > 0
-                          ? "bg-gold text-black hover:bg-white hover:text-black font-bold"
-                          : "bg-gray-100 text-gray-400 pointer-events-none"
-                      }`}
-                    >
-                      {selectedProduto.estoque > 0 ? (isPending ? "Registrando..." : "Pagamento") : "Reposição"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProduto(null)}
-                      className="rounded-full border border-gray-200 px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-100 hover:text-gray-700 cursor-pointer"
-                    >
-                      Voltar ao catálogo
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </>

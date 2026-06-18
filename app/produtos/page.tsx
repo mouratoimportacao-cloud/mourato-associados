@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { prisma } from "../../lib/prisma";
@@ -27,7 +28,7 @@ function precoPromocional(produto: any) {
 
 export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
-    orderBy: { nome: 'asc' }
+    orderBy: { id: 'asc' }
   });
   const produtosVitrine = produtos.filter((produto: any) => produto.vitrine || produto.promocaoAtiva);
   const produtosPublicos = produtos;
@@ -39,12 +40,16 @@ export default async function ProdutosPage() {
       <main className="flex-grow pt-32 pb-20">
         <div className="w-full px-2 sm:px-8 md:px-12 lg:px-16">
           <header className="mb-16 text-center">
-            <span className="text-luxury-gold text-[10px] font-bold uppercase tracking-[0.4em] mb-4 block">Perfumaria em Alta</span>
-            <h1 className="text-5xl font-serif text-white mb-6">Produtos à Pronta Entrega</h1>
-            <div className="w-24 h-px bg-luxury-gold mx-auto mb-8"></div>
+            <span className="text-gold text-[10px] font-bold uppercase tracking-[0.4em] mb-4 block">Curadoria Exclusiva</span>
+            <h1 className="text-4xl md:text-6xl font-serif mb-6 tracking-tight bg-gradient-to-r from-white via-[#F5E6C4] to-[#D4AF37] bg-clip-text text-transparent font-black">
+              Fragrâncias à Pronta Entrega
+            </h1>
+            <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mb-8"></div>
           </header>
 
-          <CatalogoPrincipal produtos={produtosPublicos as any[]} />
+          <Suspense fallback={<div className="py-20 text-center text-zinc-500 font-serif italic text-lg">Carregando curadoria...</div>}>
+            <CatalogoPrincipal produtos={produtosPublicos as any[]} />
+          </Suspense>
         </div>
       </main>
 

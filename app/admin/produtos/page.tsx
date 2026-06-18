@@ -19,7 +19,7 @@ export default async function ProdutosAdmin() {
 
   const produtos = await prisma.produto.findMany({
     orderBy: {
-      nome: "asc",
+      id: "asc",
     },
   });
 

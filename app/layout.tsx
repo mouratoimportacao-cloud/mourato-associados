@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import PwaInstaller from "./components/PwaInstaller";
 
 export const metadata: Metadata = {
   title: "Mourato & Associados | Perfumaria de Luxo",
@@ -33,12 +32,6 @@ export const metadata: Metadata = {
     shortcut: "/brand/logo-ma.png",
     apple: "/brand/logo-ma.png",
   },
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Mourato & Associados",
-  },
 };
 
 export default function RootLayout({
@@ -50,7 +43,6 @@ export default function RootLayout({
     <html lang="pt-BR" className="h-full antialiased">
       <body className="min-h-full flex flex-col font-sans bg-[#FDFDFD] text-[#1A1A1A]">
         {children}
-        <PwaInstaller />
       </body>
     </html>
   );
