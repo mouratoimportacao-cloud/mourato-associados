@@ -295,7 +295,6 @@ export default function CatalogoProdutos({
                   {produto.nome}
                 </h3>
                 <p className="text-[10px] sm:text-xs text-zinc-500 font-light italic">{produto.volume}</p>
-                {produto.descricao && <p className="hidden sm:block text-xs text-zinc-400 font-light leading-relaxed line-clamp-3">{produto.descricao}</p>}
 
                 {/* INFORMAÇÕES OLFATIVAS AVANÇADAS */}
                 {/* INFORMAÇÕES OLFATIVAS */}
