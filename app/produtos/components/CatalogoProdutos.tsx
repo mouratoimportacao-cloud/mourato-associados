@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { slugify } from "../../../lib/slug";
 import FiltrosProdutos from "../../components/FiltrosProdutos";
 
 type Produto = {
@@ -430,12 +431,18 @@ export default function CatalogoProdutos({
                     {produto.estoque > 0 ? "Disponível" : "Esgotado"}
                   </span>
                 </div>
-                <div className="mt-2 sm:mt-3">
+                 <div className="flex flex-col gap-2 mt-3">
+                  <Link
+                    href={`/produto/${slugify(produto.nome)}`}
+                    className="block w-full rounded-full border border-gold/40 hover:border-gold hover:bg-gold/10 text-gold hover:text-white text-center py-2 sm:py-2.5 text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
+                  >
+                    Ver detalhes
+                  </Link>
                   <button
                     type="button"
                     onClick={() => handleAddToCart(produto)}
                     disabled={produto.estoque <= 0}
-                    className={`block w-full rounded-full py-2.5 sm:py-3 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                    className={`block w-full rounded-full py-2 sm:py-2.5 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
                     produto.estoque > 0
                       ? "bg-gold text-black hover:bg-white hover:text-black font-bold"
                       : "bg-neutral-900 text-zinc-500 pointer-events-none"
