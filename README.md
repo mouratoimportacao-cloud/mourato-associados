@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mourato & Associados
+
+Plataforma de venda de perfumes, cosméticos e skincare com área de revendedores (lojistas).
+
+**URL:** https://mouratoassociados.com.br
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Linguagem:** TypeScript
+- **Estilização:** Tailwind CSS 4
+- **Banco de Dados:** PostgreSQL (Neon) via `pg`
+- **ORM/Schema:** Prisma 7 (migrações)
+- **Autenticação:** JWT + bcryptjs
+- **Validação:** Zod + React Hook Form
+- **Deploy:** Vercel
+- **PWA:** manifest.json + instalador customizado
+
+## Estrutura do Projeto
+
+```
+app/
+├── produtos/        # Catálogo público de perfumes
+├── admin/           # Painel administrativo (protegido por JWT)
+│   ├── produtos/    # CRUD de produtos
+│   ├── pedidos/     # Gestão de pedidos
+│   ├── lojistas/    # Gestão de revendedores
+│   ├── radar/       # Monitoramento
+│   └── configurar/  # Configurações do site
+├── lojista/         # Área do revendedor (login + painel)
+├── r/[codigo]/      # Links de referência para lojistas
+└── components/      # Navbar, Footer, PWA
+lib/
+├── auth.ts          # Helpers de autenticação
+├── jwt.ts           # Verificação/criação de tokens
+├── prisma.ts        # Cliente Prisma
+└── site-config.ts   # Configuração social/links (Postgres)
+prisma/
+└── schema.prisma    # Modelos: Usuario, Produto, Pedido, Endereco
+```
+
+## Funcionalidades Implementadas
+
+- ✅ Catálogo de produtos com imagens
+- ✅ Painel admin com login protegido (middleware)
+- ✅ CRUD de produtos (upload de imagem)
+- ✅ Sistema de lojistas/revendedores (cadastro, login, painel)
+- ✅ Links de referência (`/r/[codigo]`)
+- ✅ Configuração de redes sociais (persistida no Postgres)
+- ✅ PWA (instalável no celular)
+- ✅ SEO (Open Graph, Twitter Cards)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Instalar dependências
+npm install
+
+# Configurar variáveis de ambiente
+cp .env.local.example .env.local
+# Preencher DATABASE_URL com conexão PostgreSQL
+
+# Rodar migrações
+npx prisma migrate dev
+
+# Criar admin inicial
+npx tsx scripts/setup-admin.ts
+
+# Iniciar servidor de desenvolvimento
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm run start` | Servidor de produção |
+| `npm run lint` | ESLint |
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
+O projeto é deployado automaticamente na Vercel. O banco PostgreSQL é hospedado na Neon.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Roadmap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Consulte [projeto/ROADMAP.md](projeto/ROADMAP.md) para o planejamento completo de fases.
