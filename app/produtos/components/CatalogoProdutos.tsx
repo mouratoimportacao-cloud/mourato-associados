@@ -296,6 +296,142 @@ export default function CatalogoProdutos({
                 <p className="text-[10px] sm:text-xs text-zinc-500 font-light italic">{produto.volume}</p>
                 {produto.descricao && <p className="hidden sm:block text-xs text-zinc-400 font-light leading-relaxed line-clamp-3">{produto.descricao}</p>}
 
+                {/* INFORMAÇÕES OLFATIVAS AVANÇADAS */}
+                {/* INFORMAÇÕES OLFATIVAS */}
+                {(produto.concentracao || produto.notas_topo || produto.notas_coracao || produto.notas_fundo || produto.similaridade_inspiracao || produto.descricao_olfativa || (produto.tags && getArrayValue(produto.tags).length > 0)) && (
+                  <div className="mt-3 pt-3 border-t border-zinc-900/80 text-[10px] sm:text-xs space-y-2.5 text-zinc-400 font-sans">
+                    {/* Desktop layout: fully expanded */}
+                    <div className="hidden sm:block space-y-2.5">
+                      {produto.descricao_olfativa && (
+                        <p className="text-zinc-300 italic leading-relaxed">
+                          "{produto.descricao_olfativa}"
+                        </p>
+                      )}
+
+                      {produto.concentracao && (
+                        <div>
+                          <span className="text-zinc-500 font-medium">Concentração:</span>{" "}
+                          <span className="text-zinc-200">{produto.concentracao}</span>
+                        </div>
+                      )}
+
+                      {(produto.notas_topo || produto.notas_coracao || produto.notas_fundo) && (
+                        <div className="space-y-1">
+                          <span className="text-zinc-500 font-medium block">Notas Olfativas:</span>
+                          <div className="pl-2 border-l border-gold/40 space-y-0.5">
+                            {produto.notas_topo && (
+                              <div>
+                                <span className="text-zinc-500">Topo:</span>{" "}
+                                <span className="text-zinc-300">{produto.notas_topo}</span>
+                              </div>
+                            )}
+                            {produto.notas_coracao && (
+                              <div>
+                                <span className="text-zinc-500">Coração:</span>{" "}
+                                <span className="text-zinc-300">{produto.notas_coracao}</span>
+                              </div>
+                            )}
+                            {produto.notas_fundo && (
+                              <div>
+                                <span className="text-zinc-500">Fundo:</span>{" "}
+                                <span className="text-zinc-300">{produto.notas_fundo}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {produto.similaridade_inspiracao && (
+                        <div>
+                          <span className="text-zinc-500 font-medium">Inspirado em:</span>{" "}
+                          <span className="text-zinc-200">{produto.similaridade_inspiracao}</span>
+                        </div>
+                      )}
+
+                      {produto.tags && getArrayValue(produto.tags).length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-zinc-500 font-medium block">Tags:</span>
+                          <div className="text-zinc-300">
+                            {getArrayValue(produto.tags).join(" • ")}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mobile layout: collapsible accordion to prevent breaking grid layout */}
+                    <details className="sm:hidden group/details">
+                      <summary className="list-none flex items-center justify-between text-zinc-500 font-bold uppercase tracking-wider cursor-pointer hover:text-gold transition-colors select-none text-[9px]">
+                        <span>Detalhes Olfativos</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5 transform transition-transform group-open/details:rotate-180 text-zinc-500 group-hover/details:text-gold"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </summary>
+                      <div className="mt-2.5 space-y-2.5 text-zinc-400 border-t border-zinc-900/40 pt-2 text-[10px]">
+                        {produto.descricao_olfativa && (
+                          <p className="text-zinc-300 italic leading-relaxed">
+                            "{produto.descricao_olfativa}"
+                          </p>
+                        )}
+
+                        {produto.concentracao && (
+                          <div>
+                            <span className="text-zinc-500 font-medium">Concentração:</span>{" "}
+                            <span className="text-zinc-200">{produto.concentracao}</span>
+                          </div>
+                        )}
+
+                        {(produto.notas_topo || produto.notas_coracao || produto.notas_fundo) && (
+                          <div className="space-y-0.5">
+                            <span className="text-zinc-500 font-medium block">Notas Olfativas:</span>
+                            <div className="pl-2 border-l border-gold/40 space-y-0.5">
+                              {produto.notas_topo && (
+                                <div>
+                                  <span className="text-zinc-500">Topo:</span>{" "}
+                                  <span className="text-zinc-300">{produto.notas_topo}</span>
+                                </div>
+                              )}
+                              {produto.notas_coracao && (
+                                <div>
+                                  <span className="text-zinc-500">Coração:</span>{" "}
+                                  <span className="text-zinc-300">{produto.notas_coracao}</span>
+                                </div>
+                              )}
+                              {produto.notas_fundo && (
+                                <div>
+                                  <span className="text-zinc-500">Fundo:</span>{" "}
+                                  <span className="text-zinc-300">{produto.notas_fundo}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {produto.similaridade_inspiracao && (
+                          <div>
+                            <span className="text-zinc-500 font-medium">Inspirado em:</span>{" "}
+                            <span className="text-zinc-200">{produto.similaridade_inspiracao}</span>
+                          </div>
+                        )}
+
+                        {produto.tags && getArrayValue(produto.tags).length > 0 && (
+                          <div className="space-y-0.5">
+                            <span className="text-zinc-500 font-medium block">Tags:</span>
+                            <div className="text-zinc-300">
+                              {getArrayValue(produto.tags).join(" • ")}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  </div>
+                )}
+
                 <div className="pt-2 sm:pt-4 mt-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border-t border-zinc-900">
                   {valorAtual ? (
                     <div className="rounded-xl bg-red-950/40 border border-red-900/50 p-1.5 sm:p-2 text-white shadow-md w-full sm:w-auto">

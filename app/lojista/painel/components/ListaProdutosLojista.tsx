@@ -358,6 +358,68 @@ export default function ListaProdutosLojista({
                 <h3 className="text-3xl font-serif text-gray-900">{selectedProduto.nome}</h3>
                 <p className="text-sm text-gray-500">{selectedProduto.volume} | {selectedProduto.categoria}</p>
                 {selectedProduto.descricao && <p className="text-sm leading-relaxed text-gray-600">{selectedProduto.descricao}</p>}
+                
+                {/* OLFACTORY DETAILS BLOCK */}
+                {/* OLFACTORY DETAILS BLOCK */}
+                {(selectedProduto.concentracao || selectedProduto.notas_topo || selectedProduto.notas_coracao || selectedProduto.notas_fundo || selectedProduto.similaridade_inspiracao || selectedProduto.descricao_olfativa || (selectedProduto.tags && getArrayValue(selectedProduto.tags).length > 0)) && (
+                  <div className="mt-4 pt-4 border-t border-gray-100 text-xs space-y-3 text-gray-600 font-sans">
+                    {selectedProduto.descricao_olfativa && (
+                      <p className="text-gray-700 italic leading-relaxed">
+                        "{selectedProduto.descricao_olfativa}"
+                      </p>
+                    )}
+
+                    {selectedProduto.concentracao && (
+                      <div>
+                        <span className="text-gray-500 font-medium">Concentração:</span>{" "}
+                        <span className="text-gray-900 font-semibold">{selectedProduto.concentracao}</span>
+                      </div>
+                    )}
+
+                    {(selectedProduto.notas_topo || selectedProduto.notas_coracao || selectedProduto.notas_fundo) && (
+                      <div className="space-y-1">
+                        <span className="text-gray-500 font-medium block">Notas Olfativas:</span>
+                        <div className="pl-2.5 border-l border-luxury-gold/40 space-y-0.5">
+                          {selectedProduto.notas_topo && (
+                            <div>
+                              <span className="text-gray-500">Topo:</span>{" "}
+                              <span className="text-gray-800">{selectedProduto.notas_topo}</span>
+                            </div>
+                          )}
+                          {selectedProduto.notas_coracao && (
+                            <div>
+                              <span className="text-gray-500">Coração:</span>{" "}
+                              <span className="text-gray-800">{selectedProduto.notas_coracao}</span>
+                            </div>
+                          )}
+                          {selectedProduto.notas_fundo && (
+                            <div>
+                              <span className="text-gray-500">Fundo:</span>{" "}
+                              <span className="text-gray-800">{selectedProduto.notas_fundo}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedProduto.similaridade_inspiracao && (
+                      <div>
+                        <span className="text-gray-500 font-medium">Inspirado em:</span>{" "}
+                        <span className="text-gray-900 font-semibold">{selectedProduto.similaridade_inspiracao}</span>
+                      </div>
+                    )}
+
+                    {selectedProduto.tags && getArrayValue(selectedProduto.tags).length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-gray-500 font-medium block">Tags:</span>
+                        <div className="text-gray-800 font-semibold">
+                          {getArrayValue(selectedProduto.tags).join(" • ")}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="rounded-xl border border-gray-100 p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Custo lojista</span>
