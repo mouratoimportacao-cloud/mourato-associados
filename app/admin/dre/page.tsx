@@ -23,9 +23,6 @@ export default async function DreAdminPage() {
   // Fetch all necessary data
   const produtos = await prisma.produto.findMany();
   const pedidos = await prisma.pedido.findMany();
-  const lojistas = await prisma.usuario.findMany({
-    where: { tipo: "lojista" },
-  });
 
   const produtoMap = new Map(produtos.map((p: any) => [p.id, p]));
   const pedidosValidos = pedidos.filter((p: any) => p.status !== "cancelado");
@@ -114,7 +111,7 @@ export default async function DreAdminPage() {
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
-            <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
+            <img src="/brand/logo-ma.webp" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
           </Link>
           <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Painel de Gestão</p>
         </div>

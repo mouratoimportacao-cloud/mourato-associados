@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { obterLojistaPorCodigo, registrarIntencaoCompraCarrinho } from "../produtos/actions";
+import OptimizedImage from "./OptimizedImage";
 
 interface CartItem {
   id: number;
@@ -45,7 +46,7 @@ export default function CarrinhoWidget() {
   };
 
   useEffect(() => {
-    loadCart();
+    const initialLoad = window.setTimeout(loadCart, 0);
 
     // Eventos customizados para abrir e atualizar carrinho
     const handleOpen = () => {
@@ -62,6 +63,7 @@ export default function CarrinhoWidget() {
     window.addEventListener("cart-updated", handleUpdate);
 
     return () => {
+      window.clearTimeout(initialLoad);
       window.removeEventListener("open-cart", handleOpen);
       window.removeEventListener("cart-updated", handleUpdate);
     };
@@ -76,7 +78,8 @@ export default function CarrinhoWidget() {
         }
       });
     } else {
-      setLojistaInfo(null);
+      const clearLojista = window.setTimeout(() => setLojistaInfo(null), 0);
+      return () => window.clearTimeout(clearLojista);
     }
   }, [params.codigo]);
 
@@ -224,12 +227,15 @@ export default function CarrinhoWidget() {
                   className="flex gap-4 p-3 rounded-xl border border-zinc-900 bg-neutral-900/30 hover:border-zinc-800/80 transition-all duration-300"
                 >
                   {/* Imagem do Produto */}
-                  <div className="h-20 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-900 bg-neutral-900 flex items-center justify-center">
-                    {item.imagem ? (
-                      <img src={item.imagem} alt={item.nome} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-[10px] text-zinc-700 font-serif italic">M&A</span>
-                    )}
+                  <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-900 bg-neutral-900 flex items-center justify-center">
+                    <OptimizedImage
+                      src={item.imagem}
+                      alt={item.nome}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      fallbackText="M&A"
+                    />
                   </div>
 
                   {/* Informações */}
@@ -303,7 +309,7 @@ export default function CarrinhoWidget() {
             </div>
 
             <p className="text-[10px] text-zinc-500 font-light leading-relaxed">
-              * O atendimento será encaminhado de forma segura e personalizada pelo WhatsApp. Sem taxas adicionais online.
+              Checkout preparado para Mercado Pago. Até a ativação das credenciais, o pedido será registrado para atendimento e confirmação.
             </p>
 
             <button
@@ -323,7 +329,7 @@ export default function CarrinhoWidget() {
                   Processando...
                 </>
               ) : (
-                "Finalizar Pedido"
+                "Continuar compra"
               )}
             </button>
           </div>

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 export default function CarrinhoButton() {
-  const [mounted, setMounted] = useState(false);
   const [itemCount, setItemCount] = useState(0);
 
   const updateCartCount = () => {
@@ -25,11 +24,11 @@ export default function CarrinhoButton() {
   };
 
   useEffect(() => {
-    setMounted(true);
-    updateCartCount();
+    const initialLoad = window.setTimeout(updateCartCount, 0);
 
     window.addEventListener("cart-updated", updateCartCount);
     return () => {
+      window.clearTimeout(initialLoad);
       window.removeEventListener("cart-updated", updateCartCount);
     };
   }, []);
@@ -37,21 +36,6 @@ export default function CarrinhoButton() {
   const handleOpenCart = () => {
     window.dispatchEvent(new CustomEvent("open-cart"));
   };
-
-  if (!mounted) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-zinc-900 bg-[#0D0D0D] text-[9px] sm:text-xs font-bold uppercase tracking-widest text-zinc-600 opacity-50 cursor-default"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="#555" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-        <span>Carrinho</span>
-      </button>
-    );
-  }
 
   return (
     <button

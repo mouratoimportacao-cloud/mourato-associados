@@ -264,19 +264,6 @@ function emptyStore() {
   };
 }
 
-function mergeInitialProducts(produtos: MemoryRow[]) {
-  const existingIds = new Set(produtos.map((produto) => Number(produto.id)));
-  const nextProducts = produtos.map(withProdutoDefaults);
-
-  initialProducts.forEach((produto) => {
-    if (!existingIds.has(Number(produto.id))) {
-      nextProducts.push(withProdutoDefaults(produto));
-    }
-  });
-
-  return nextProducts;
-}
-
 function withProdutoDefaults(produto: MemoryRow): MemoryRow {
   let imagem = produto.imagem;
   if (typeof imagem === "string") {
@@ -384,7 +371,7 @@ function loadLocalStore() {
     const raw = readFileSync(storePath, "utf8");
     const parsed = JSON.parse(raw) as ReturnType<typeof emptyStore>;
 
-    let produtosSalvos = parsed.rows?.Produto ?? [];
+    const produtosSalvos = parsed.rows?.Produto ?? [];
     const uniqueMap = new Map<number, any>();
     produtosSalvos.forEach((p: any) => {
       if (p && p.id) {
@@ -433,7 +420,7 @@ async function loadPostgresStore() {
     }
 
     const parsed = result.rows[0].data as ReturnType<typeof emptyStore>;
-    let produtosSalvos = parsed.rows?.Produto ?? [];
+    const produtosSalvos = parsed.rows?.Produto ?? [];
     const uniqueMap = new Map<number, any>();
     produtosSalvos.forEach((p: any) => {
       if (p && p.id) {

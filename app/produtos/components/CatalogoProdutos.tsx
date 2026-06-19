@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { slugify } from "../../../lib/slug";
 import FiltrosProdutos from "../../components/FiltrosProdutos";
+import OptimizedImage from "../../components/OptimizedImage";
 
 type Produto = {
   id: number;
@@ -53,12 +54,12 @@ function precoPromocional(produto: Produto) {
 
 export default function CatalogoProdutos({ 
   produtos, 
-  lojistaId 
 }: { 
   produtos: Produto[]; 
   lojistaId?: number | null; 
 }) {
-  const [busca, setBusca] = useState("");
+  const searchParams = useSearchParams();
+  const [busca, setBusca] = useState(() => searchParams.get("busca") || "");
   const [categoria, setCategoria] = useState("todos");
   const [filtros, setFiltros] = useState<any>({
     origem: "todos",
@@ -69,14 +70,6 @@ export default function CatalogoProdutos({
     familiaOlfativa: [],
     ocasiaoUso: []
   });
-  const searchParams = useSearchParams();
-
-  // Sincroniza busca da URL
-  useEffect(() => {
-    const query = searchParams.get("busca") || "";
-    setBusca(query);
-  }, [searchParams]);
-
   // Escuta os eventos globais da Navbar (Busca e Categoria)
   useEffect(() => {
     const handleSearch = (e: Event) => {
@@ -204,7 +197,7 @@ export default function CatalogoProdutos({
       let cart: any[] = [];
       try {
         cart = JSON.parse(cartRaw);
-      } catch (e) {
+      } catch {
         cart = [];
       }
 
@@ -272,17 +265,14 @@ export default function CatalogoProdutos({
                     -{produto.descontoPercentual}%
                   </div>
                 ) : null}
-                {produto.imagem ? (
-                  <img
-                    src={produto.imagem}
-                    alt={produto.nome}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-neutral-900/30 text-zinc-500 italic font-serif text-xs">
-                    Maison Mourato
-                  </div>
-                )}
+                <OptimizedImage
+                  src={produto.imagem}
+                  alt={produto.nome}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  fallbackText="Maison Mourato"
+                />
               </div>
 
               <div className="flex flex-col flex-grow space-y-2">
@@ -295,124 +285,6 @@ export default function CatalogoProdutos({
                   {produto.nome}
                 </h3>
                 <p className="text-[10px] sm:text-xs text-zinc-500 font-light italic">{produto.volume}</p>
-
-                {/* INFORMAÇÕES OLFATIVAS AVANÇADAS */}
-                {/* INFORMAÇÕES OLFATIVAS */}
-                {(produto.concentracao || produto.notas_topo || produto.notas_coracao || produto.notas_fundo || produto.similaridade_inspiracao || produto.descricao_olfativa) && (
-                  <div className="mt-3 pt-3 border-t border-zinc-900/80 text-[10px] sm:text-xs space-y-2.5 text-zinc-400 font-sans">
-                    {/* Desktop layout: fully expanded */}
-                    <div className="hidden sm:block space-y-2.5">
-                      {produto.descricao_olfativa && (
-                        <p className="text-zinc-300 italic leading-relaxed">
-                          "{produto.descricao_olfativa}"
-                        </p>
-                      )}
-
-                      {produto.concentracao && (
-                        <div>
-                          <span className="text-zinc-500 font-medium">Concentração:</span>{" "}
-                          <span className="text-zinc-200">{produto.concentracao}</span>
-                        </div>
-                      )}
-
-                      {(produto.notas_topo || produto.notas_coracao || produto.notas_fundo) && (
-                        <div className="space-y-1">
-                          <span className="text-zinc-500 font-medium block">Notas Olfativas:</span>
-                          <div className="pl-2 border-l border-gold/40 space-y-0.5">
-                            {produto.notas_topo && (
-                              <div>
-                                <span className="text-zinc-500">Topo:</span>{" "}
-                                <span className="text-zinc-300">{produto.notas_topo}</span>
-                              </div>
-                            )}
-                            {produto.notas_coracao && (
-                              <div>
-                                <span className="text-zinc-500">Coração:</span>{" "}
-                                <span className="text-zinc-300">{produto.notas_coracao}</span>
-                              </div>
-                            )}
-                            {produto.notas_fundo && (
-                              <div>
-                                <span className="text-zinc-500">Fundo:</span>{" "}
-                                <span className="text-zinc-300">{produto.notas_fundo}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {produto.similaridade_inspiracao && (
-                        <div>
-                          <span className="text-zinc-500 font-medium">Inspirado em:</span>{" "}
-                          <span className="text-zinc-200">{produto.similaridade_inspiracao}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Mobile layout: collapsible accordion to prevent breaking grid layout */}
-                    <details className="sm:hidden group/details">
-                      <summary className="list-none flex items-center justify-between text-zinc-500 font-bold uppercase tracking-wider cursor-pointer hover:text-gold transition-colors select-none text-[9px]">
-                        <span>Detalhes Olfativos</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5 transform transition-transform group-open/details:rotate-180 text-zinc-500 group-hover/details:text-gold"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </summary>
-                      <div className="mt-2.5 space-y-2.5 text-zinc-400 border-t border-zinc-900/40 pt-2 text-[10px]">
-                        {produto.descricao_olfativa && (
-                          <p className="text-zinc-300 italic leading-relaxed">
-                            "{produto.descricao_olfativa}"
-                          </p>
-                        )}
-
-                        {produto.concentracao && (
-                          <div>
-                            <span className="text-zinc-500 font-medium">Concentração:</span>{" "}
-                            <span className="text-zinc-200">{produto.concentracao}</span>
-                          </div>
-                        )}
-
-                        {(produto.notas_topo || produto.notas_coracao || produto.notas_fundo) && (
-                          <div className="space-y-0.5">
-                            <span className="text-zinc-500 font-medium block">Notas Olfativas:</span>
-                            <div className="pl-2 border-l border-gold/40 space-y-0.5">
-                              {produto.notas_topo && (
-                                <div>
-                                  <span className="text-zinc-500">Topo:</span>{" "}
-                                  <span className="text-zinc-300">{produto.notas_topo}</span>
-                                </div>
-                              )}
-                              {produto.notas_coracao && (
-                                <div>
-                                  <span className="text-zinc-500">Coração:</span>{" "}
-                                  <span className="text-zinc-300">{produto.notas_coracao}</span>
-                                </div>
-                              )}
-                              {produto.notas_fundo && (
-                                <div>
-                                  <span className="text-zinc-500">Fundo:</span>{" "}
-                                  <span className="text-zinc-300">{produto.notas_fundo}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {produto.similaridade_inspiracao && (
-                          <div>
-                            <span className="text-zinc-500 font-medium">Inspirado em:</span>{" "}
-                            <span className="text-zinc-200">{produto.similaridade_inspiracao}</span>
-                          </div>
-                        )}
-                      </div>
-                    </details>
-                  </div>
-                )}
 
                 <div className="pt-2 sm:pt-4 mt-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border-t border-zinc-900">
                   {valorAtual ? (
@@ -435,7 +307,7 @@ export default function CatalogoProdutos({
                     href={`/produto/${slugify(produto.nome)}`}
                     className="block w-full rounded-full border border-gold/40 hover:border-gold hover:bg-gold/10 text-gold hover:text-white text-center py-2 sm:py-2.5 text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
                   >
-                    Ver detalhes
+                    Consultar produto
                   </Link>
                   <button
                     type="button"

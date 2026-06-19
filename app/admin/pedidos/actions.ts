@@ -41,8 +41,6 @@ export async function atualizarStatusPedido(formData: FormData) {
 
     const entraEmEntrega =
       statusEntrega.includes(status) && !statusEntrega.includes(pedido.status);
-    const saiDeEntrega =
-      !statusEntrega.includes(status) && statusEntrega.includes(pedido.status);
     const mudouParaCancelado =
       status === "cancelado" && pedido.status !== "cancelado";
     const saiuDeCancelado =

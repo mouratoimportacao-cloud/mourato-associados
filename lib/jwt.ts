@@ -85,7 +85,7 @@ export async function verifyJwt(token: string, secret: string): Promise<any | nu
       return null; // Expired
     }
     return decodedPayload;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

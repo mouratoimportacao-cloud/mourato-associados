@@ -5,12 +5,17 @@ import { revalidatePath } from "next/cache";
 import * as XLSX from "xlsx";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import sharp from "sharp";
+
 async function imageToDataUrl(file: File) {
   const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  const mimeType = file.type || "image/jpeg";
+  const buffer = await sharp(Buffer.from(bytes))
+    .rotate()
+    .resize({ width: 1600, height: 2000, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer();
 
-  return `data:${mimeType};base64,${buffer.toString("base64")}`;
+  return `data:image/webp;base64,${buffer.toString("base64")}`;
 }
 
 export async function createProduto(formData: FormData) {
@@ -138,16 +143,9 @@ export async function updateProduto(id: number, formData: FormData) {
 
   // Novos campos técnicos
   const concentracao = formData.get("concentracao") as string;
-  const origem = formData.get("origem") as string;
-  const tipo_perfume = formData.get("tipo_perfume") as string;
-  const genero = formData.get("genero") as string;
-  const familia_olfativa = formData.getAll("familia_olfativa") as string[];
   const notas_topo = formData.get("notas_topo") as string;
   const notas_coracao = formData.get("notas_coracao") as string;
   const notas_fundo = formData.get("notas_fundo") as string;
-  const fixacao_estimada = formData.get("fixacao_estimada") as string;
-  const projecao = formData.get("projecao") as string;
-  const ocasiao_uso = formData.getAll("ocasiao_uso") as string[];
   const similaridade_inspiracao = formData.get("similaridade_inspiracao") as string;
   const descricao_olfativa = formData.get("descricao_olfativa") as string;
 
@@ -385,7 +383,6 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       const row = rows[i];
       const errors: string[] = [];
       const warnings: string[] = [];
-      const mappedData: any = {};
 
       const getVal = (field: string) => {
         const colName = mapping[field];
@@ -421,7 +418,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         errors.push("O campo 'Nome' é obrigatório e está vazio ou ausente.");
       }
 
-      let brandRaw = getVal("marca");
+      const brandRaw = getVal("marca");
       let marca = brandRaw !== undefined ? String(brandRaw).trim() : "";
       if (!marca && nome) {
         marca = extractBrandFromName(nome, knownBrands);
@@ -430,7 +427,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         warnings.push("Marca ausente.");
       }
 
-      let volumeRaw = getVal("volume");
+      const volumeRaw = getVal("volume");
       let volume = volumeRaw !== undefined ? String(volumeRaw).trim() : "";
       if (!volume && nome) {
         const extractedVolume = extractVolumeFromName(nome);
@@ -444,7 +441,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         warnings.push("Volume ausente.");
       }
 
-      let categoriaRaw = getVal("categoria");
+      const categoriaRaw = getVal("categoria");
       let categoria = categoriaRaw !== undefined ? String(categoriaRaw).trim() : "";
       if (!categoria) {
         if (nome && isArabicProduct(nome, marca)) {
@@ -460,7 +457,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       }
 
       // Categoria principal e Tags
-      let categoriaPrincipalRaw = getVal("categoria_principal");
+      const categoriaPrincipalRaw = getVal("categoria_principal");
       let categoria_principal = categoriaPrincipalRaw !== undefined ? String(categoriaPrincipalRaw).trim() : "";
       if (!categoria_principal) {
         if (categoria.includes("Perfume") || categoria === "Oud") {

@@ -17,8 +17,6 @@ interface FiltrosProdutosProps {
   onChange: (filtros: FiltrosState) => void;
 }
 
-const origens = ["Nacional", "Importado", "Árabe", "Inspirado"];
-const generos = ["Masculino", "Feminino", "Unissex"];
 const categorias = ["Perfume", "Cosmético", "Acessório", "Kit"];
 const concentracoes = [
   "Body Splash",
@@ -28,18 +26,6 @@ const concentracoes = [
   "Parfum",
   "Extrait de Parfum"
 ];
-const familias = [
-  "Oriental",
-  "Amadeirado",
-  "Aromático",
-  "Floral",
-  "Cítrico",
-  "Gourmand",
-  "Aquático",
-  "Frutado",
-  "Fougère",
-  "Especiado"
-];
 const tags = [
   "Perfume Árabe",
   "Importado",
@@ -47,7 +33,6 @@ const tags = [
   "Masculino",
   "Unissex"
 ];
-const ocasioes = ["Dia", "Noite", "Trabalho", "Academia", "Festa", "Encontro", "Verão", "Inverno"];
 
 export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosProdutosProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -83,6 +68,7 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
       ocasiaoUso: selectedOcasioes
     });
   }, [
+    onChange,
     origem,
     genero,
     concentracao,
@@ -95,18 +81,6 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
   const handleToggleTag = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  const handleToggleFamilia = (fam: string) => {
-    setSelectedFamilias((prev) =>
-      prev.includes(fam) ? prev.filter((f) => f !== fam) : [...prev, fam]
-    );
-  };
-
-  const handleToggleOcasiao = (oca: string) => {
-    setSelectedOcasioes((prev) =>
-      prev.includes(oca) ? prev.filter((o) => o !== oca) : [...prev, oca]
     );
   };
 
@@ -131,7 +105,6 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
   const bgInput = theme === "dark" ? "bg-neutral-900 border-zinc-800" : "bg-white border-gray-200";
   const selectTextColor = theme === "dark" ? "text-white" : "text-gray-700";
   const checkboxLabelColor = theme === "dark" ? "text-zinc-300" : "text-gray-600";
-  const activeLabelBg = theme === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-gray-100 border-gray-200";
 
   return (
     <div className={containerClasses}>

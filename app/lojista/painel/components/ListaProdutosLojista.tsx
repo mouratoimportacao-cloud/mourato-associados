@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import FiltrosProdutos from "../../../components/FiltrosProdutos";
+import OptimizedImage from "../../../components/OptimizedImage";
 
 interface Produto {
   id: number;
@@ -35,8 +36,6 @@ interface Produto {
   similaridade_inspiracao?: string | null;
   descricao_olfativa?: string | null;
 }
-
-const categoriasBase = ["Perfume", "Perfume Feminino", "Perfume Masculino", "Perfume Árabe", "Oud", "Cosmético", "Skincare", "Outros"];
 
 function moeda(valor: number | null | undefined) {
   return valor ? `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Consultar";
@@ -168,18 +167,19 @@ export default function ListaProdutosLojista({
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {produtosFiltrados.map((produto) => {
-                const valorPromocional = precoPromocional(produto);
-
                 return (
                   <tr key={produto.id} className="hover:bg-gray-50 transition-colors align-middle">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-4">
-                        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                          {produto.imagem ? (
-                            <img src={produto.imagem} alt={produto.nome} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-gray-300 italic font-serif text-xs">M&A</div>
-                          )}
+                        <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                          <OptimizedImage
+                            src={produto.imagem}
+                            alt={produto.nome}
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                            fallbackText="M&A"
+                          />
                         </div>
                         <div>
                           <div className="text-sm font-bold text-gray-900">
@@ -261,12 +261,15 @@ export default function ListaProdutosLojista({
               <div key={produto.id} className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm space-y-3">
                 {/* 1. Header: Foto + Nome */}
                 <div className="flex gap-3 items-start">
-                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                    {produto.imagem ? (
-                      <img src={produto.imagem} alt={produto.nome} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-gray-300 italic font-serif text-[10px]">M&A</div>
-                    )}
+                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                    <OptimizedImage
+                      src={produto.imagem}
+                      alt={produto.nome}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      fallbackText="M&A"
+                    />
                   </div>
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -358,12 +361,15 @@ export default function ListaProdutosLojista({
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 pt-0">
-              <div className="aspect-[3/4] overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
-                {selectedProduto.imagem ? (
-                  <img src={selectedProduto.imagem} alt={selectedProduto.nome} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-gray-300 italic font-serif">Mourato</div>
-                )}
+              <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
+                <OptimizedImage
+                  src={selectedProduto.imagem}
+                  alt={selectedProduto.nome}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 350px"
+                  className="object-cover"
+                  fallbackText="Mourato"
+                />
               </div>
               <div className="space-y-4">
                 <span className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest">{selectedProduto.marca}</span>
@@ -376,7 +382,7 @@ export default function ListaProdutosLojista({
                   <div className="mt-4 pt-4 border-t border-gray-100 text-xs space-y-3 text-gray-600 font-sans">
                     {selectedProduto.descricao_olfativa && (
                       <p className="text-gray-700 italic leading-relaxed">
-                        "{selectedProduto.descricao_olfativa}"
+                        {selectedProduto.descricao_olfativa}
                       </p>
                     )}
 

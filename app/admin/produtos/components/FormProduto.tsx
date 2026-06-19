@@ -113,8 +113,6 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
   };
 
   const currentTags = getArrayValue(editingProduto?.tags);
-  const currentFamilias = getArrayValue(editingProduto?.familia_olfativa);
-  const currentOcasioes = getArrayValue(editingProduto?.ocasiao_uso);
 
   async function clientAction(formData: FormData) {
     if (fileError) {

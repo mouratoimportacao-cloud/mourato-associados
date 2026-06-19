@@ -4,7 +4,7 @@ import { verifyJwt } from "./lib/jwt";
 
 const JWT_SECRET = process.env.JWT_SECRET || "mourato-associados-default-secret-key-12345";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protect administrative area

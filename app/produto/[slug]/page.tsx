@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "../../../lib/prisma";
 import { slugify } from "../../../lib/slug";
@@ -57,22 +56,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     );
   }
 
-  // Buscar produtos relacionados (mesma marca ou categoria, excluindo o atual, limitando a 4)
-  const relatedProducts = produtos
-    .filter(
-      (p: any) =>
-        p.id !== produto.id &&
-        (p.estoque || 0) > 0 &&
-        (p.marca.toLowerCase() === produto.marca.toLowerCase() ||
-          p.categoria.toLowerCase() === produto.categoria.toLowerCase())
-    )
-    .slice(0, 4);
-
   return (
     <div className="flex min-h-screen flex-col bg-neutral-950 text-white">
       <Navbar />
       <main className="flex-grow pt-32 pb-20">
-        <ProdutoDetalheClient produto={produto as any} relatedProducts={relatedProducts as any[]} />
+        <ProdutoDetalheClient produto={produto as any} />
       </main>
       <Footer />
     </div>

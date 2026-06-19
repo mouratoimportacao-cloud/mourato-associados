@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import OptimizedImage from "../../../components/OptimizedImage";
 import ListaProdutosLojista from "./ListaProdutosLojista";
-import ConfirmarVendaForm from "./ConfirmarVendaForm";
 import AutoRefresh from "../../../components/AutoRefresh";
 import { confirmarVendaLojista, criarPedidosLojistaCarrinho } from "../actions";
 import { logoutLojista } from "../../../../lib/auth";
@@ -77,7 +77,6 @@ export default function PainelLojistaClient({
   produtos,
   lojistaAtual,
   pedidos,
-  session,
 }: Props) {
   const router = useRouter();
 
@@ -85,10 +84,13 @@ export default function PainelLojistaClient({
   const [activeTab, setActiveTabState] = useState<"inicio" | "produtos" | "carrinho" | "financeiro" | "perfil">("inicio");
 
   useEffect(() => {
-    const saved = localStorage.getItem("lojista-active-tab");
-    if (saved && ["inicio", "produtos", "carrinho", "financeiro", "perfil"].includes(saved)) {
-      setActiveTabState(saved as any);
-    }
+    const loadTab = window.setTimeout(() => {
+      const saved = localStorage.getItem("lojista-active-tab");
+      if (saved && ["inicio", "produtos", "carrinho", "financeiro", "perfil"].includes(saved)) {
+        setActiveTabState(saved as "inicio" | "produtos" | "carrinho" | "financeiro" | "perfil");
+      }
+    }, 0);
+    return () => window.clearTimeout(loadTab);
   }, []);
 
   const setActiveTab = (tab: "inicio" | "produtos" | "carrinho" | "financeiro" | "perfil") => {
@@ -103,14 +105,17 @@ export default function PainelLojistaClient({
   const [isSendingOrder, startSendTransition] = useTransition();
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("lojista-cart");
-      if (saved) {
-        setCart(JSON.parse(saved));
+    const loadCart = window.setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("lojista-cart");
+        if (saved) {
+          setCart(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Erro ao carregar carrinho:", e);
       }
-    } catch (e) {
-      console.error("Erro ao carregar carrinho:", e);
-    }
+    }, 0);
+    return () => window.clearTimeout(loadCart);
   }, []);
 
   const saveCart = (newCart: CartItem[]) => {
@@ -130,7 +135,7 @@ export default function PainelLojistaClient({
 
   const handleAddToCart = (produtoId: number, quantidade: number) => {
     const existingIndex = cart.findIndex((item) => item.produtoId === produtoId);
-    let newCart = [...cart];
+    const newCart = [...cart];
     if (existingIndex > -1) {
       newCart[existingIndex].quantidade += quantidade;
     } else {
@@ -341,21 +346,24 @@ export default function PainelLojistaClient({
 
   // Efeito de detecção de novo pedido pendente para popup
   useEffect(() => {
-    if (aguardandoLojista.length > 0) {
-      const novoPedido = aguardandoLojista.find(
-        (pedido) => !dismissedOrderIds.includes(pedido.id)
-      );
-      if (novoPedido) {
-        setActivePopupOrder(novoPedido);
-        setPopupErro(null);
-        setPopupDescontoPercentual(0);
-        setPopupPagamento("Dinheiro");
+    const syncPopup = window.setTimeout(() => {
+      if (aguardandoLojista.length > 0) {
+        const novoPedido = aguardandoLojista.find(
+          (pedido) => !dismissedOrderIds.includes(pedido.id)
+        );
+        if (novoPedido) {
+          setActivePopupOrder(novoPedido);
+          setPopupErro(null);
+          setPopupDescontoPercentual(0);
+          setPopupPagamento("Dinheiro");
+        } else {
+          setActivePopupOrder(null);
+        }
       } else {
         setActivePopupOrder(null);
       }
-    } else {
-      setActivePopupOrder(null);
-    }
+    }, 0);
+    return () => window.clearTimeout(syncPopup);
   }, [aguardandoLojista, dismissedOrderIds]);
 
   function handleConfirmarVendaPopup() {
@@ -408,7 +416,14 @@ export default function PainelLojistaClient({
           <div className="flex items-center gap-3">
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-              <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="relative h-11 w-auto object-contain" />
+              <OptimizedImage
+                src="/brand/logo-ma.webp"
+                alt="Mourato & Associados"
+                width={120}
+                height={44}
+                priority
+                className="relative h-11 w-auto object-contain"
+              />
             </div>
             <div>
               <p className="text-[8px] text-amber-500/70 font-black uppercase tracking-[0.25em]">Mourato & Associados</p>
@@ -627,12 +642,15 @@ export default function PainelLojistaClient({
                       return (
                         <div key={item.produtoId} className="rounded-xl border border-stone-800 bg-stone-900/40 p-3 shadow-md flex justify-between items-center gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-stone-800 bg-stone-900/60 p-1">
-                              {prod.imagem ? (
-                                <img src={prod.imagem} alt={prod.nome} className="h-full w-full object-cover rounded" />
-                              ) : (
-                                <div className="h-full w-full flex items-center justify-center text-stone-600 italic font-serif text-[10px]">M&A</div>
-                              )}
+                            <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-stone-800 bg-stone-900/60 p-1">
+                              <OptimizedImage
+                                src={prod.imagem}
+                                alt={prod.nome}
+                                fill
+                                sizes="56px"
+                                className="object-cover rounded"
+                                fallbackText="M&A"
+                              />
                             </div>
                             <div className="min-w-0">
                               <h4 className="font-bold text-stone-100 text-xs truncate">{prod.nome}</h4>

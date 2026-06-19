@@ -86,7 +86,7 @@ export async function registrarIntencaoCompra(produtoId: number, lojistaId?: num
       descontoConcedido: Math.max(0, precoTabela - valorAtual),
       lucroBruto: valorAtual - custoUnitario,
       tipoFluxo: origemRevenda ? "venda_qr" : "intencao_site",
-      pagamento: origemRevenda ? "Venda via QR do lojista" : "Pagamento online indisponivel",
+      pagamento: origemRevenda ? "Venda via QR do lojista" : "Mercado Pago aguardando ativacao",
       observacao: `${origemRevenda ? "Cliente entrou pelo QR/link de revenda. Pedido aguardando aprovacao do lojista; estoque pessoal ainda nao baixado." : "Intencao de compra no site publico."} Produto tentado: ${produto.nome}. Marca: ${produto.marca}. Categoria: ${produto.categoria}. Valor exibido: R$ ${valorAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}.`,
       total: valorAtual,
       status: origemRevenda ? "aguardando lojista" : "intencao de compra",
@@ -205,7 +205,7 @@ export async function registrarIntencaoCompraCarrinho(
         descontoConcedido,
         lucroBruto,
         tipoFluxo: origemRevenda ? "venda_qr" : "intencao_site",
-        pagamento: origemRevenda ? "Venda via QR do lojista" : "Pagamento online indisponivel",
+        pagamento: origemRevenda ? "Venda via QR do lojista" : "Mercado Pago aguardando ativacao",
         observacao: `${
           origemRevenda
             ? "Cliente entrou pelo QR/link de revenda. Pedido agrupado aguardando aprovação do lojista; estoque pessoal ainda não baixado."
@@ -235,4 +235,3 @@ export async function registrarIntencaoCompraCarrinho(
     return { success: false, message: "Erro interno ao processar seu pedido. Tente novamente." };
   }
 }
-

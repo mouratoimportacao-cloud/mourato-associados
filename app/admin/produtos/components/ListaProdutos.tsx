@@ -3,6 +3,7 @@
 import { deleteProduto } from "../actions";
 import { useMemo, useState, useTransition } from "react";
 import FiltrosProdutos from "../../../components/FiltrosProdutos";
+import OptimizedImage from "../../../components/OptimizedImage";
 
 interface Produto {
   id: number;
@@ -45,8 +46,6 @@ interface ListaProdutosProps {
   produtos: Produto[];
   onEditProduct: (produto: Produto) => void;
 }
-
-const categoriasBase = ["Perfume", "Perfume Feminino", "Perfume Masculino", "Perfume Árabe", "Oud", "Cosmético", "Skincare", "Outros"];
 
 export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutosProps) {
   const [isPending, startTransition] = useTransition();
@@ -167,12 +166,15 @@ export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutos
               <tr key={produto.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="h-10 w-10 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
-                      {produto.imagem ? (
-                        <img src={produto.imagem} alt={produto.nome} className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs italic">N/A</div>
-                      )}
+                    <div className="relative h-10 w-10 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                      <OptimizedImage
+                        src={produto.imagem}
+                        alt={produto.nome}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                        fallbackText="N/A"
+                      />
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-bold text-gray-900">
