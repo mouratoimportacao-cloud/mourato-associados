@@ -360,8 +360,7 @@ export default function ListaProdutosLojista({
                 {selectedProduto.descricao && <p className="text-sm leading-relaxed text-gray-600">{selectedProduto.descricao}</p>}
                 
                 {/* OLFACTORY DETAILS BLOCK */}
-                {/* OLFACTORY DETAILS BLOCK */}
-                {(selectedProduto.concentracao || selectedProduto.notas_topo || selectedProduto.notas_coracao || selectedProduto.notas_fundo || selectedProduto.similaridade_inspiracao || selectedProduto.descricao_olfativa || (selectedProduto.tags && getArrayValue(selectedProduto.tags).length > 0)) && (
+                {(selectedProduto.concentracao || selectedProduto.notas_topo || selectedProduto.notas_coracao || selectedProduto.notas_fundo || selectedProduto.similaridade_inspiracao || selectedProduto.descricao_olfativa) && (
                   <div className="mt-4 pt-4 border-t border-gray-100 text-xs space-y-3 text-gray-600 font-sans">
                     {selectedProduto.descricao_olfativa && (
                       <p className="text-gray-700 italic leading-relaxed">
@@ -406,15 +405,6 @@ export default function ListaProdutosLojista({
                       <div>
                         <span className="text-gray-500 font-medium">Inspirado em:</span>{" "}
                         <span className="text-gray-900 font-semibold">{selectedProduto.similaridade_inspiracao}</span>
-                      </div>
-                    )}
-
-                    {selectedProduto.tags && getArrayValue(selectedProduto.tags).length > 0 && (
-                      <div className="space-y-1">
-                        <span className="text-gray-500 font-medium block">Tags:</span>
-                        <div className="text-gray-800 font-semibold">
-                          {getArrayValue(selectedProduto.tags).join(" • ")}
-                        </div>
                       </div>
                     )}
                   </div>

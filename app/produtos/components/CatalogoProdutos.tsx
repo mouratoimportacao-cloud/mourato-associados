@@ -298,7 +298,7 @@ export default function CatalogoProdutos({
 
                 {/* INFORMAÇÕES OLFATIVAS AVANÇADAS */}
                 {/* INFORMAÇÕES OLFATIVAS */}
-                {(produto.concentracao || produto.notas_topo || produto.notas_coracao || produto.notas_fundo || produto.similaridade_inspiracao || produto.descricao_olfativa || (produto.tags && getArrayValue(produto.tags).length > 0)) && (
+                {(produto.concentracao || produto.notas_topo || produto.notas_coracao || produto.notas_fundo || produto.similaridade_inspiracao || produto.descricao_olfativa) && (
                   <div className="mt-3 pt-3 border-t border-zinc-900/80 text-[10px] sm:text-xs space-y-2.5 text-zinc-400 font-sans">
                     {/* Desktop layout: fully expanded */}
                     <div className="hidden sm:block space-y-2.5">
@@ -345,15 +345,6 @@ export default function CatalogoProdutos({
                         <div>
                           <span className="text-zinc-500 font-medium">Inspirado em:</span>{" "}
                           <span className="text-zinc-200">{produto.similaridade_inspiracao}</span>
-                        </div>
-                      )}
-
-                      {produto.tags && getArrayValue(produto.tags).length > 0 && (
-                        <div className="space-y-1">
-                          <span className="text-zinc-500 font-medium block">Tags:</span>
-                          <div className="text-zinc-300">
-                            {getArrayValue(produto.tags).join(" • ")}
-                          </div>
                         </div>
                       )}
                     </div>
@@ -416,15 +407,6 @@ export default function CatalogoProdutos({
                           <div>
                             <span className="text-zinc-500 font-medium">Inspirado em:</span>{" "}
                             <span className="text-zinc-200">{produto.similaridade_inspiracao}</span>
-                          </div>
-                        )}
-
-                        {produto.tags && getArrayValue(produto.tags).length > 0 && (
-                          <div className="space-y-0.5">
-                            <span className="text-zinc-500 font-medium block">Tags:</span>
-                            <div className="text-zinc-300">
-                              {getArrayValue(produto.tags).join(" • ")}
-                            </div>
                           </div>
                         )}
                       </div>
