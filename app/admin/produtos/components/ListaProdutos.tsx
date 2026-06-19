@@ -203,11 +203,18 @@ export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutos
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className={`text-sm font-medium ${produto.estoque < 5 ? 'text-red-600' : 'text-gray-700'}`}>
-                    Geral: {produto.estoque} un.
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Lojista: {produto.estoqueLojista || 0} un.
+                  <div className="flex flex-col">
+                    <div className={`text-sm font-medium flex items-center gap-1.5 ${produto.estoque <= 0 ? 'text-red-600 font-bold' : produto.estoque < 5 ? 'text-amber-600' : 'text-gray-700'}`}>
+                      <span>Geral: {produto.estoque} un.</span>
+                      {produto.estoque <= 0 && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-red-100 text-red-700 border border-red-200">
+                          Esgotado
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      Lojista: {produto.estoqueLojista || 0} un.
+                    </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

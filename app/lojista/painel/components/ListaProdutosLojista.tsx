@@ -219,7 +219,8 @@ export default function ListaProdutosLojista({
                           type="number"
                           min={1}
                           defaultValue={1}
-                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold font-bold text-center"
+                          disabled={produto.estoque <= 0}
+                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
                         />
                         <button
                           type="button"
@@ -228,9 +229,14 @@ export default function ListaProdutosLojista({
                             const qty = Number(inputEl?.value || 1);
                             onAddToCart(produto.id, qty);
                           }}
-                          className="rounded-lg bg-luxury-black hover:bg-luxury-gold text-white hover:text-black px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer"
+                          disabled={produto.estoque <= 0}
+                          className={`rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                            produto.estoque > 0
+                              ? "bg-luxury-black hover:bg-luxury-gold text-white hover:text-black"
+                              : "bg-gray-100 text-gray-400 pointer-events-none"
+                          }`}
                         >
-                          Adicionar ao Pedido
+                          {produto.estoque > 0 ? "Adicionar ao Pedido" : "Indisponível"}
                         </button>
                       </div>
                     </td>
@@ -306,7 +312,8 @@ export default function ListaProdutosLojista({
                       type="number"
                       min={1}
                       defaultValue={1}
-                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-luxury-gold bg-white font-bold text-center"
+                      disabled={produto.estoque <= 0}
+                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-luxury-gold bg-white font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
                     />
                   </div>
                   <button
@@ -316,9 +323,14 @@ export default function ListaProdutosLojista({
                       const qty = Number(inputEl?.value || 1);
                       onAddToCart(produto.id, qty);
                     }}
-                    className="flex-grow rounded-lg bg-luxury-black py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-luxury-gold transition-colors cursor-pointer text-center"
+                    disabled={produto.estoque <= 0}
+                    className={`flex-grow rounded-lg py-2 text-[10px] font-black uppercase tracking-widest transition-colors text-center ${
+                      produto.estoque > 0
+                        ? "bg-luxury-black text-white hover:bg-luxury-gold transition-colors cursor-pointer"
+                        : "bg-gray-150 text-gray-400 pointer-events-none"
+                    }`}
                   >
-                    Adicionar ao Pedido
+                    {produto.estoque > 0 ? "Adicionar ao Pedido" : "Indisponível"}
                   </button>
                 </div>
               </div>

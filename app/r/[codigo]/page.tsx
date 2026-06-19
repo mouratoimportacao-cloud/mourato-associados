@@ -24,10 +24,12 @@ export default async function CatalogoRevendaPage({ params }: { params: Promise<
     orderBy: { id: "asc" },
   });
   const estoquePessoal = (lojista?.estoquePessoal || {}) as Record<string, number>;
-  const produtosDoLojista = produtos.map((produto: any) => ({
-    ...produto,
-    estoque: Number(estoquePessoal[String(produto.id)] ?? 0),
-  }));
+  const produtosDoLojista = produtos
+    .filter((produto: any) => (produto.estoque || 0) > 0)
+    .map((produto: any) => ({
+      ...produto,
+      estoque: Number(estoquePessoal[String(produto.id)] ?? 0),
+    }));
 
   return (
     <div className="flex min-h-screen flex-col max-w-full overflow-x-hidden">

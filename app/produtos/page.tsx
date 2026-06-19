@@ -30,8 +30,7 @@ export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
     orderBy: { id: 'asc' }
   });
-  const produtosVitrine = produtos.filter((produto: any) => produto.vitrine || produto.promocaoAtiva);
-  const produtosPublicos = produtos;
+  const produtosPublicos = produtos.filter((produto: any) => (produto.estoque || 0) > 0);
 
   return (
     <div className="flex flex-col min-h-screen max-w-full overflow-x-hidden">

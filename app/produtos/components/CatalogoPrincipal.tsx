@@ -86,7 +86,7 @@ export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: P
   }, [busca, categoria, produtosOrdenados]);
 
   const produtosVitrine = useMemo(
-    () => produtos.filter((produto) => produto.vitrine || produto.promocaoAtiva),
+    () => produtos.filter((produto) => Boolean(produto.vitrine) && (produto.estoque || 0) > 0),
     [produtos]
   );
 
