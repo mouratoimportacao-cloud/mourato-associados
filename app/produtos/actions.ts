@@ -128,7 +128,18 @@ export async function obterLojistaPorCodigo(codigo: string) {
 
 export async function registrarIntencaoCompraCarrinho(
   itens: { id: number; quantidade: number }[],
-  codigoRevenda?: string | null
+  codigoRevenda?: string | null,
+  clienteInfo?: {
+    nome: string;
+    contato: string;
+    cep: string;
+    rua: string;
+    numero: string;
+    complemento?: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+  } | null
 ) {
   if (!itens || itens.length === 0) {
     return { success: false, message: "Carrinho vazio." };
@@ -156,6 +167,10 @@ export async function registrarIntencaoCompraCarrinho(
 
     const checkoutRef = Math.random().toString(36).substring(2, 8).toUpperCase();
     const itemsToCreate: any[] = [];
+
+    const obsCliente = clienteInfo
+      ? ` | Cliente: ${clienteInfo.nome} - Tel: ${clienteInfo.contato} - Endereço: ${clienteInfo.rua}, ${clienteInfo.numero}${clienteInfo.complemento ? ` (${clienteInfo.complemento})` : ""} - Bairro: ${clienteInfo.bairro} - ${clienteInfo.cidade}/${clienteInfo.estado} - CEP: ${clienteInfo.cep}`
+      : "";
 
     for (const item of itens) {
       const produto = await prisma.produto.findUnique({
@@ -210,7 +225,7 @@ export async function registrarIntencaoCompraCarrinho(
           origemRevenda
             ? "Cliente entrou pelo QR/link de revenda. Pedido agrupado aguardando aprovação do lojista; estoque pessoal ainda não baixado."
             : "Intenção de compra agrupada no site público."
-        } Ref: ${checkoutRef}. Produto: ${produto.nome}. Marca: ${produto.marca}. Valor exibido: R$ ${valorAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}.`,
+        } Ref: ${checkoutRef}. Produto: ${produto.nome}. Marca: ${produto.marca}. Valor exibido: R$ ${valorAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}.${obsCliente}`,
         total,
         status: origemRevenda ? "aguardando lojista" : "intencao de compra",
       });

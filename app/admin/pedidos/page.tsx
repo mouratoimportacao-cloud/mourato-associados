@@ -12,6 +12,35 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
+// Helper to parse client shipping details from order observation
+const parseClienteInfo = (obs?: string | null) => {
+  if (!obs) return null;
+  const match = obs.match(/Cliente:\s*(.*?)\s*-\s*Tel:\s*(.*?)\s*-\s*Endereço:\s*(.*?)\s*-\s*Bairro:\s*(.*?)\s*-\s*(.*?)\s*-\s*CEP:\s*([^\s|]*)/);
+  if (match) {
+    return {
+      nome: match[1].trim(),
+      contato: match[2].trim(),
+      endereco: match[3].trim(),
+      bairro: match[4].trim(),
+      cidadeEstado: match[5].trim(),
+      cep: match[6].trim()
+    };
+  }
+  
+  if (obs.includes("Cliente:")) {
+    const idx = obs.indexOf("Cliente:");
+    return {
+      nome: "Cliente",
+      contato: "",
+      endereco: obs.substring(idx).trim(),
+      bairro: "",
+      cidadeEstado: "",
+      cep: ""
+    };
+  }
+  return null;
+};
+
 export default async function PedidosAdminPage() {
   const session = await getAdminSession();
 
@@ -220,7 +249,34 @@ function PedidosGrupo({
                         Desconto: R$ {Number(pedido.descontoConcedido || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </div>
                     ) : null}
-                    {pedido.observacao && <div className="text-xs text-gray-500 mt-1">Obs: {pedido.observacao}</div>}
+                    {pedido.observacao && (
+                      <div className="text-xs text-gray-500 mt-1.5">
+                        {(() => {
+                          const parsed = parseClienteInfo(pedido.observacao);
+                          if (parsed && parsed.endereco) {
+                            return (
+                              <div className="bg-amber-50/70 border border-amber-200/50 rounded-lg p-2.5 mt-1 space-y-1 text-gray-700 text-left">
+                                <p className="font-bold text-amber-800 text-[9px] uppercase tracking-wider">Dados de Entrega do Cliente</p>
+                                <p><span className="font-semibold text-gray-800">Nome:</span> {parsed.nome}</p>
+                                {parsed.contato && (
+                                  <p>
+                                    <span className="font-semibold text-gray-800">Contato:</span>{" "}
+                                    <a href={`https://wa.me/${parsed.contato.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-amber-700 underline font-semibold hover:text-amber-800 transition-colors">
+                                      {parsed.contato}
+                                    </a>
+                                  </p>
+                                )}
+                                <p><span className="font-semibold text-gray-800">Endereço:</span> {parsed.endereco}</p>
+                                {parsed.bairro && <p><span className="font-semibold text-gray-800">Bairro:</span> {parsed.bairro}</p>}
+                                {parsed.cidadeEstado && <p><span className="font-semibold text-gray-800">Cidade/UF:</span> {parsed.cidadeEstado}</p>}
+                                {parsed.cep && <p><span className="font-semibold text-gray-800">CEP:</span> {parsed.cep}</p>}
+                              </div>
+                            );
+                          }
+                          return <span>Obs: {pedido.observacao}</span>;
+                        })()}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{pedido.pagamento || "Pix / Nubank"}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">

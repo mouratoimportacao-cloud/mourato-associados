@@ -73,6 +73,35 @@ interface CartItem {
   quantidade: number;
 }
 
+// Helper to parse client shipping details from order observation
+const parseClienteInfo = (obs?: string | null) => {
+  if (!obs) return null;
+  const match = obs.match(/Cliente:\s*(.*?)\s*-\s*Tel:\s*(.*?)\s*-\s*Endereço:\s*(.*?)\s*-\s*Bairro:\s*(.*?)\s*-\s*(.*?)\s*-\s*CEP:\s*([^\s|]*)/);
+  if (match) {
+    return {
+      nome: match[1].trim(),
+      contato: match[2].trim(),
+      endereco: match[3].trim(),
+      bairro: match[4].trim(),
+      cidadeEstado: match[5].trim(),
+      cep: match[6].trim()
+    };
+  }
+  
+  if (obs.includes("Cliente:")) {
+    const idx = obs.indexOf("Cliente:");
+    return {
+      nome: "Cliente",
+      contato: "",
+      endereco: obs.substring(idx).trim(),
+      bairro: "",
+      cidadeEstado: "",
+      cep: ""
+    };
+  }
+  return null;
+};
+
 export default function PainelLojistaClient({
   produtos,
   lojistaAtual,
@@ -958,6 +987,56 @@ export default function PainelLojistaClient({
                 <span className="font-black text-amber-500 text-sm">R$ {Number(activePopupOrder.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
+
+            {/* Informações do Cliente */}
+            {(() => {
+              const parsedInfo = activePopupOrder.observacao ? parseClienteInfo(activePopupOrder.observacao) : null;
+              if (!parsedInfo) return null;
+              return (
+                <div className="rounded-xl bg-stone-850 border border-stone-800 p-3 text-xs space-y-1.5 text-left">
+                  <p className="text-[9px] font-black text-amber-500 uppercase tracking-wider mb-1">Dados de Entrega do Cliente</p>
+                  <div className="flex justify-between">
+                    <span className="text-stone-400 font-medium">Nome:</span>
+                    <span className="font-bold text-stone-200">{parsedInfo.nome}</span>
+                  </div>
+                  {parsedInfo.contato && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-400 font-medium">Contato:</span>
+                      <a
+                        href={`https://wa.me/${parsedInfo.contato.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-bold text-amber-400 underline hover:text-amber-300 transition-colors"
+                      >
+                        {parsedInfo.contato}
+                      </a>
+                    </div>
+                  )}
+                  {parsedInfo.endereco ? (
+                    <div className="flex flex-col gap-0.5 pt-1 border-t border-stone-800/60 mt-1">
+                      <span className="text-[9px] text-stone-500 font-medium uppercase tracking-wider">Endereço de Entrega:</span>
+                      <span className="font-bold text-stone-200 leading-tight">
+                        {parsedInfo.endereco}
+                      </span>
+                      {parsedInfo.bairro && (
+                        <span className="text-stone-300">
+                          {parsedInfo.bairro} - {parsedInfo.cidadeEstado}
+                        </span>
+                      )}
+                      {parsedInfo.cep && (
+                        <span className="text-stone-400">
+                          CEP: {parsedInfo.cep}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="pt-1 border-t border-stone-800/60 mt-1">
+                      <span className="text-stone-400 text-[10px] italic">{parsedInfo.endereco}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Configurações de Venda do Lojista */}
             <div className="space-y-3 text-xs">
