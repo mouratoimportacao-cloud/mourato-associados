@@ -54,41 +54,23 @@ export async function atualizarStatusPedido(formData: FormData) {
       pedido.quantidade &&
       pedido.usuarioId
     ) {
-      const produto = await prisma.produto.findUnique({
-        where: { id: pedido.produtoId },
-      });
-
       const quantidade = Number(pedido.quantidade);
 
-      if (produto) {
-        // Decrementa estoque do fornecedor (produto.estoque global)
-        await prisma.produto.update({
-          where: { id: produto.id },
-          data: {
-            estoque: Math.max(0, Number(produto.estoque || 0) - quantidade),
-            estoqueLojista: Math.max(
-              0,
-              Number(produto.estoqueLojista || 0) - quantidade
-            ),
-          },
+      // Credita estoquePessoal do lojista ← ponto central do fluxo (estoque físico chega ao lojista)
+      const lojista = await prisma.usuario.findUnique({
+        where: { id: pedido.usuarioId },
+      });
+      if (lojista) {
+        const estoquePessoal = {
+          ...(lojista.estoquePessoal || {}),
+        } as Record<string, number>;
+        const chave = String(pedido.produtoId);
+        estoquePessoal[chave] =
+          Number(estoquePessoal[chave] || 0) + quantidade;
+        await prisma.usuario.update({
+          where: { id: lojista.id },
+          data: { estoquePessoal },
         });
-
-        // Credita estoquePessoal do lojista ← ponto central do fluxo
-        const lojista = await prisma.usuario.findUnique({
-          where: { id: pedido.usuarioId },
-        });
-        if (lojista) {
-          const estoquePessoal = {
-            ...(lojista.estoquePessoal || {}),
-          } as Record<string, number>;
-          const chave = String(pedido.produtoId);
-          estoquePessoal[chave] =
-            Number(estoquePessoal[chave] || 0) + quantidade;
-          await prisma.usuario.update({
-            where: { id: lojista.id },
-            data: { estoquePessoal },
-          });
-        }
       }
 
       // Atualiza controle financeiro do pedido — Apenas se o status de destino for "pago"
@@ -115,6 +97,35 @@ export async function atualizarStatusPedido(formData: FormData) {
       }
     }
 
+    // ── FORNECEDOR: Reverter crédito de estoquePessoal quando sai de entrega/pago para pendente ──
+    const saiDeEntrega = !statusEntrega.includes(status) && statusEntrega.includes(pedido.status) && status !== "cancelado";
+    if (
+      fluxoFornecedor &&
+      saiDeEntrega &&
+      pedido.produtoId &&
+      pedido.quantidade &&
+      pedido.usuarioId
+    ) {
+      const lojista = await prisma.usuario.findUnique({
+        where: { id: pedido.usuarioId },
+      });
+      if (lojista) {
+        const quantidade = Number(pedido.quantidade);
+        const estoquePessoal = {
+          ...(lojista.estoquePessoal || {}),
+        } as Record<string, number>;
+        const chave = String(pedido.produtoId);
+        estoquePessoal[chave] = Math.max(
+          0,
+          Number(estoquePessoal[chave] || 0) - quantidade
+        );
+        await prisma.usuario.update({
+          where: { id: lojista.id },
+          data: { estoquePessoal },
+        });
+      }
+    }
+
     // ── FORNECEDOR: Atualização financeira caso transite para "pago" após já ter sido entregue/enviado ──
     const isTransitioningToPago = status === "pago" && pedido.status !== "pago";
     if (fluxoFornecedor && isTransitioningToPago && !entraEmEntrega) {
@@ -129,11 +140,10 @@ export async function atualizarStatusPedido(formData: FormData) {
       });
     }
 
-    // ── FORNECEDOR: reverter ao cancelar pedido que já estava em entrega ──
+    // ── FORNECEDOR: Devolver estoque ao fornecedor se o pedido for cancelado ──
     if (
       fluxoFornecedor &&
       mudouParaCancelado &&
-      statusEntrega.includes(pedido.status) &&
       pedido.produtoId &&
       pedido.quantidade &&
       pedido.usuarioId
@@ -153,23 +163,71 @@ export async function atualizarStatusPedido(formData: FormData) {
         });
       }
 
-      // Reverte estoquePessoal do lojista
-      const lojista = await prisma.usuario.findUnique({
-        where: { id: pedido.usuarioId },
-      });
-      if (lojista) {
-        const estoquePessoal = {
-          ...(lojista.estoquePessoal || {}),
-        } as Record<string, number>;
-        const chave = String(pedido.produtoId);
-        estoquePessoal[chave] = Math.max(
-          0,
-          Number(estoquePessoal[chave] || 0) - quantidade
-        );
-        await prisma.usuario.update({
-          where: { id: lojista.id },
-          data: { estoquePessoal },
+      // Se o pedido cancelado já tinha sido entregue/pago, devolve o estoquePessoal do lojista
+      if (statusEntrega.includes(pedido.status)) {
+        const lojista = await prisma.usuario.findUnique({
+          where: { id: pedido.usuarioId },
         });
+        if (lojista) {
+          const estoquePessoal = {
+            ...(lojista.estoquePessoal || {}),
+          } as Record<string, number>;
+          const chave = String(pedido.produtoId);
+          estoquePessoal[chave] = Math.max(
+            0,
+            Number(estoquePessoal[chave] || 0) - quantidade
+          );
+          await prisma.usuario.update({
+            where: { id: lojista.id },
+            data: { estoquePessoal },
+          });
+        }
+      }
+    }
+
+    // ── FORNECEDOR: Retirar estoque do fornecedor se o pedido sair do status cancelado ──
+    if (
+      fluxoFornecedor &&
+      saiuDeCancelado &&
+      pedido.produtoId &&
+      pedido.quantidade &&
+      pedido.usuarioId
+    ) {
+      const produto = await prisma.produto.findUnique({
+        where: { id: pedido.produtoId },
+      });
+      const quantidade = Number(pedido.quantidade);
+
+      if (produto) {
+        await prisma.produto.update({
+          where: { id: produto.id },
+          data: {
+            estoque: Math.max(0, Number(produto.estoque || 0) - quantidade),
+            estoqueLojista: Math.max(
+              0,
+              Number(produto.estoqueLojista || 0) - quantidade
+            ),
+          },
+        });
+      }
+
+      // Se o novo status reativado já entra em entrega direta
+      if (statusEntrega.includes(status)) {
+        const lojista = await prisma.usuario.findUnique({
+          where: { id: pedido.usuarioId },
+        });
+        if (lojista) {
+          const estoquePessoal = {
+            ...(lojista.estoquePessoal || {}),
+          } as Record<string, number>;
+          const chave = String(pedido.produtoId);
+          estoquePessoal[chave] =
+            Number(estoquePessoal[chave] || 0) + quantidade;
+          await prisma.usuario.update({
+            where: { id: lojista.id },
+            data: { estoquePessoal },
+          });
+        }
       }
     }
 
@@ -262,6 +320,28 @@ export async function deletePedido(
   }
 
   try {
+    // Retornar estoque ao fornecedor se o pedido deletado for de fluxoFornecedor e estiver ativo (não cancelado)
+    if (pedido && pedido.status !== "cancelado" && pedido.produtoId && pedido.quantidade) {
+      const fluxoFornecedor =
+        String(pedido.tipoFluxo || "") === "compra_fornecedor" ||
+        String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
+        String(pedido.pagamento || "").includes("Compra do fornecedor") ||
+        pedido.status === "pendente fornecedor";
+
+      if (fluxoFornecedor) {
+        const produto = await prisma.produto.findUnique({ where: { id: pedido.produtoId } });
+        if (produto) {
+          await prisma.produto.update({
+            where: { id: produto.id },
+            data: {
+              estoque: Number(produto.estoque || 0) + Number(pedido.quantidade),
+              estoqueLojista: Number(produto.estoqueLojista || 0) + Number(pedido.quantidade),
+            },
+          });
+        }
+      }
+    }
+
     await prisma.pedido.delete({ where: { id: pedidoId } });
     revalidatePath("/admin");
     revalidatePath("/admin/pedidos");

@@ -5,17 +5,11 @@ import { revalidatePath } from "next/cache";
 import * as XLSX from "xlsx";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import sharp from "sharp";
 
 async function imageToDataUrl(file: File) {
   const bytes = await file.arrayBuffer();
-  const buffer = await sharp(Buffer.from(bytes))
-    .rotate()
-    .resize({ width: 1600, height: 2000, fit: "inside", withoutEnlargement: true })
-    .webp({ quality: 82 })
-    .toBuffer();
-
-  return `data:image/webp;base64,${buffer.toString("base64")}`;
+  const buffer = Buffer.from(bytes);
+  return `data:${file.type || "image/webp"};base64,${buffer.toString("base64")}`;
 }
 
 export async function createProduto(formData: FormData) {

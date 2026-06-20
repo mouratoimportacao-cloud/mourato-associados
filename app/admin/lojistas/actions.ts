@@ -289,16 +289,6 @@ export async function registrarPagamentoFornecedor(formData: FormData) {
       },
     });
 
-    if (produto) {
-      await prisma.produto.update({
-        where: { id: produto.id },
-        data: {
-          estoque: Math.max(0, Number(produto.estoque || 0) - quantidadeBaixa),
-          estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - quantidadeBaixa),
-        },
-      });
-    }
-
     revalidatePath("/admin");
     revalidatePath("/admin/lojistas");
     revalidatePath(`/admin/lojistas/${pedido.usuarioId}`);

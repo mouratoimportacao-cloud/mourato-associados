@@ -163,21 +163,48 @@ export default function PainelLojistaClient({
   };
 
   const handleAddToCart = (produtoId: number, quantidade: number) => {
+    const prod = produtoMap.get(produtoId);
+    if (!prod) return;
+    const maxStock = Number(prod.estoque || 0);
+
     const existingIndex = cart.findIndex((item) => item.produtoId === produtoId);
     const newCart = [...cart];
+    
+    let currentQty = 0;
     if (existingIndex > -1) {
-      newCart[existingIndex].quantidade += quantidade;
+      currentQty = newCart[existingIndex].quantidade;
+    }
+    
+    const totalRequested = currentQty + quantidade;
+    if (totalRequested > maxStock) {
+      showToast(`Estoque de atacado máximo: ${maxStock} un.`);
+      if (existingIndex > -1) {
+        newCart[existingIndex].quantidade = maxStock;
+      } else if (maxStock > 0) {
+        newCart.push({ produtoId, quantidade: maxStock });
+      }
     } else {
-      newCart.push({ produtoId, quantidade });
+      if (existingIndex > -1) {
+        newCart[existingIndex].quantidade = totalRequested;
+      } else {
+        newCart.push({ produtoId, quantidade });
+      }
+      showToast("Produto adicionado ao pedido!");
     }
     saveCart(newCart);
-    showToast("Produto adicionado ao pedido!");
   };
 
   const handleUpdateQuantity = (produtoId: number, delta: number) => {
+    const prod = produtoMap.get(produtoId);
+    const maxStock = prod ? Number(prod.estoque || 0) : 999990;
+
     const newCart = cart.map((item) => {
       if (item.produtoId === produtoId) {
         const newQty = item.quantidade + delta;
+        if (newQty > maxStock) {
+          showToast(`Estoque máximo do fornecedor: ${maxStock} un.`);
+          return { ...item, quantidade: maxStock };
+        }
         return { ...item, quantidade: Math.max(1, newQty) };
       }
       return item;

@@ -170,6 +170,7 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
       <form 
         ref={formRef} 
         action={clientAction} 
+        encType="multipart/form-data"
         onSubmit={(event) => {
           const message = editingProduto
             ? "Deseja salvar as alterações deste produto?"

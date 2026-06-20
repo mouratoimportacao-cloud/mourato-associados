@@ -218,6 +218,7 @@ export default function ListaProdutosLojista({
                           id={`qty-desktop-${produto.id}`}
                           type="number"
                           min={1}
+                          max={produto.estoque}
                           defaultValue={1}
                           disabled={produto.estoque <= 0}
                           className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
@@ -227,6 +228,10 @@ export default function ListaProdutosLojista({
                           onClick={() => {
                             const inputEl = document.getElementById(`qty-desktop-${produto.id}`) as HTMLInputElement;
                             const qty = Number(inputEl?.value || 1);
+                            if (qty > produto.estoque) {
+                              alert(`Quantidade solicitada (${qty} un.) excede o estoque disponível do fornecedor (${produto.estoque} un.).`);
+                              return;
+                            }
                             onAddToCart(produto.id, qty);
                           }}
                           disabled={produto.estoque <= 0}
@@ -314,6 +319,7 @@ export default function ListaProdutosLojista({
                       id={`qty-mobile-${produto.id}`}
                       type="number"
                       min={1}
+                      max={produto.estoque}
                       defaultValue={1}
                       disabled={produto.estoque <= 0}
                       className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-luxury-gold bg-white font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
@@ -324,6 +330,10 @@ export default function ListaProdutosLojista({
                     onClick={() => {
                       const inputEl = document.getElementById(`qty-mobile-${produto.id}`) as HTMLInputElement;
                       const qty = Number(inputEl?.value || 1);
+                      if (qty > produto.estoque) {
+                        alert(`Quantidade solicitada (${qty} un.) excede o estoque disponível do fornecedor (${produto.estoque} un.).`);
+                        return;
+                      }
                       onAddToCart(produto.id, qty);
                     }}
                     disabled={produto.estoque <= 0}

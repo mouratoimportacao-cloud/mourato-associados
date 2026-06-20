@@ -10,25 +10,45 @@ import { prisma } from "../../../lib/prisma";
 //  - Se já existe pedido "pendente fornecedor" para o mesmo produto → SOMA a quantidade
 //  - NÃO credita estoquePessoal aqui. O crédito é feito pelo admin ao validar.
 // ─────────────────────────────────────────────────────────────────────────────
-export async function criarPedidoLojista(formData: FormData) {
+export async function criarPedidoLojista(formData: FormData): Promise<{ success: boolean; error?: string }> {
   const session = await getLojistaSession();
-  if (!session) return;
+  if (!session) return { success: false, error: "Sessão expirada. Faça login novamente." };
 
   const produtoId = Number(formData.get("produtoId"));
   const quantidade = Number(formData.get("quantidade"));
   const pagamento = String(formData.get("pagamento") || "Pedido ao fornecedor");
   const observacao = String(formData.get("observacao") || "").trim();
 
-  if (!produtoId || !quantidade || quantidade < 1) return;
+  if (!produtoId || !quantidade || quantidade < 1) {
+    return { success: false, error: "Quantidade ou produto inválido." };
+  }
 
   try {
     const produto = await prisma.produto.findUnique({ where: { id: produtoId } });
-    if (!produto) return;
+    if (!produto) return { success: false, error: "Produto não encontrado." };
+
+    // Validar estoque do fornecedor
+    const estoqueDisponivel = Number(produto.estoque || 0);
+    if (estoqueDisponivel < quantidade) {
+      return {
+        success: false,
+        error: `Estoque de atacado insuficiente para o produto "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${quantidade} un.`,
+      };
+    }
 
     const lojista = await prisma.usuario.findUnique({ where: { id: session.id } });
-    if (!lojista) return;
+    if (!lojista) return { success: false, error: "Lojista não encontrado." };
 
     const precoUnitario = Number(produto.precoAtacado || 0);
+
+    // Decrementar estoque do fornecedor imediatamente
+    await prisma.produto.update({
+      where: { id: produto.id },
+      data: {
+        estoque: Math.max(0, estoqueDisponivel - quantidade),
+        estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - quantidade),
+      },
+    });
 
     // Verificar se já existe pedido pendente para o mesmo produto
     const pedidoExistente = await prisma.pedido.findFirst({
@@ -56,7 +76,7 @@ export async function criarPedidoLojista(formData: FormData) {
         },
       });
     } else {
-      // Criar novo pedido — NÃO altera estoquePessoal aqui
+      // Criar novo pedido
       const total = precoUnitario * quantidade;
 
       await prisma.pedido.create({
@@ -88,8 +108,10 @@ export async function criarPedidoLojista(formData: FormData) {
     revalidatePath("/admin");
     revalidatePath("/admin/pedidos");
     revalidatePath(`/r/${lojista.codigoRevenda || ""}`);
+    return { success: true };
   } catch (error) {
     console.error("Erro ao criar pedido do lojista:", error);
+    return { success: false, error: "Erro ao criar pedido." };
   }
 }
 
@@ -224,11 +246,34 @@ export async function criarPedidosLojistaCarrinho(
     const lojista = await prisma.usuario.findUnique({ where: { id: session.id } });
     if (!lojista) return { success: false, error: "Lojista não encontrado." };
 
+    // 1. Validar estoque de TODOS os itens primeiro (Operação Atômica)
     for (const item of itens) {
       const produto = await prisma.produto.findUnique({ where: { id: item.produtoId } });
-      if (!produto) continue;
+      if (!produto) {
+        return { success: false, error: `Produto ID ${item.produtoId} não encontrado.` };
+      }
+      const estoqueDisponivel = Number(produto.estoque || 0);
+      if (estoqueDisponivel < item.quantidade) {
+        return {
+          success: false,
+          error: `Estoque de atacado insuficiente para "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${item.quantidade} un.`,
+        };
+      }
+    }
 
+    // 2. Decrementar o estoque do fornecedor e criar/atualizar os pedidos
+    for (const item of itens) {
+      const produto = (await prisma.produto.findUnique({ where: { id: item.produtoId } }))!;
       const precoAtacado = Number(produto.precoAtacado || 0);
+
+      // Decrementar estoque do fornecedor imediatamente
+      await prisma.produto.update({
+        where: { id: produto.id },
+        data: {
+          estoque: Math.max(0, Number(produto.estoque || 0) - item.quantidade),
+          estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - item.quantidade),
+        },
+      });
 
       // Verificar se já existe pedido pendente para o mesmo produto
       const pedidoExistente = await prisma.pedido.findFirst({
