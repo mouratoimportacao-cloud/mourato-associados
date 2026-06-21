@@ -59,10 +59,10 @@ export default async function PedidosAdminPage() {
   const userMap = new Map(usuarios.map((usuario: any) => [usuario.id, usuario]));
   const totalPedidos = pedidos.length;
   const totalVendido = pedidos
-    .filter((pedido: any) => pedido.status !== "cancelado")
+    .filter((pedido: any) => !["cancelado", "rejeitado"].includes(pedido.status))
     .reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0);
   const unidadesVendidas = pedidos
-    .filter((pedido: any) => pedido.status !== "cancelado")
+    .filter((pedido: any) => !["cancelado", "rejeitado"].includes(pedido.status))
     .reduce((acc: number, pedido: any) => acc + Number(pedido.quantidade || 0), 0);
   const pedidosPendentes = pedidos.filter((pedido: any) => pedido.status === "aguardando pagamento").length;
 
@@ -73,8 +73,8 @@ export default async function PedidosAdminPage() {
   }
 
 
-  const statuses = ["intencao de compra", "pendente fornecedor", "aguardando lojista", "aguardando confirmacao admin", "aguardando pagamento", "pago", "enviado", "entregue", "cancelado"];
-  const statusConcluidos = ["pago", "enviado", "entregue", "cancelado"];
+  const statuses = ["intencao de compra", "pendente fornecedor", "aguardando lojista", "rejeitado", "aguardando confirmacao admin", "aguardando pagamento", "pago", "enviado", "entregue", "cancelado"];
+  const statusConcluidos = ["pago", "enviado", "entregue", "rejeitado", "cancelado"];
   const statusNovos = ["pendente fornecedor", "aguardando lojista", "intencao de compra"];
   const pedidosNovos = pedidos.filter((pedido: any) => statusNovos.includes(String(pedido.status || "")));
   const pedidosConcluidos = pedidos.filter((pedido: any) => statusConcluidos.includes(String(pedido.status || "")));
@@ -226,6 +226,8 @@ function PedidosGrupo({
             {pedidos.map((pedido: any) => {
               const lojista = userMap.get(pedido.usuarioId);
               const isPublicIntent = pedido.status === "intencao de compra" || Number(pedido.usuarioId) === 0;
+              const aguardandoDecisaoLojista =
+                pedido.tipoFluxo === "venda_qr" && pedido.status === "aguardando lojista";
               return (
                 <tr key={pedido.id} className="hover:bg-gray-50 transition-colors align-top">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -284,21 +286,27 @@ function PedidosGrupo({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                                          <div className="flex flex-col gap-2">
-                        <form action={atualizarStatusPedido} className="admin-action-row inline-flex items-center gap-2">
-                          <input type="hidden" name="pedidoId" value={pedido.id} />
-                          <select name="status" defaultValue={pedido.status} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold uppercase tracking-widest bg-white">
-                            {statuses.map((status) => (
-                              <option key={status} value={status}>{status}</option>
-                            ))}
-                          </select>
-                          <ConfirmSubmitButton
-                            message={`Confirmar alteração do pedido #${pedido.id} para o status selecionado?`}
-                            className="rounded-lg bg-luxury-black px-3 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-luxury-gold transition-colors"
-                          >
-                            📥 Salvar
-                          </ConfirmSubmitButton>
-                        </form>
-                         {!["pago","enviado","entregue","cancelado"].includes(pedido.status) && (
+                        {aguardandoDecisaoLojista ? (
+                          <span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-amber-700">
+                            Decisão exclusiva do lojista
+                          </span>
+                        ) : (
+                          <form action={atualizarStatusPedido} className="admin-action-row inline-flex items-center gap-2">
+                            <input type="hidden" name="pedidoId" value={pedido.id} />
+                            <select name="status" defaultValue={pedido.status} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold uppercase tracking-widest bg-white">
+                              {statuses.map((status) => (
+                                <option key={status} value={status}>{status}</option>
+                              ))}
+                            </select>
+                            <ConfirmSubmitButton
+                              message={`Confirmar alteração do pedido #${pedido.id} para o status selecionado?`}
+                              className="rounded-lg bg-luxury-black px-3 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-luxury-gold transition-colors"
+                            >
+                              📥 Salvar
+                            </ConfirmSubmitButton>
+                          </form>
+                        )}
+                         {!["pago","enviado","entregue","rejeitado","cancelado"].includes(pedido.status) && !aguardandoDecisaoLojista && (
                           <form action={deletePedidoAction} className="inline">
                             <input type="hidden" name="pedidoId" value={pedido.id} />
                             <ConfirmSubmitButton

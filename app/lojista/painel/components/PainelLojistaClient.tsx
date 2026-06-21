@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import OptimizedImage from "../../../components/OptimizedImage";
 import ListaProdutosLojista from "./ListaProdutosLojista";
 import AutoRefresh from "../../../components/AutoRefresh";
-import { confirmarVendaLojista, criarPedidosLojistaCarrinho } from "../actions";
+import { confirmarVendaLojista, criarPedidosLojistaCarrinho, rejeitarVendaLojista } from "../actions";
 import { logoutLojista } from "../../../../lib/auth";
 
 interface Produto {
@@ -318,7 +318,9 @@ export default function PainelLojistaClient({
 
     const faturamento = doMes.reduce((acc, p) => acc + Number(p.total || 0), 0);
     const lucro = doMes.reduce((acc, p) => acc + Number(p.lucroBruto || 0), 0);
-    const totalPedidos = pedidos.filter((p) => p.status !== "cancelado").length;
+    const totalPedidos = pedidos.filter(
+      (p) => !["cancelado", "rejeitado"].includes(p.status)
+    ).length;
 
     return {
       faturamentoMes: faturamento,
@@ -346,10 +348,10 @@ export default function PainelLojistaClient({
   // DRE Comercial
   const dreReport = useMemo(() => {
     const receitaBruta = vendasQrConfirmadas.reduce((acc, p) => acc + Number(p.total || 0), 0);
-    const cmv = vendasQrConfirmadas.reduce((acc, p) => {
-      const prod = p.produtoId ? produtos.find((produto) => produto.id === p.produtoId) : null;
-      return acc + Number(prod?.precoAtacado || 0) * Number(p.quantidade || 1);
-    }, 0);
+    const cmv = vendasQrConfirmadas.reduce(
+      (acc, p) => acc + Number(p.custoUnitario || 0) * Number(p.quantidade || 1),
+      0
+    );
     const lucroBruto = receitaBruta - cmv;
 
     // Custos simulados (mock) com base no faturamento
@@ -370,7 +372,7 @@ export default function PainelLojistaClient({
       lucroOperacional,
       lucroLiquido,
     };
-  }, [vendasQrConfirmadas, produtos]);
+  }, [vendasQrConfirmadas]);
 
   // Preview do Carrinho no rodapé
   const cartTotals = useMemo(() => {
@@ -450,11 +452,27 @@ export default function PainelLojistaClient({
     });
   }
 
-  function handleDispensarPopup() {
-    if (activePopupOrder) {
-      setDismissedOrderIds((prev) => [...prev, activePopupOrder.id]);
-      setActivePopupOrder(null);
-    }
+  function handleFecharPopup() {
+    if (!activePopupOrder) return;
+    setDismissedOrderIds((prev) => [...prev, activePopupOrder.id]);
+    setActivePopupOrder(null);
+  }
+
+  function handleRejeitarVendaPopup() {
+    if (!activePopupOrder) return;
+    setPopupErro(null);
+
+    startTransition(async () => {
+      const result = await rejeitarVendaLojista(activePopupOrder.id);
+      if (result.success) {
+        setDismissedOrderIds((prev) => [...prev, activePopupOrder.id]);
+        setActivePopupOrder(null);
+        showToast("Pedido rejeitado sem baixar estoque.");
+        router.refresh();
+      } else {
+        setPopupErro(result.error || "Erro ao rejeitar pedido.");
+      }
+    });
   }
 
   const popupProduto = activePopupOrder?.produtoId ? produtoMap.get(activePopupOrder.produtoId) : null;
@@ -1044,7 +1062,7 @@ export default function PainelLojistaClient({
                 </div>
               </div>
               <button
-                onClick={handleDispensarPopup}
+                onClick={handleFecharPopup}
                 className="text-stone-400 hover:text-stone-200 text-sm font-bold p-1 rounded-full hover:bg-stone-850 cursor-pointer"
               >
                 ✕
@@ -1166,11 +1184,11 @@ export default function PainelLojistaClient({
             {/* Ações */}
             <div className="grid grid-cols-2 gap-2.5 mt-1">
               <button
-                onClick={handleDispensarPopup}
+                onClick={handleRejeitarVendaPopup}
                 disabled={isPending}
-                className="rounded-xl border border-stone-800 bg-stone-850 py-3 text-xs font-black uppercase tracking-wider text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-all cursor-pointer disabled:opacity-50"
+                className="rounded-xl border border-red-500/30 bg-red-950/20 py-3 text-xs font-black uppercase tracking-wider text-red-400 hover:bg-red-950/40 transition-all cursor-pointer disabled:opacity-50"
               >
-                Ignorar
+                Rejeitar Pedido
               </button>
               <button
                 onClick={handleConfirmarVendaPopup}

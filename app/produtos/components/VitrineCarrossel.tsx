@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useRef, useEffect } from "react";
 import Link from "next/link";
 import { slugify } from "../../../lib/slug";
@@ -40,7 +38,7 @@ export default function VitrineCarrossel({ produtos }: { produtos: any[] }) {
       } else {
         container.scrollBy({ left: cardWidth, behavior: "smooth" });
       }
-    }, 5000);
+    }, 1000);
 
     return () => window.clearInterval(interval);
   }, [produtos.length]);

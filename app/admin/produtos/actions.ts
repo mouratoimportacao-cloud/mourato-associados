@@ -1,15 +1,21 @@
 "use server";
 
 import { prisma } from "../../../lib/prisma";
+import { materializeImportedImage, normalizeImportedImage } from "../../../lib/imported-image";
 import { revalidatePath } from "next/cache";
 import * as XLSX from "xlsx";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import sharp from "sharp";
 
 async function imageToDataUrl(file: File) {
   const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  return `data:${file.type || "image/webp"};base64,${buffer.toString("base64")}`;
+  const buffer = await sharp(Buffer.from(bytes))
+    .rotate()
+    .resize({ width: 1600, height: 2000, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer();
+  return `data:image/webp;base64,${buffer.toString("base64")}`;
 }
 
 export async function createProduto(formData: FormData) {
@@ -539,11 +545,9 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         errors.push(`Estoque lojista não pode ser negativo: ${estoqueLojista}.`);
       }
 
-      const imagemRaw = getVal("imagem");
-      const imagem = imagemRaw !== undefined ? String(imagemRaw).trim() : "";
-      if (!imagem) {
-        warnings.push("Imagem ausente.");
-      }
+      const imagemNormalizada = normalizeImportedImage(getVal("imagem"));
+      const imagem = imagemNormalizada.src;
+      if (imagemNormalizada.warning) warnings.push(imagemNormalizada.warning);
 
       const descricaoRaw = getVal("descricao");
       const descricao = descricaoRaw !== undefined ? String(descricaoRaw).trim() : "";
@@ -706,6 +710,7 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         descricao_olfativa
       } = mappedData;
 
+      const imagemMaterializada = await materializeImportedImage(imagem);
       const savePayload = {
         nome,
         marca,
@@ -718,7 +723,7 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         estoque: estoqueGeral,
         estoqueLojista,
         descricao,
-        imagem: imagem || null,
+        imagem: imagemMaterializada,
         categoria_principal,
         tags,
         concentracao,

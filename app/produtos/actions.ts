@@ -231,9 +231,11 @@ export async function registrarIntencaoCompraCarrinho(
       });
     }
 
-    for (const orderData of itemsToCreate) {
-      await prisma.pedido.create({ data: orderData });
-    }
+    await prisma.$transaction(async (tx) => {
+      for (const orderData of itemsToCreate) {
+        await tx.pedido.create({ data: orderData });
+      }
+    });
 
     revalidatePath("/admin");
     revalidatePath("/admin/pedidos");

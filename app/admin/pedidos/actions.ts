@@ -27,8 +27,20 @@ export async function atualizarStatusPedido(formData: FormData) {
   if (!pedidoId || !status) return;
 
   try {
-    const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId } });
-    if (!pedido) return;
+    let pedidoUsuarioId = 0;
+    await prisma.$transaction(async (prisma) => {
+      const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId } });
+      if (!pedido) return;
+      pedidoUsuarioId = Number(pedido.usuarioId || 0);
+
+      if (
+        pedido.tipoFluxo === "venda_qr" &&
+        pedido.status === "aguardando lojista"
+      ) {
+        throw new Error(
+          "Pedidos do QR devem ser aprovados ou rejeitados exclusivamente pelo lojista."
+        );
+      }
 
     const statusEntrega = ["pago", "enviado", "entregue"];
     const pagamento = String(pedido.pagamento || "");
@@ -275,14 +287,17 @@ export async function atualizarStatusPedido(formData: FormData) {
     }
 
     // ── Atualiza status do pedido ──
-    await prisma.pedido.update({
-      where: { id: pedidoId },
-      data: { status },
+      await prisma.pedido.update({
+        where: { id: pedidoId },
+        data: { status },
+      });
     });
 
     revalidatePath("/admin");
     revalidatePath("/admin/pedidos");
-    revalidatePath(`/admin/lojistas/${pedido.usuarioId}`);
+    if (pedidoUsuarioId) {
+      revalidatePath(`/admin/lojistas/${pedidoUsuarioId}`);
+    }
     revalidatePath("/admin/produtos");
     revalidatePath("/lojista/painel");
     revalidatePath("/produtos");

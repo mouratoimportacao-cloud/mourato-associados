@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getLojistaSession } from "../../../lib/auth";
+import { calcularSaldoFornecedor, calcularVendaComDesconto } from "../../../lib/order-rules";
 import { prisma } from "../../../lib/prisma";
 
 // ─── criarPedidoLojista ───────────────────────────────────────────────────────
@@ -24,85 +25,84 @@ export async function criarPedidoLojista(formData: FormData): Promise<{ success:
   }
 
   try {
-    const produto = await prisma.produto.findUnique({ where: { id: produtoId } });
-    if (!produto) return { success: false, error: "Produto não encontrado." };
-
-    // Validar estoque do fornecedor
-    const estoqueDisponivel = Number(produto.estoque || 0);
-    if (estoqueDisponivel < quantidade) {
-      return {
-        success: false,
-        error: `Estoque de atacado insuficiente para o produto "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${quantidade} un.`,
-      };
-    }
-
     const lojista = await prisma.usuario.findUnique({ where: { id: session.id } });
     if (!lojista) return { success: false, error: "Lojista não encontrado." };
 
-    const precoUnitario = Number(produto.precoAtacado || 0);
+    await prisma.$transaction(async (tx) => {
+      const produto = await tx.produto.findUnique({ where: { id: produtoId } });
+      if (!produto) throw new Error("Produto não encontrado.");
 
-    // Decrementar estoque do fornecedor imediatamente
-    await prisma.produto.update({
-      where: { id: produto.id },
-      data: {
-        estoque: Math.max(0, estoqueDisponivel - quantidade),
-        estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - quantidade),
-      },
-    });
+      const estoqueDisponivel = Number(produto.estoque || 0);
+      if (estoqueDisponivel < quantidade) {
+        throw new Error(
+          `Estoque de atacado insuficiente para o produto "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${quantidade} un.`
+        );
+      }
 
-    // Verificar se já existe pedido pendente para o mesmo produto
-    const pedidoExistente = await prisma.pedido.findFirst({
-      where: {
-        usuarioId: session.id,
-        produtoId: produtoId,
-        status: "pendente fornecedor",
-      },
-    });
-
-    if (pedidoExistente) {
-      // Somar quantidade ao pedido existente em vez de criar novo
-      const novaQuantidade = Number(pedidoExistente.quantidade || 0) + quantidade;
-      const novoTotal = precoUnitario * novaQuantidade;
-
-      await prisma.pedido.update({
-        where: { id: pedidoExistente.id },
-        data: {
-          quantidade: novaQuantidade,
-          total: novoTotal,
-          saldoFornecedor: novoTotal,
-          observacao: observacao
-            ? `${pedidoExistente.observacao || ""} | ${observacao}`
-            : pedidoExistente.observacao,
-        },
-      });
-    } else {
-      // Criar novo pedido
-      const total = precoUnitario * quantidade;
-
-      await prisma.pedido.create({
-        data: {
+      const precoUnitario = Number(produto.precoAtacado || 0);
+      const pedidoExistente = await tx.pedido.findFirst({
+        where: {
           usuarioId: session.id,
-          produtoId: produto.id,
-          produtoNome: produto.nome,
-          quantidade,
-          precoUnitario,
-          precoTabela: Number(produto.preco || 0),
-          custoUnitario: precoUnitario,
-          descontoConcedido: 0,
-          lucroBruto: 0,
-          tipoFluxo: "compra_fornecedor",
-          quantidadePagaFornecedor: 0,
-          totalPagoFornecedor: 0,
-          saldoFornecedor: total,
-          pagamento,
-          observacao:
-            observacao ||
-            `Lojista solicitou ${quantidade} unidade(s) ao fornecedor. Aguardando validação.`,
-          total,
+          produtoId,
           status: "pendente fornecedor",
         },
       });
-    }
+
+      await tx.produto.update({
+        where: { id: produto.id },
+        data: {
+          estoque: estoqueDisponivel - quantidade,
+          estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - quantidade),
+        },
+      });
+
+      const podeAgrupar =
+        pedidoExistente &&
+        Number(pedidoExistente.totalPagoFornecedor || 0) === 0 &&
+        Number(pedidoExistente.quantidadePagaFornecedor || 0) === 0;
+
+      if (podeAgrupar && pedidoExistente) {
+        const novaQuantidade = Number(pedidoExistente.quantidade || 0) + quantidade;
+        const novoTotal = Number(pedidoExistente.total || 0) + precoUnitario * quantidade;
+
+        await tx.pedido.update({
+          where: { id: pedidoExistente.id },
+          data: {
+            quantidade: novaQuantidade,
+            total: novoTotal,
+            saldoFornecedor: calcularSaldoFornecedor(novoTotal, 0),
+            observacao: observacao
+              ? `${pedidoExistente.observacao || ""} | ${observacao}`
+              : pedidoExistente.observacao,
+          },
+        });
+      } else {
+        const total = precoUnitario * quantidade;
+        await tx.pedido.create({
+          data: {
+            usuarioId: session.id,
+            produtoId: produto.id,
+            produtoNome: produto.nome,
+            quantidade,
+            precoUnitario,
+            precoTabela: Number(produto.preco || 0),
+            custoUnitario: precoUnitario,
+            descontoConcedido: 0,
+            lucroBruto: 0,
+            tipoFluxo: "compra_fornecedor",
+            quantidadePagaFornecedor: 0,
+            totalPagoFornecedor: 0,
+            saldoFornecedor: total,
+            pagamento,
+            observacao:
+              observacao ||
+              `Lojista solicitou ${quantidade} unidade(s) ao fornecedor. Aguardando validação.`,
+            total,
+            status: "pendente fornecedor",
+          },
+        });
+      }
+    });
 
     revalidatePath("/lojista/painel");
     revalidatePath("/admin");
@@ -111,7 +111,10 @@ export async function criarPedidoLojista(formData: FormData): Promise<{ success:
     return { success: true };
   } catch (error) {
     console.error("Erro ao criar pedido do lojista:", error);
-    return { success: false, error: "Erro ao criar pedido." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro ao criar pedido.",
+    };
   }
 }
 
@@ -137,81 +140,68 @@ export async function confirmarVendaLojista(
   if (!pedidoId) return { success: false, error: "Pedido inválido." };
 
   try {
-    const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId } });
+    await prisma.$transaction(async (tx) => {
+      const pedido = await tx.pedido.findUnique({ where: { id: pedidoId } });
+      if (!pedido || Number(pedido.usuarioId) !== session.id) {
+        throw new Error("Pedido não encontrado.");
+      }
+      if (pedido.status !== "aguardando lojista") {
+        throw new Error("Este pedido não está aguardando confirmação.");
+      }
 
-    if (!pedido || Number(pedido.usuarioId) !== session.id) {
-      return { success: false, error: "Pedido não encontrado." };
-    }
+      const lojista = await tx.usuario.findUnique({ where: { id: session.id } });
+      if (!lojista) throw new Error("Lojista não encontrado.");
 
-    if (pedido.status !== "aguardando lojista") {
-      return { success: false, error: "Este pedido não está aguardando confirmação." };
-    }
+      const produtoId = Number(pedido.produtoId || 0);
+      const quantidade = Number(pedido.quantidade || 1);
+      const produto = produtoId
+        ? await tx.produto.findUnique({ where: { id: produtoId } })
+        : null;
+      const estoquePessoal = {
+        ...(lojista.estoquePessoal || {}),
+      } as Record<string, number>;
+      const estoqueAtual = Number(estoquePessoal[String(produtoId)] ?? 0);
 
-    const lojista = await prisma.usuario.findUnique({ where: { id: session.id } });
-    if (!lojista) return { success: false, error: "Lojista não encontrado." };
+      if (estoqueAtual < quantidade) {
+        throw new Error(
+          `Estoque insuficiente. Você tem ${estoqueAtual} un. e a venda exige ${quantidade} un.`
+        );
+      }
 
-    const produtoId = Number(pedido.produtoId || 0);
-    const quantidade = Number(pedido.quantidade || 1);
-    const produto = produtoId
-      ? await prisma.produto.findUnique({ where: { id: produtoId } })
-      : null;
-
-    const estoquePessoal = {
-      ...(lojista.estoquePessoal || {}),
-    } as Record<string, number>;
-    const estoqueAtual = Number(
-      estoquePessoal[String(produtoId)] ?? produto?.estoqueLojista ?? 0
-    );
-
-    if (estoqueAtual < quantidade) {
-      return {
-        success: false,
-        error: `Estoque insuficiente. Você tem ${estoqueAtual} un. e a venda exige ${quantidade} un.`,
-      };
-    }
-
-    // Calcular preço com desconto (piso = custoUnitario)
-    const precoTabela = Number(
-      pedido.precoTabela || produto?.preco || pedido.precoUnitario || 0
-    );
-    const custoUnitario = Number(
-      pedido.custoUnitario || produto?.precoAtacado || 0
-    );
-    const descontoSeguro = Math.max(0, Math.min(90, descontoPercentual));
-    const precoComDesconto =
-      descontoSeguro > 0
-        ? precoTabela * (1 - descontoSeguro / 100)
-        : Number(pedido.precoUnitario || precoTabela || 0);
-    const precoFinal = Math.max(custoUnitario, precoComDesconto);
-    const total = precoFinal * quantidade;
-    const descontoConcedido = Math.max(
-      0,
-      (precoTabela - precoFinal) * quantidade
-    );
-    const lucroBruto = total - custoUnitario * quantidade;
-
-    // Decrementar estoque pessoal do lojista
-    estoquePessoal[String(produtoId)] = Math.max(0, estoqueAtual - quantidade);
-
-    await prisma.usuario.update({
-      where: { id: session.id },
-      data: { estoquePessoal },
-    });
-
-    await prisma.pedido.update({
-      where: { id: pedidoId },
-      data: {
-        precoUnitario: precoFinal,
+      const precoTabela = Number(
+        pedido.precoTabela || produto?.preco || pedido.precoUnitario || 0
+      );
+      const custoUnitario = Number(
+        pedido.custoUnitario || produto?.precoAtacado || 0
+      );
+      const venda = calcularVendaComDesconto({
         precoTabela,
         custoUnitario,
-        descontoConcedido,
-        lucroBruto,
-        total,
-        tipoFluxo: "venda_qr",
-        pagamento,
-        observacao: `${pedido.observacao || ""} | Venda confirmada pelo lojista. Pagamento: ${pagamento}. Desconto: R$ ${descontoConcedido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Estoque pessoal baixado em ${quantidade} un.`,
-        status: "entregue",
-      },
+        quantidade,
+        descontoPercentual,
+        precoAtual: Number(pedido.precoUnitario || precoTabela || 0),
+      });
+
+      estoquePessoal[String(produtoId)] = estoqueAtual - quantidade;
+      await tx.usuario.update({
+        where: { id: session.id },
+        data: { estoquePessoal },
+      });
+      await tx.pedido.update({
+        where: { id: pedidoId },
+        data: {
+          precoUnitario: venda.precoFinal,
+          precoTabela,
+          custoUnitario,
+          descontoConcedido: venda.descontoConcedido,
+          lucroBruto: venda.lucroBruto,
+          total: venda.total,
+          tipoFluxo: "venda_qr",
+          pagamento,
+          observacao: `${pedido.observacao || ""} | Venda confirmada pelo lojista. Pagamento: ${pagamento}. Desconto: R$ ${venda.descontoConcedido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Estoque pessoal baixado em ${quantidade} un.`,
+          status: "entregue",
+        },
+      });
     });
 
     revalidatePath("/lojista/painel");
@@ -221,7 +211,49 @@ export async function confirmarVendaLojista(
     return { success: true };
   } catch (error) {
     console.error("Erro ao confirmar venda do lojista:", error);
-    return { success: false, error: "Erro ao confirmar venda. Tente novamente." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro ao confirmar venda. Tente novamente.",
+    };
+  }
+}
+
+export async function rejeitarVendaLojista(
+  pedidoId: number
+): Promise<{ success: boolean; error?: string }> {
+  const session = await getLojistaSession();
+  if (!session) return { success: false, error: "Sessão expirada. Faça login novamente." };
+  if (!pedidoId) return { success: false, error: "Pedido inválido." };
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const pedido = await tx.pedido.findUnique({ where: { id: pedidoId } });
+      if (!pedido || Number(pedido.usuarioId) !== session.id) {
+        throw new Error("Pedido não encontrado.");
+      }
+      if (pedido.status !== "aguardando lojista") {
+        throw new Error("Este pedido não está aguardando decisão.");
+      }
+
+      await tx.pedido.update({
+        where: { id: pedidoId },
+        data: {
+          status: "rejeitado",
+          observacao: `${pedido.observacao || ""} | Pedido rejeitado pelo lojista; nenhum estoque foi debitado.`,
+        },
+      });
+    });
+
+    revalidatePath("/lojista/painel");
+    revalidatePath("/admin");
+    revalidatePath("/admin/pedidos");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao rejeitar venda do lojista:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro ao rejeitar pedido.",
+    };
   }
 }
 
@@ -246,83 +278,84 @@ export async function criarPedidosLojistaCarrinho(
     const lojista = await prisma.usuario.findUnique({ where: { id: session.id } });
     if (!lojista) return { success: false, error: "Lojista não encontrado." };
 
-    // 1. Validar estoque de TODOS os itens primeiro (Operação Atômica)
-    for (const item of itens) {
-      const produto = await prisma.produto.findUnique({ where: { id: item.produtoId } });
-      if (!produto) {
-        return { success: false, error: `Produto ID ${item.produtoId} não encontrado.` };
+    await prisma.$transaction(async (tx) => {
+      for (const item of itens) {
+        if (!item.produtoId || !item.quantidade || item.quantidade < 1) {
+          throw new Error("O pedido contém produto ou quantidade inválida.");
+        }
+        const produto = await tx.produto.findUnique({ where: { id: item.produtoId } });
+        if (!produto) throw new Error(`Produto ID ${item.produtoId} não encontrado.`);
+        const estoqueDisponivel = Number(produto.estoque || 0);
+        if (estoqueDisponivel < item.quantidade) {
+          throw new Error(
+            `Estoque de atacado insuficiente para "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${item.quantidade} un.`
+          );
+        }
       }
-      const estoqueDisponivel = Number(produto.estoque || 0);
-      if (estoqueDisponivel < item.quantidade) {
-        return {
-          success: false,
-          error: `Estoque de atacado insuficiente para "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${item.quantidade} un.`,
-        };
-      }
-    }
 
-    // 2. Decrementar o estoque do fornecedor e criar/atualizar os pedidos
-    for (const item of itens) {
-      const produto = (await prisma.produto.findUnique({ where: { id: item.produtoId } }))!;
-      const precoAtacado = Number(produto.precoAtacado || 0);
-
-      // Decrementar estoque do fornecedor imediatamente
-      await prisma.produto.update({
-        where: { id: produto.id },
-        data: {
-          estoque: Math.max(0, Number(produto.estoque || 0) - item.quantidade),
-          estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - item.quantidade),
-        },
-      });
-
-      // Verificar se já existe pedido pendente para o mesmo produto
-      const pedidoExistente = await prisma.pedido.findFirst({
-        where: {
-          usuarioId: session.id,
-          produtoId: item.produtoId,
-          status: "pendente fornecedor",
-        },
-      });
-
-      if (pedidoExistente) {
-        const novaQuantidade = Number(pedidoExistente.quantidade || 0) + item.quantidade;
-        const novoTotal = precoAtacado * novaQuantidade;
-
-        await prisma.pedido.update({
-          where: { id: pedidoExistente.id },
+      for (const item of itens) {
+        const produto = (await tx.produto.findUnique({ where: { id: item.produtoId } }))!;
+        const precoAtacado = Number(produto.precoAtacado || 0);
+        await tx.produto.update({
+          where: { id: produto.id },
           data: {
-            quantidade: novaQuantidade,
-            total: novoTotal,
-            saldoFornecedor: novoTotal,
-            observacao: `${pedidoExistente.observacao || ""} | Adicionado mais ${item.quantidade} un. via carrinho agrupado.`,
+            estoque: Number(produto.estoque || 0) - item.quantidade,
+            estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - item.quantidade),
           },
         });
-      } else {
-        const total = precoAtacado * item.quantidade;
 
-        await prisma.pedido.create({
-          data: {
+        const pedidoExistente = await tx.pedido.findFirst({
+          where: {
             usuarioId: session.id,
-            produtoId: produto.id,
-            produtoNome: produto.nome,
-            quantidade: item.quantidade,
-            precoUnitario: precoAtacado,
-            precoTabela: Number(produto.preco || 0),
-            custoUnitario: precoAtacado,
-            descontoConcedido: 0,
-            lucroBruto: 0,
-            tipoFluxo: "compra_fornecedor",
-            quantidadePagaFornecedor: 0,
-            totalPagoFornecedor: 0,
-            saldoFornecedor: total,
-            pagamento: "Pedido ao fornecedor",
-            observacao: `Lojista solicitou ${item.quantidade} unidade(s) ao fornecedor no pedido agrupado.`,
-            total,
+            produtoId: item.produtoId,
             status: "pendente fornecedor",
           },
         });
+
+        const podeAgrupar =
+          pedidoExistente &&
+          Number(pedidoExistente.totalPagoFornecedor || 0) === 0 &&
+          Number(pedidoExistente.quantidadePagaFornecedor || 0) === 0;
+
+        if (podeAgrupar && pedidoExistente) {
+          const novaQuantidade = Number(pedidoExistente.quantidade || 0) + item.quantidade;
+          const novoTotal =
+            Number(pedidoExistente.total || 0) + precoAtacado * item.quantidade;
+          await tx.pedido.update({
+            where: { id: pedidoExistente.id },
+            data: {
+              quantidade: novaQuantidade,
+              total: novoTotal,
+              saldoFornecedor: calcularSaldoFornecedor(novoTotal, 0),
+              observacao: `${pedidoExistente.observacao || ""} | Adicionado mais ${item.quantidade} un. via carrinho agrupado.`,
+            },
+          });
+        } else {
+          const total = precoAtacado * item.quantidade;
+          await tx.pedido.create({
+            data: {
+              usuarioId: session.id,
+              produtoId: produto.id,
+              produtoNome: produto.nome,
+              quantidade: item.quantidade,
+              precoUnitario: precoAtacado,
+              precoTabela: Number(produto.preco || 0),
+              custoUnitario: precoAtacado,
+              descontoConcedido: 0,
+              lucroBruto: 0,
+              tipoFluxo: "compra_fornecedor",
+              quantidadePagaFornecedor: 0,
+              totalPagoFornecedor: 0,
+              saldoFornecedor: total,
+              pagamento: "Pedido ao fornecedor",
+              observacao: `Lojista solicitou ${item.quantidade} unidade(s) ao fornecedor no pedido agrupado.`,
+              total,
+              status: "pendente fornecedor",
+            },
+          });
+        }
       }
-    }
+    });
 
     revalidatePath("/lojista/painel");
     revalidatePath("/admin");
@@ -331,7 +364,9 @@ export async function criarPedidosLojistaCarrinho(
     return { success: true };
   } catch (error) {
     console.error("Erro ao criar pedidos do lojista pelo carrinho:", error);
-    return { success: false, error: "Erro ao enviar pedido ao fornecedor. Tente novamente." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro ao enviar pedido ao fornecedor. Tente novamente.",
+    };
   }
 }
-
