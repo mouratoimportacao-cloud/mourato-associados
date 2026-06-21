@@ -278,15 +278,38 @@ export async function registrarPagamentoFornecedor(formData: FormData) {
     const saldoFornecedor = Math.max(0, Number(pedido.total || 0) - totalPagoFornecedor);
     const quantidadePagaFornecedor = quantidadeJaPaga + quantidadeBaixa;
 
-    await prisma.pedido.update({
-      where: { id: pedido.id },
-      data: {
-        quantidadePagaFornecedor,
-        totalPagoFornecedor,
-        saldoFornecedor,
-        tipoFluxo: "compra_fornecedor",
-        status: saldoFornecedor <= 0 ? "pago" : "pendente fornecedor",
-      },
+    const nextStatus = saldoFornecedor <= 0 ? "pago" : "pendente fornecedor";
+    const statusEntrega = ["pago", "enviado", "entregue"];
+    const willEnterEntrega = statusEntrega.includes(nextStatus) && !statusEntrega.includes(pedido.status);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.pedido.update({
+        where: { id: pedido.id },
+        data: {
+          quantidadePagaFornecedor,
+          totalPagoFornecedor,
+          saldoFornecedor,
+          tipoFluxo: "compra_fornecedor",
+          status: nextStatus,
+        },
+      });
+
+      if (willEnterEntrega && pedido.produtoId && pedido.quantidade && pedido.usuarioId) {
+        const lojista = await tx.usuario.findUnique({
+          where: { id: pedido.usuarioId },
+        });
+        if (lojista) {
+          const estoquePessoal = {
+            ...(lojista.estoquePessoal || {}),
+          } as Record<string, number>;
+          const chave = String(pedido.produtoId);
+          estoquePessoal[chave] = Number(estoquePessoal[chave] || 0) + Number(pedido.quantidade);
+          await tx.usuario.update({
+            where: { id: lojista.id },
+            data: { estoquePessoal },
+          });
+        }
+      }
     });
 
     revalidatePath("/admin");
@@ -368,6 +391,10 @@ export async function registrarPagamentoParcialLojista(
     );
 
     let restante = valorPagamento;
+    const estoquePessoal = {
+      ...(lojista.estoquePessoal || {}),
+    } as Record<string, number>;
+    let estoqueAlterado = false;
 
     // Amortize across the orders
     for (const pedido of comprasFornecedor) {
@@ -393,16 +420,26 @@ export async function registrarPagamentoParcialLojista(
       restante -= amortizar;
 
       // Update the order
+      const nextStatus = novoSaldo <= 0 
+        ? (["enviado", "entregue"].includes(pedido.status) ? pedido.status : "pago")
+        : pedido.status;
+      const statusEntrega = ["pago", "enviado", "entregue"];
+      const willEnterEntrega = statusEntrega.includes(nextStatus) && !statusEntrega.includes(pedido.status);
+
       await prisma.pedido.update({
         where: { id: pedido.id },
         data: {
           totalPagoFornecedor: novoTotalPago,
           saldoFornecedor: novoSaldo,
-          status: novoSaldo <= 0 
-            ? (["enviado", "entregue"].includes(pedido.status) ? pedido.status : "pago")
-            : pedido.status,
+          status: nextStatus,
         },
       });
+
+      if (willEnterEntrega && pedido.produtoId && pedido.quantidade && pedido.usuarioId) {
+        const chave = String(pedido.produtoId);
+        estoquePessoal[chave] = Number(estoquePessoal[chave] || 0) + Number(pedido.quantidade);
+        estoqueAlterado = true;
+      }
     }
 
     // Save payment in history
@@ -418,6 +455,7 @@ export async function registrarPagamentoParcialLojista(
       where: { id: lojistaId },
       data: {
         historicoPagamentos: [...historico, novoPagamento],
+        ...(estoqueAlterado ? { estoquePessoal } : {}),
       },
     });
 
