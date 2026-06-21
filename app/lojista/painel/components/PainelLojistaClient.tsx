@@ -490,7 +490,7 @@ export default function PainelLojistaClient({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${isSelected ? "bg-white/10 text-white shadow-inner" : "text-stone-300 hover:bg-white/5 hover:text-white"}`}
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${isSelected ? "bg-white text-black shadow-inner" : "bg-white/10 text-black hover:bg-white/20"}`}
                 >
                   <span className="flex items-center gap-3">
                     <span>{tab.icon}</span>
@@ -507,7 +507,7 @@ export default function PainelLojistaClient({
           <div className="p-4 border-t border-white/10 space-y-3">
             <Link
               href="/"
-              className="block w-full text-center bg-white/10 border border-white/10 text-white rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-white/20"
+              className="block w-full text-center bg-white text-black border border-black/10 rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-stone-100"
             >
               Voltar ao Site
             </Link>
@@ -516,7 +516,7 @@ export default function PainelLojistaClient({
                 await logoutLojista();
                 window.location.href = "/lojista";
               }}
-              className="w-full bg-red-600/10 border border-red-500/20 text-red-300 rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-red-600/20"
+              className="w-full bg-white text-black border border-black/10 rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-stone-100"
             >
               Sair do Painel
             </button>
@@ -582,7 +582,7 @@ export default function PainelLojistaClient({
                       const firstPending = aguardandoLojista[0];
                       setActivePopupOrder(firstPending);
                     }}
-                    className="bg-red-500 hover:bg-red-600 text-white font-black text-[9px] px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap"
+                    className="bg-white text-black font-black text-[9px] px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border border-black/10 hover:bg-stone-100"
                   >
                     Liberar
                   </button>

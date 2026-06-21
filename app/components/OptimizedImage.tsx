@@ -1,6 +1,7 @@
 "use client";
 
 import Image, { ImageProps } from "next/image";
+import { useState } from "react";
 
 interface OptimizedImageProps extends Omit<ImageProps, "src" | "alt"> {
   src: string | null | undefined;
@@ -16,7 +17,11 @@ export default function OptimizedImage({
   className,
   ...props
 }: OptimizedImageProps) {
-  if (!src) {
+  const [loadError, setLoadError] = useState(false);
+  const normalizedSrc = typeof src === "string" ? src.trim() : "";
+  const hasValidSrc = Boolean(normalizedSrc) && normalizedSrc !== "null" && normalizedSrc !== "undefined" && !loadError;
+
+  if (!hasValidSrc) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-neutral-900/30 text-zinc-500 italic font-serif text-xs select-none">
         {fallbackText}
@@ -24,13 +29,16 @@ export default function OptimizedImage({
     );
   }
 
+  const srcToUse = normalizedSrc;
+
   return (
     <Image
-      src={src}
+      src={srcToUse}
       alt={alt}
       fill={fill}
       className={className}
-      unoptimized={!src.startsWith("/") || src.startsWith("//")}
+      unoptimized={!srcToUse.startsWith("/") || srcToUse.startsWith("//")}
+      onError={() => setLoadError(true)}
       {...props}
     />
   );

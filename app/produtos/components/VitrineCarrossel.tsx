@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+"use client";
+
+import { useRef, useEffect } from "react";
 import Link from "next/link";
 import { slugify } from "../../../lib/slug";
 import OptimizedImage from "../../components/OptimizedImage";
@@ -22,6 +24,26 @@ export default function VitrineCarrossel({ produtos }: { produtos: any[] }) {
   const scroll = (direction: -1 | 1) => {
     carrosselRef.current?.scrollBy({ left: direction * 288, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    if (!carrosselRef.current || produtos.length <= 1) return;
+
+    const interval = window.setInterval(() => {
+      const container = carrosselRef.current;
+      if (!container) return;
+      const firstCard = container.children[0] as HTMLElement | null;
+      if (!firstCard) return;
+
+      const cardWidth = firstCard.offsetWidth + 24; // gap-6 = 1.5rem
+      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
+        container.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        container.scrollBy({ left: cardWidth, behavior: "smooth" });
+      }
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [produtos.length]);
 
   return (
     <div className="group relative">
