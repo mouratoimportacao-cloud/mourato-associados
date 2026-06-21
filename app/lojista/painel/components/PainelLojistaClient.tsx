@@ -60,6 +60,7 @@ interface Props {
     cep?: string | null;
     codigoRevenda?: string | null;
     estoquePessoal?: Record<string, number> | null;
+    limiteAprovado?: number | null;
   };
   pedidos: Pedido[];
   session: {
@@ -294,8 +295,9 @@ export default function PainelLojistaClient({
   }, [comprasFornecedor]);
 
   const limiteDisponivel = useMemo(() => {
-    return Math.max(0, 10000 - saldoDevedor);
-  }, [saldoDevedor]);
+    const limiteAprovado = Number(lojistaAtual?.limiteAprovado ?? 0);
+    return Math.max(0, limiteAprovado - saldoDevedor);
+  }, [lojistaAtual?.limiteAprovado, saldoDevedor]);
 
   // Níveis de Parceiro: Bronze (< 2k), Prata (< 5k), Ouro (< 10k), Diamante (>= 10k)
   const nivelParceiro = useMemo(() => {
@@ -697,7 +699,7 @@ export default function PainelLojistaClient({
                     <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest">Crédito Disponível</p>
                     <div>
                       <p className="text-sm font-serif font-black text-blue-400">R$ {limiteDisponivel.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                      <p className="text-[8px] text-stone-500 mt-1 uppercase">De limite de R$ 10.000</p>
+                      <p className="text-[8px] text-stone-500 mt-1 uppercase">De limite de R$ {Number(lojistaAtual?.limiteAprovado ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
 
