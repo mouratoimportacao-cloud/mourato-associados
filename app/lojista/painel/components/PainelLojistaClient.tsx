@@ -111,13 +111,13 @@ export default function PainelLojistaClient({
   const router = useRouter();
 
   // ─── ABA ATIVA E ESTADOS DE NAVEGAÇÃO ─────────────────────────────────────────
-  const [activeTab, setActiveTabState] = useState<"inicio" | "produtos" | "carrinho" | "financeiro" | "perfil">("inicio");
+  const [activeTab, setActiveTabState] = useState<"inicio" | "produtos" | "estoque" | "carrinho" | "financeiro" | "perfil">("inicio");
 
   useEffect(() => {
     const loadTab = window.setTimeout(() => {
       const saved = localStorage.getItem("lojista-active-tab");
-      if (saved && ["inicio", "produtos", "carrinho", "financeiro", "perfil"].includes(saved)) {
-        setActiveTabState(saved as "inicio" | "produtos" | "carrinho" | "financeiro" | "perfil");
+      if (saved && ["inicio", "produtos", "estoque", "carrinho", "financeiro", "perfil"].includes(saved)) {
+        setActiveTabState(saved as any);
       }
     }, 0);
     return () => window.clearTimeout(loadTab);
@@ -399,6 +399,21 @@ export default function PainelLojistaClient({
     }));
   }, [produtos, estoquePessoal]);
 
+  const estoquePessoalRows = useMemo(() => {
+    return produtos
+      .map((produto) => {
+        const quantidade = Number(estoquePessoal[String(produto.id)] || 0);
+        const custo = Number(produto.precoAtacado || 0);
+        return {
+          produto,
+          quantidade,
+          custo,
+          total: quantidade * custo,
+        };
+      })
+      .filter((row) => row.quantidade > 0);
+  }, [produtos, estoquePessoal]);
+
   const aguardandoLojista = useMemo(() => {
     return pedidos.filter((pedido) => pedido.status === "aguardando lojista");
   }, [pedidos]);
@@ -406,6 +421,7 @@ export default function PainelLojistaClient({
   const navTabs = [
     { id: "inicio", label: "Início", icon: "🏠", badge: aguardandoLojista.length },
     { id: "produtos", label: "Produtos", icon: "🛍️" },
+    { id: "estoque", label: "Estoque", icon: "📦" },
     { id: "carrinho", label: "Carrinho", icon: "🛒", badge: cart.length },
     { id: "financeiro", label: "Financeiro", icon: "📊" },
     { id: "perfil", label: "Perfil", icon: "👤" },
@@ -722,6 +738,76 @@ export default function PainelLojistaClient({
           {activeTab === "produtos" && (
             <div className="space-y-4">
               <ListaProdutosLojista produtos={produtosComEstoquePessoal} onAddToCart={handleAddToCart} />
+            </div>
+          )}
+
+          {/* ─────────────────────────────────────────────────────────────────── */}
+          {/* TELA: ESTOQUE PESSOAL DO LOJISTA                                   */}
+          {/* ─────────────────────────────────────────────────────────────────── */}
+          {activeTab === "estoque" && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="flex justify-between items-center mb-1">
+                <div>
+                  <h2 className="text-sm font-serif font-bold text-stone-100 uppercase tracking-wider">📦 Meu Estoque Pessoal</h2>
+                  <p className="text-[10px] text-stone-400 mt-0.5 uppercase tracking-wider">Produtos físicos pronta entrega sob sua custódia</p>
+                </div>
+                <span className="text-[10px] font-black bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full px-2.5 py-1 uppercase tracking-wider">
+                  {estoquePessoalRows.length} itens distintos
+                </span>
+              </div>
+
+              <div className="rounded-2xl border border-stone-800 bg-stone-900/60 shadow-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-stone-800 text-left">
+                    <thead className="bg-stone-950/80 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-400 uppercase tracking-wider">Produto</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-400 uppercase tracking-wider text-center">Quantidade</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-400 uppercase tracking-wider text-right">Custo Unitário</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-400 uppercase tracking-wider text-right">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-800/60">
+                      {estoquePessoalRows.map((row) => (
+                        <tr key={row.produto.id} className="hover:bg-stone-850/40 transition-colors">
+                          <td className="px-4 py-3">
+                            <p className="text-xs font-bold text-stone-100">{row.produto.nome}</p>
+                            <p className="text-[9px] text-stone-500 mt-0.5">{row.produto.marca} / {row.produto.volume}</p>
+                          </td>
+                          <td className="px-4 py-3 text-xs font-black text-stone-200 text-center">
+                            <span className="inline-block px-2.5 py-0.5 rounded bg-stone-800 border border-stone-700">
+                              {row.quantidade} un.
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-stone-300 text-right font-medium">
+                            R$ {row.custo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </td>
+                          <td className="px-4 py-3 text-xs font-black text-amber-500 text-right font-serif">
+                            R$ {row.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      ))}
+
+                      {estoquePessoalRows.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-8 text-center text-xs text-stone-500 italic">
+                            Você não possui produtos em seu estoque pessoal.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {estoquePessoalRows.length > 0 && (
+                  <div className="bg-stone-950/65 px-4 py-3.5 border-t border-stone-800 flex justify-between items-center text-xs">
+                    <span className="text-stone-400 font-bold uppercase tracking-wider text-[10px]">Valor Total Investido:</span>
+                    <span className="font-serif font-black text-amber-500 text-sm">
+                      R$ {estoquePessoalRows.reduce((acc, r) => acc + r.total, 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
