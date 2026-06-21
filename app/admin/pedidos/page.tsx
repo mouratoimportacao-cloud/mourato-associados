@@ -5,6 +5,7 @@ import { prisma } from "../../../lib/prisma";
 
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { atualizarStatusPedido, deletePedidoAction } from "./actions";
+import { limparTodosPedidosAction } from "./clearActions";
 
 export const metadata = {
   title: "Pedidos | Mourato & Associados",
@@ -134,9 +135,19 @@ export default async function PedidosAdminPage() {
               Controle de pagamento, envio e transição de estoque
             </p>
           </div>
-          <Link href="/admin" className="bg-white border border-gray-100 shadow-sm px-6 py-3 rounded-2xl text-center font-bold text-gray-700 text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors">
-            Voltar ao Painel
-          </Link>
+          <div className="flex gap-2">
+            <form action={limparTodosPedidosAction}>
+              <ConfirmSubmitButton
+                message="ATENÇÃO: Isto irá deletar TODOS os pedidos do sistema e zerar os estoques dos lojistas permanentemente. Deseja continuar?"
+                className="bg-red-50 border border-red-200 shadow-sm px-6 py-3 rounded-2xl text-center font-bold text-red-600 text-xs uppercase tracking-widest hover:bg-red-100 transition-colors"
+              >
+                🚨 Zerar Base
+              </ConfirmSubmitButton>
+            </form>
+            <Link href="/admin" className="bg-white border border-gray-100 shadow-sm px-6 py-3 rounded-2xl text-center font-bold text-gray-700 text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors">
+              Voltar ao Painel
+            </Link>
+          </div>
         </header>
 
         <section className="admin-card-grid grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
