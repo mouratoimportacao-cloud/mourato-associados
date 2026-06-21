@@ -253,7 +253,7 @@ export default function PainelLojistaClient({
     return lojistaAtual?.codigoRevenda ? `https://mouratoassociados.com.br/r/${lojistaAtual.codigoRevenda}` : "";
   }, [lojistaAtual]);
 
-  const produtoMap = useMemo(() => new Map(produtos.map((p) => [p.id, p])), [produtos]);
+  const produtoMap = new Map(produtos.map((p) => [p.id, p]));
 
   const comprasFornecedor = useMemo(() => {
     return pedidos.filter((pedido) =>
@@ -270,9 +270,7 @@ export default function PainelLojistaClient({
     );
   }, [pedidos]);
 
-  const vendasQrConfirmadas = useMemo(() => {
-    return vendasQr.filter((pedido) => ["pago", "enviado", "entregue"].includes(String(pedido.status || "")));
-  }, [vendasQr]);
+  const vendasQrConfirmadas = vendasQr.filter((pedido) => ["pago", "enviado", "entregue"].includes(String(pedido.status || "")));
 
   const totalComprado = useMemo(() => {
     return comprasFornecedor
@@ -349,7 +347,7 @@ export default function PainelLojistaClient({
   const dreReport = useMemo(() => {
     const receitaBruta = vendasQrConfirmadas.reduce((acc, p) => acc + Number(p.total || 0), 0);
     const cmv = vendasQrConfirmadas.reduce((acc, p) => {
-      const prod = p.produtoId ? produtoMap.get(p.produtoId) : null;
+      const prod = p.produtoId ? produtos.find((produto) => produto.id === p.produtoId) : null;
       return acc + Number(prod?.precoAtacado || 0) * Number(p.quantidade || 1);
     }, 0);
     const lucroBruto = receitaBruta - cmv;
@@ -372,21 +370,21 @@ export default function PainelLojistaClient({
       lucroOperacional,
       lucroLiquido,
     };
-  }, [vendasQrConfirmadas, produtoMap]);
+  }, [vendasQrConfirmadas, produtos]);
 
   // Preview do Carrinho no rodapé
   const cartTotals = useMemo(() => {
     let itemsCount = 0;
     let totalValue = 0;
     cart.forEach((item) => {
-      const prod = produtoMap.get(item.produtoId);
+      const prod = produtos.find((produto) => produto.id === item.produtoId);
       if (prod) {
         itemsCount += item.quantidade;
         totalValue += Number(prod.precoAtacado || 0) * item.quantidade;
       }
     });
     return { itemsCount, totalValue };
-  }, [cart, produtoMap]);
+  }, [cart, produtos]);
 
   // Produtos formatados com estoque pessoal do lojista
   const produtosComEstoquePessoal = useMemo(() => {
@@ -399,6 +397,14 @@ export default function PainelLojistaClient({
   const aguardandoLojista = useMemo(() => {
     return pedidos.filter((pedido) => pedido.status === "aguardando lojista");
   }, [pedidos]);
+
+  const navTabs = [
+    { id: "inicio", label: "Início", icon: "🏠", badge: aguardandoLojista.length },
+    { id: "produtos", label: "Produtos", icon: "🛍️" },
+    { id: "carrinho", label: "Carrinho", icon: "🛒", badge: cart.length },
+    { id: "financeiro", label: "Financeiro", icon: "📊" },
+    { id: "perfil", label: "Perfil", icon: "👤" },
+  ];
 
   // Efeito de detecção de novo pedido pendente para popup
   useEffect(() => {
@@ -465,10 +471,61 @@ export default function PainelLojistaClient({
       )}
 
       {/* Conteúdo Centralizado ou em Painel de Tela Cheia */}
-      <div className="fixed inset-0 w-full bg-stone-950 flex flex-col overflow-hidden z-50">
-        
-        {/* HEADER DE LUXO (Black & Gold) */}
-        <header className="bg-stone-900/90 backdrop-blur-md text-white px-4 py-4 flex items-center justify-between border-b border-amber-500/10 shrink-0 shadow-lg">
+      <div className="fixed inset-0 w-full bg-stone-950 flex overflow-hidden z-50">
+        <aside className="hidden lg:flex lg:w-72 xl:w-80 flex-col bg-luxury-black text-white sticky top-0 h-screen border-r border-white/5">
+          <div className="p-6 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-luxury-gold/10 border border-luxury-gold/20 flex items-center justify-center text-luxury-gold text-lg">M&A</div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-luxury-gold/80">Painel do Lojista</p>
+                <h2 className="text-sm font-bold text-white truncate max-w-[190px]">{lojistaAtual.nome}</h2>
+              </div>
+            </div>
+          </div>
+
+          <nav className="flex-1 p-4 space-y-2">
+            {navTabs.map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${isSelected ? "bg-white/10 text-white shadow-inner" : "text-stone-300 hover:bg-white/5 hover:text-white"}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </span>
+                  {tab.badge ? (
+                    <span className="min-w-[24px] rounded-full bg-red-500 text-[10px] font-black text-white px-2 py-1 text-center">{tab.badge}</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-white/10 space-y-3">
+            <Link
+              href="/"
+              className="block w-full text-center bg-white/10 border border-white/10 text-white rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-white/20"
+            >
+              Voltar ao Site
+            </Link>
+            <button
+              onClick={async () => {
+                await logoutLojista();
+                window.location.href = "/lojista";
+              }}
+              className="w-full bg-red-600/10 border border-red-500/20 text-red-300 rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-red-600/20"
+            >
+              Sair do Painel
+            </button>
+          </div>
+        </aside>
+
+        <div className="flex-1 flex flex-col">
+          {/* HEADER DE LUXO (Black & Gold) */}
+          <header className="bg-stone-900/90 backdrop-blur-md text-white px-4 py-4 flex items-center justify-between border-b border-amber-500/10 shrink-0 shadow-lg">
           <div className="flex items-center gap-3">
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
@@ -941,14 +998,8 @@ export default function PainelLojistaClient({
         )}
 
         {/* 📱 MENU INFERIOR DE 5 ABAS TÁTEIS (Responsivo/Celular) */}
-        <nav className="bg-stone-900/95 backdrop-blur-md border-t border-stone-800/80 h-16 w-full flex justify-around items-center px-2 shrink-0 shadow-2xl z-30">
-          {[
-            { id: "inicio", label: "Início", icon: "🏠", badge: aguardandoLojista.length },
-            { id: "produtos", label: "Produtos", icon: "🛍️" },
-            { id: "carrinho", label: "Carrinho", icon: "🛒", badge: cart.length },
-            { id: "financeiro", label: "Financeiro", icon: "📊" },
-            { id: "perfil", label: "Perfil", icon: "👤" },
-          ].map((tab) => {
+        <nav className="lg:hidden bg-stone-900/95 backdrop-blur-md border-t border-stone-800/80 h-16 w-full flex justify-around items-center px-2 shrink-0 shadow-2xl z-30">
+          {navTabs.map((tab) => {
             const isSelected = activeTab === tab.id;
             return (
               <button
@@ -975,6 +1026,7 @@ export default function PainelLojistaClient({
           })}
         </nav>
 
+      </div>
       </div>
 
       {/* 🚨 WINDOW POPUP AUTOMÁTICO DE NOVO PEDIDO DO QR CODE 🚨 */}

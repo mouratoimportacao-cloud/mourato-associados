@@ -44,7 +44,9 @@ export default function CarrinhoWidget() {
 
   // Reseta campos ao finalizar com sucesso
   useEffect(() => {
-    if (checkoutSuccess) {
+    if (!checkoutSuccess) return;
+
+    const resetTimeout = window.setTimeout(() => {
       setShowAddressForm(false);
       setNome("");
       setContato("");
@@ -57,7 +59,9 @@ export default function CarrinhoWidget() {
       setEstado("");
       setCepError("");
       setValidationError("");
-    }
+    }, 0);
+
+    return () => window.clearTimeout(resetTimeout);
   }, [checkoutSuccess]);
 
   // Sincroniza itens do localStorage

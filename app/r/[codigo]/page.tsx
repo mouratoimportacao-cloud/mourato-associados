@@ -25,7 +25,7 @@ export default async function CatalogoRevendaPage({ params }: { params: Promise<
   });
   const estoquePessoal = (lojista?.estoquePessoal || {}) as Record<string, number>;
   const produtosDoLojista = produtos
-    .filter((produto: any) => (produto.estoque || 0) > 0)
+    .filter((produto: any) => Number(estoquePessoal[String(produto.id)] ?? 0) > 0)
     .map((produto: any) => ({
       ...produto,
       estoque: Number(estoquePessoal[String(produto.id)] ?? 0),
