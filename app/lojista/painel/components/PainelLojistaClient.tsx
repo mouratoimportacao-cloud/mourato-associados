@@ -347,29 +347,30 @@ export default function PainelLojistaClient({
 
   // DRE Comercial
   const dreReport = useMemo(() => {
-    const receitaBruta = vendasQrConfirmadas.reduce((acc, p) => acc + Number(p.total || 0), 0);
-    const cmv = vendasQrConfirmadas.reduce(
-      (acc, p) => acc + Number(p.custoUnitario || 0) * Number(p.quantidade || 1),
-      0
-    );
-    const lucroBruto = receitaBruta - cmv;
+    let receitaSugerida = 0;
+    let custoCompra = 0;
+    let descontoConcedido = 0;
 
-    // Custos simulados (mock) com base no faturamento
-    const fretes = receitaBruta > 0 ? Math.round(receitaBruta * 0.015) : 0; // 1.5%
-    const taxasGateway = receitaBruta > 0 ? Math.round(receitaBruta * 0.03) : 0; // 3%
-    const despesasGerais = receitaBruta > 0 ? 150 : 0; // Fixo se vendeu algo
+    vendasQrConfirmadas.forEach((p) => {
+      const qty = Number(p.quantidade || 1);
+      const precoTab = Number(p.precoTabela || p.precoUnitario || 0);
+      const desc = Number(p.descontoConcedido || 0);
+      
+      const totalSugerido = p.precoTabela ? (precoTab * qty) : (Number(p.total || 0) + desc);
+      
+      receitaSugerida += totalSugerido;
+      custoCompra += Number(p.custoUnitario || 0) * qty;
+      descontoConcedido += desc;
+    });
 
-    const lucroOperacional = lucroBruto - fretes - taxasGateway - despesasGerais;
-    const lucroLiquido = lucroOperacional;
+    const receitaReal = receitaSugerida - descontoConcedido;
+    const lucroLiquido = receitaReal - custoCompra;
 
     return {
-      receitaBruta,
-      cmv,
-      lucroBruto,
-      fretes,
-      taxasGateway,
-      despesasGerais,
-      lucroOperacional,
+      receitaSugerida,
+      custoCompra,
+      descontoConcedido,
+      receitaReal,
       lucroLiquido,
     };
   }, [vendasQrConfirmadas]);
@@ -897,31 +898,23 @@ export default function PainelLojistaClient({
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500/80 mb-2">Demonstrativo DRE (Comercial)</h3>
                 <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-xl space-y-3 text-xs">
                   <div className="flex justify-between font-bold border-b border-stone-800 pb-2">
-                    <span className="text-stone-300">Receita Bruta (Vendas)</span>
-                    <span className="text-stone-100">R$ {dreReport.receitaBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    <span className="text-stone-300">Receita Estimada (Valor Sugerido)</span>
+                    <span className="text-stone-100">R$ {dreReport.receitaSugerida.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-stone-400">
-                    <span>(-) Custo de Mercadorias (CMV)</span>
-                    <span className="text-red-400">- R$ {dreReport.cmv.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    <span>(-) Custo da Compra (Fornecedor)</span>
+                    <span className="text-red-400">- R$ {dreReport.custoCompra.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-stone-400">
+                    <span>(-) Descontos Concedidos</span>
+                    <span className="text-red-400">- R$ {dreReport.descontoConcedido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between font-bold border-y border-stone-800/80 py-2 my-1">
-                    <span className="text-stone-200">(=) Lucro Bruto</span>
-                    <span className="text-amber-500">R$ {dreReport.lucroBruto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-stone-400">
-                    <span>(-) Custos de Frete (Mock 1.5%)</span>
-                    <span className="text-red-400/80">- R$ {dreReport.fretes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-stone-400">
-                    <span>(-) Taxas Gateway (Mock 3%)</span>
-                    <span className="text-red-400/80">- R$ {dreReport.taxasGateway.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-stone-400 border-b border-stone-800 pb-2 mb-1">
-                    <span>(-) Despesas Gerais (Mock)</span>
-                    <span className="text-red-400/80">- R$ {dreReport.despesasGerais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    <span className="text-stone-200">(=) Preço Final Vendido</span>
+                    <span className="text-amber-500">R$ {dreReport.receitaReal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between font-black border-t border-amber-500/10 pt-2 text-sm">
-                    <span className="text-amber-500">(=) Lucro Líquido Operacional</span>
+                    <span className="text-amber-500">(=) Lucro Líquido Real</span>
                     <span className="text-emerald-400 font-serif">R$ {dreReport.lucroLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>

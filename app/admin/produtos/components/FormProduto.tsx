@@ -84,6 +84,15 @@ function compressImageToWebP(file: File, maxWidth = 800, quality = 0.75): Promis
   });
 }
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Não foi possível preparar a imagem."));
+    reader.readAsDataURL(blob);
+  });
+}
+
 interface FormProdutoProps {
   editingProduto: Produto | null;
   onCancelEdit: () => void;
@@ -125,10 +134,13 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
       if (imageFile && imageFile.size > 0) {
         try {
           const compressedBlob = await compressImageToWebP(imageFile);
-          const newFile = new File([compressedBlob], "image.webp", { type: "image/webp" });
-          formData.set("imagemFile", newFile);
+          const imageDataUrl = await blobToDataUrl(compressedBlob);
+          formData.set("imagemDataUrl", imageDataUrl);
+          formData.delete("imagemFile");
         } catch (err) {
-          console.error("Erro ao comprimir imagem, usando original:", err);
+          console.error("Erro ao preparar imagem:", err);
+          alert("A imagem não pôde ser preparada. Escolha outro arquivo e tente novamente.");
+          return;
         }
       }
 

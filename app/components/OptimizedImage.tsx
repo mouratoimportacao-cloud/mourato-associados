@@ -31,6 +31,20 @@ export default function OptimizedImage({
 
   const srcToUse = normalizedSrc;
 
+  if (srcToUse.startsWith("data:image/")) {
+    return (
+      // Data URLs de uploads já estão comprimidas em WebP e não passam pelo otimizador do Next.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={srcToUse}
+        alt={alt}
+        className={className}
+        onError={() => setLoadError(true)}
+        style={fill ? { position: "absolute", inset: 0, width: "100%", height: "100%" } : undefined}
+      />
+    );
+  }
+
   return (
     <Image
       src={srcToUse}

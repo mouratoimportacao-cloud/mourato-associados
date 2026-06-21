@@ -18,6 +18,23 @@ async function imageToDataUrl(file: File) {
   return `data:image/webp;base64,${buffer.toString("base64")}`;
 }
 
+async function imageFromFormData(formData: FormData) {
+  const imageDataUrl = String(formData.get("imagemDataUrl") || "").trim();
+  if (imageDataUrl) {
+    if (!/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)) {
+      throw new Error("A imagem enviada está em formato inválido.");
+    }
+    return imageDataUrl;
+  }
+
+  const imageFile = formData.get("imagemFile") as File | null;
+  if (imageFile && imageFile.size > 0) {
+    return imageToDataUrl(imageFile);
+  }
+
+  return null;
+}
+
 export async function createProduto(formData: FormData) {
   const nome = formData.get("nome") as string;
   const marca = formData.get("marca") as string;
@@ -72,12 +89,9 @@ export async function createProduto(formData: FormData) {
       return Math.max(max, codigoAtual);
     }, 0) + 1;
 
-    const imageFile = formData.get("imagemFile") as File | null;
-    if (imageFile && imageFile.size > 0) {
-      imagem = await imageToDataUrl(imageFile);
-    }
+    imagem = await imageFromFormData(formData);
 
-    await prisma.produto.create({
+    const produtoCriado = await prisma.produto.create({
       data: {
         codigo,
         nome,
@@ -113,6 +127,10 @@ export async function createProduto(formData: FormData) {
         descricao_olfativa,
       },
     });
+
+    if (imagem && !produtoCriado?.imagem) {
+      throw new Error("O produto foi criado, mas a imagem não foi persistida.");
+    }
 
     revalidatePath("/admin/produtos");
     revalidatePath("/produtos");
@@ -166,10 +184,8 @@ export async function updateProduto(id: number, formData: FormData) {
   try {
     let imagem: string | null = undefined as any;
 
-    const imageFile = formData.get("imagemFile") as File | null;
-    if (imageFile && imageFile.size > 0) {
-      imagem = await imageToDataUrl(imageFile);
-    }
+    const imagemRecebida = await imageFromFormData(formData);
+    if (imagemRecebida) imagem = imagemRecebida;
 
     const updateData: any = {
       nome,
@@ -223,10 +239,14 @@ export async function updateProduto(id: number, formData: FormData) {
       updateData.imagem = imagem;
     }
 
-    await prisma.produto.update({
+    const produtoAtualizado = await prisma.produto.update({
       where: { id },
       data: updateData,
     });
+
+    if (imagemRecebida && !produtoAtualizado?.imagem) {
+      throw new Error("Os dados foram atualizados, mas a imagem não foi persistida.");
+    }
 
     revalidatePath("/admin/produtos");
     revalidatePath("/produtos");
