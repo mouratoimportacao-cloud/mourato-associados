@@ -1,19 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 export default function NavbarBusca() {
-  const [busca, setBusca] = useState("");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  // Sincroniza o input com query params da URL inicial
-  useEffect(() => {
-    const query = searchParams.get("busca") || "";
-    setBusca(query);
-  }, [searchParams]);
+  const [busca, setBusca] = useState(() => searchParams.get("busca") || "");
 
   // Envia evento de busca dinâmica ao digitar
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

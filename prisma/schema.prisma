@@ -10,12 +10,21 @@ datasource db {
 }
 
 model Usuario {
-id        Int      @id @default(autoincrement())
-nome      String
-email     String   @unique
-senha     String
-tipo      String
-createdAt DateTime @default(now())
+id                Int      @id @default(autoincrement())
+nome              String
+email             String   @unique
+senha             String
+tipo              String
+documento         String?
+telefone          String?
+endereco          String?
+cidade            String?
+estado            String?
+cep               String?
+status            String?   @default("pendente")
+codigoRevenda     String?
+estoquePessoal    String?   @db.Text
+createdAt         DateTime  @default(now())
 }
 
 model Produto {
@@ -47,11 +56,25 @@ descricao_olfativa      String?
 }
 
 model Pedido {
-id         Int      @id @default(autoincrement())
-usuarioId  Int
-total      Float
-status     String
-createdAt  DateTime @default(now())
+id                      Int      @id @default(autoincrement())
+usuarioId               Int
+produtoId               Int?
+produtoNome             String?
+quantidade              Int?
+precoUnitario           Float?
+precoTabela             Float?
+custoUnitario           Float?
+descontoConcedido       Float?   @default(0)
+lucroBruto              Float?   @default(0)
+tipoFluxo               String?
+quantidadePagaFornecedor Int?
+totalPagoFornecedor     Float?
+saldoFornecedor         Float?
+pagamento               String?
+observacao              String?
+total                   Float
+status                  String
+createdAt               DateTime @default(now())
 }
 
 model Endereco {

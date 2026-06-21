@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { obterLojistaPorCodigo, registrarIntencaoCompraCarrinho } from "../produtos/actions";
+import OptimizedImage from "./OptimizedImage";
 
 interface CartItem {
   id: number;
@@ -26,6 +27,43 @@ export default function CarrinhoWidget() {
   const [checkoutSuccess, setCheckoutSuccess] = useState<{ message: string } | null>(null);
   const params = useParams<{ codigo?: string }>();
 
+  // Estados do formulário de entrega do cliente
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [nome, setNome] = useState("");
+  const [contato, setContato] = useState("");
+  const [cep, setCep] = useState("");
+  const [rua, setRua] = useState("");
+  const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [cepError, setCepError] = useState("");
+  const [loadingCep, setLoadingCep] = useState(false);
+  const [validationError, setValidationError] = useState("");
+
+  // Reseta campos ao finalizar com sucesso
+  useEffect(() => {
+    if (!checkoutSuccess) return;
+
+    const resetTimeout = window.setTimeout(() => {
+      setShowAddressForm(false);
+      setNome("");
+      setContato("");
+      setCep("");
+      setRua("");
+      setNumero("");
+      setComplemento("");
+      setBairro("");
+      setCidade("");
+      setEstado("");
+      setCepError("");
+      setValidationError("");
+    }, 0);
+
+    return () => window.clearTimeout(resetTimeout);
+  }, [checkoutSuccess]);
+
   // Sincroniza itens do localStorage
   const loadCart = () => {
     try {
@@ -45,13 +83,14 @@ export default function CarrinhoWidget() {
   };
 
   useEffect(() => {
-    loadCart();
+    const initialLoad = window.setTimeout(loadCart, 0);
 
     // Eventos customizados para abrir e atualizar carrinho
     const handleOpen = () => {
       loadCart();
       setIsOpen(true);
       setCheckoutSuccess(null); // Reseta mensagens de sucesso anteriores
+      setShowAddressForm(false);
     };
 
     const handleUpdate = () => {
@@ -62,6 +101,7 @@ export default function CarrinhoWidget() {
     window.addEventListener("cart-updated", handleUpdate);
 
     return () => {
+      window.clearTimeout(initialLoad);
       window.removeEventListener("open-cart", handleOpen);
       window.removeEventListener("cart-updated", handleUpdate);
     };
@@ -76,7 +116,8 @@ export default function CarrinhoWidget() {
         }
       });
     } else {
-      setLojistaInfo(null);
+      const clearLojista = window.setTimeout(() => setLojistaInfo(null), 0);
+      return () => window.clearTimeout(clearLojista);
     }
   }, [params.codigo]);
 
@@ -112,7 +153,7 @@ export default function CarrinhoWidget() {
   const subtotal = cartItems.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
 
   // Envia o pedido agrupado
-  const handleCheckout = () => {
+  const handleCheckout = (clienteInfo: any) => {
     if (cartItems.length === 0) return;
 
     startTransition(async () => {
@@ -121,7 +162,11 @@ export default function CarrinhoWidget() {
         quantidade: item.quantidade,
       }));
 
-      const res = await registrarIntencaoCompraCarrinho(itemsPayload, params.codigo || null);
+      const res = await registrarIntencaoCompraCarrinho(
+        itemsPayload,
+        params.codigo || null,
+        clienteInfo
+      );
 
       if (res.success) {
         setCheckoutSuccess({ message: res.message });
@@ -133,6 +178,83 @@ export default function CarrinhoWidget() {
         alert(res.message);
       }
     });
+  };
+
+  const handleCepChange = async (val: string) => {
+    const cleanCep = val.replace(/\D/g, "");
+    
+    // Mask format: XXXXX-XXX
+    let formatted = cleanCep;
+    if (cleanCep.length > 5) {
+      formatted = `${cleanCep.substring(0, 5)}-${cleanCep.substring(5, 8)}`;
+    }
+    setCep(formatted.substring(0, 9));
+    
+    if (cleanCep.length === 8) {
+      setLoadingCep(true);
+      setCepError("");
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const data = await response.json();
+        if (data.erro) {
+          setCepError("CEP inválido ou não encontrado.");
+        } else {
+          setRua(data.logradouro || "");
+          setBairro(data.bairro || "");
+          setCidade(data.localidade || "");
+          setEstado(data.uf || "");
+          setCepError("");
+        }
+      } catch (err) {
+        console.error("Erro no CEP lookup:", err);
+      } finally {
+        setLoadingCep(false);
+      }
+    }
+  };
+
+  const onSubmitCheckout = (e: React.FormEvent) => {
+    e.preventDefault();
+    setValidationError("");
+
+    if (
+      !nome.trim() ||
+      !contato.trim() ||
+      !cep.trim() ||
+      !rua.trim() ||
+      !numero.trim() ||
+      !bairro.trim() ||
+      !cidade.trim() ||
+      !estado.trim()
+    ) {
+      setValidationError("Por favor, preencha todos os campos obrigatórios (*).");
+      return;
+    }
+
+    const cleanCep = cep.replace(/\D/g, "");
+    if (cleanCep.length !== 8) {
+      setValidationError("O CEP informado é inválido. Digite 8 dígitos.");
+      return;
+    }
+
+    if (cepError) {
+      setValidationError("O CEP informado não foi encontrado. Por favor, verifique.");
+      return;
+    }
+
+    const clienteInfo = {
+      nome: nome.trim(),
+      contato: contato.trim(),
+      cep: `${cleanCep.substring(0, 5)}-${cleanCep.substring(5, 8)}`,
+      rua: rua.trim(),
+      numero: numero.trim(),
+      complemento: complemento.trim() || undefined,
+      bairro: bairro.trim(),
+      cidade: cidade.trim(),
+      estado: estado.trim()
+    };
+
+    handleCheckout(clienteInfo);
   };
 
   const formatMoeda = (valor: number) => {
@@ -215,6 +337,187 @@ export default function CarrinhoWidget() {
                 Continuar Comprando
               </button>
             </div>
+          ) : showAddressForm ? (
+            /* Form de Entrega */
+            <form onSubmit={onSubmitCheckout} className="space-y-4 text-white text-left">
+              <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+                <h3 className="text-sm font-serif font-bold text-gold uppercase tracking-wider">Dados de Entrega & Contato</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowAddressForm(false)}
+                  className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  ← Voltar
+                </button>
+              </div>
+
+              {validationError && (
+                <p className="text-xs text-red-500 font-bold bg-red-950/20 border border-red-900/30 p-2.5 rounded-lg">
+                  ⚠️ {validationError}
+                </p>
+              )}
+
+              <div className="space-y-3 text-xs">
+                {/* Nome */}
+                <div className="space-y-1">
+                  <label htmlFor="checkout-nome" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nome Completo *</label>
+                  <input
+                    id="checkout-nome"
+                    type="text"
+                    required
+                    placeholder="Ex: João Silva"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                  />
+                </div>
+
+                {/* Contato (WhatsApp/Celular) */}
+                <div className="space-y-1">
+                  <label htmlFor="checkout-contato" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">WhatsApp / Celular *</label>
+                  <input
+                    id="checkout-contato"
+                    type="tel"
+                    required
+                    placeholder="Ex: (11) 99999-9999"
+                    value={contato}
+                    onChange={(e) => setContato(e.target.value)}
+                    className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                  />
+                </div>
+
+                {/* CEP */}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label htmlFor="checkout-cep" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">CEP *</label>
+                    {loadingCep && <span className="text-[10px] text-gold animate-pulse">Buscando CEP...</span>}
+                  </div>
+                  <input
+                    id="checkout-cep"
+                    type="text"
+                    required
+                    placeholder="00000-000"
+                    value={cep}
+                    onChange={(e) => handleCepChange(e.target.value)}
+                    className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                  />
+                  {cepError && <p className="text-[10px] text-red-500 font-bold">{cepError}</p>}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Estado */}
+                  <div className="space-y-1 col-span-1">
+                    <label htmlFor="checkout-estado" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">UF *</label>
+                    <input
+                      id="checkout-estado"
+                      type="text"
+                      required
+                      maxLength={2}
+                      placeholder="SP"
+                      value={estado}
+                      onChange={(e) => setEstado(e.target.value.toUpperCase())}
+                      className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold uppercase"
+                    />
+                  </div>
+                  {/* Cidade */}
+                  <div className="space-y-1 col-span-2">
+                    <label htmlFor="checkout-cidade" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Cidade *</label>
+                    <input
+                      id="checkout-cidade"
+                      type="text"
+                      required
+                      placeholder="Ex: São Paulo"
+                      value={cidade}
+                      onChange={(e) => setCidade(e.target.value)}
+                      className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                </div>
+
+                {/* Bairro */}
+                <div className="space-y-1">
+                  <label htmlFor="checkout-bairro" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Bairro *</label>
+                  <input
+                    id="checkout-bairro"
+                    type="text"
+                    required
+                    placeholder="Ex: Centro"
+                    value={bairro}
+                    onChange={(e) => setBairro(e.target.value)}
+                    className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                  />
+                </div>
+
+                {/* Rua */}
+                <div className="space-y-1">
+                  <label htmlFor="checkout-rua" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Logradouro / Rua *</label>
+                  <input
+                    id="checkout-rua"
+                    type="text"
+                    required
+                    placeholder="Ex: Avenida Paulista"
+                    value={rua}
+                    onChange={(e) => setRua(e.target.value)}
+                    className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Número */}
+                  <div className="space-y-1 col-span-1">
+                    <label htmlFor="checkout-numero" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Número *</label>
+                    <input
+                      id="checkout-numero"
+                      type="text"
+                      required
+                      placeholder="Ex: 100"
+                      value={numero}
+                      onChange={(e) => setNumero(e.target.value)}
+                      className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                  />
+                  </div>
+                  {/* Complemento */}
+                  <div className="space-y-1 col-span-2">
+                    <label htmlFor="checkout-complemento" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Complemento</label>
+                    <input
+                      id="checkout-complemento"
+                      type="text"
+                      placeholder="Ex: Apto 12"
+                      value={complemento}
+                      onChange={(e) => setComplemento(e.target.value)}
+                      className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-900 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Total do Pedido</span>
+                  <span className="text-base font-serif text-gold font-black">{formatMoeda(subtotal)}</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isPending || loadingCep}
+                  className={`w-full btn-luxury flex items-center justify-center gap-2 cursor-pointer py-4 ${
+                    isPending || loadingCep ? "opacity-70 pointer-events-none" : ""
+                  }`}
+                >
+                  {isPending ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processando...
+                    </>
+                  ) : (
+                    "Finalizar Pedido"
+                  )}
+                </button>
+              </div>
+            </form>
           ) : (
             /* Lista de Itens */
             <div className="space-y-4">
@@ -224,12 +527,15 @@ export default function CarrinhoWidget() {
                   className="flex gap-4 p-3 rounded-xl border border-zinc-900 bg-neutral-900/30 hover:border-zinc-800/80 transition-all duration-300"
                 >
                   {/* Imagem do Produto */}
-                  <div className="h-20 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-900 bg-neutral-900 flex items-center justify-center">
-                    {item.imagem ? (
-                      <img src={item.imagem} alt={item.nome} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-[10px] text-zinc-700 font-serif italic">M&A</span>
-                    )}
+                  <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-900 bg-neutral-900 flex items-center justify-center">
+                    <OptimizedImage
+                      src={item.imagem}
+                      alt={item.nome}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      fallbackText="M&A"
+                    />
                   </div>
 
                   {/* Informações */}
@@ -295,7 +601,7 @@ export default function CarrinhoWidget() {
         </div>
 
         {/* Footer */}
-        {!checkoutSuccess && cartItems.length > 0 && (
+        {!checkoutSuccess && cartItems.length > 0 && !showAddressForm && (
           <div className="p-6 border-t border-zinc-900 bg-neutral-950/80 space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Subtotal</span>
@@ -303,12 +609,12 @@ export default function CarrinhoWidget() {
             </div>
 
             <p className="text-[10px] text-zinc-500 font-light leading-relaxed">
-              * O atendimento será encaminhado de forma segura e personalizada pelo WhatsApp. Sem taxas adicionais online.
+              Checkout preparado para Mercado Pago. Até a ativação das credenciais, o pedido será registrado para atendimento e confirmação.
             </p>
 
             <button
               type="button"
-              onClick={handleCheckout}
+              onClick={() => setShowAddressForm(true)}
               disabled={isPending}
               className={`w-full btn-luxury flex items-center justify-center gap-2 cursor-pointer py-4.5 ${
                 isPending ? "opacity-75 pointer-events-none" : ""
@@ -323,7 +629,7 @@ export default function CarrinhoWidget() {
                   Processando...
                 </>
               ) : (
-                "Finalizar Pedido"
+                "Continuar compra"
               )}
             </button>
 

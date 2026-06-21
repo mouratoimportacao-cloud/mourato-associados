@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import OptimizedImage from "../../../components/OptimizedImage";
 import ListaProdutosLojista from "./ListaProdutosLojista";
-import ConfirmarVendaForm from "./ConfirmarVendaForm";
 import AutoRefresh from "../../../components/AutoRefresh";
-import { confirmarVendaLojista, criarPedidosLojistaCarrinho } from "../actions";
+import { confirmarVendaLojista, criarPedidosLojistaCarrinho, rejeitarVendaLojista } from "../actions";
 import { logoutLojista } from "../../../../lib/auth";
 
 interface Produto {
@@ -60,6 +60,7 @@ interface Props {
     cep?: string | null;
     codigoRevenda?: string | null;
     estoquePessoal?: Record<string, number> | null;
+    limiteAprovado?: number | null;
   };
   pedidos: Pedido[];
   session: {
@@ -73,22 +74,53 @@ interface CartItem {
   quantidade: number;
 }
 
+// Helper to parse client shipping details from order observation
+const parseClienteInfo = (obs?: string | null) => {
+  if (!obs) return null;
+  const match = obs.match(/Cliente:\s*(.*?)\s*-\s*Tel:\s*(.*?)\s*-\s*Endereço:\s*(.*?)\s*-\s*Bairro:\s*(.*?)\s*-\s*(.*?)\s*-\s*CEP:\s*([^\s|]*)/);
+  if (match) {
+    return {
+      nome: match[1].trim(),
+      contato: match[2].trim(),
+      endereco: match[3].trim(),
+      bairro: match[4].trim(),
+      cidadeEstado: match[5].trim(),
+      cep: match[6].trim()
+    };
+  }
+  
+  if (obs.includes("Cliente:")) {
+    const idx = obs.indexOf("Cliente:");
+    return {
+      nome: "Cliente",
+      contato: "",
+      endereco: obs.substring(idx).trim(),
+      bairro: "",
+      cidadeEstado: "",
+      cep: ""
+    };
+  }
+  return null;
+};
+
 export default function PainelLojistaClient({
   produtos,
   lojistaAtual,
   pedidos,
-  session,
 }: Props) {
   const router = useRouter();
 
   // ─── ABA ATIVA E ESTADOS DE NAVEGAÇÃO ─────────────────────────────────────────
-  const [activeTab, setActiveTabState] = useState<"inicio" | "produtos" | "carrinho" | "financeiro" | "perfil">("inicio");
+  const [activeTab, setActiveTabState] = useState<"inicio" | "produtos" | "estoque" | "carrinho" | "financeiro" | "perfil">("inicio");
 
   useEffect(() => {
-    const saved = localStorage.getItem("lojista-active-tab");
-    if (saved && ["inicio", "produtos", "carrinho", "financeiro", "perfil"].includes(saved)) {
-      setActiveTabState(saved as any);
-    }
+    const loadTab = window.setTimeout(() => {
+      const saved = localStorage.getItem("lojista-active-tab");
+      if (saved && ["inicio", "produtos", "estoque", "carrinho", "financeiro", "perfil"].includes(saved)) {
+        setActiveTabState(saved as any);
+      }
+    }, 0);
+    return () => window.clearTimeout(loadTab);
   }, []);
 
   const setActiveTab = (tab: "inicio" | "produtos" | "carrinho" | "financeiro" | "perfil") => {
@@ -103,14 +135,17 @@ export default function PainelLojistaClient({
   const [isSendingOrder, startSendTransition] = useTransition();
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("lojista-cart");
-      if (saved) {
-        setCart(JSON.parse(saved));
+    const loadCart = window.setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("lojista-cart");
+        if (saved) {
+          setCart(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Erro ao carregar carrinho:", e);
       }
-    } catch (e) {
-      console.error("Erro ao carregar carrinho:", e);
-    }
+    }, 0);
+    return () => window.clearTimeout(loadCart);
   }, []);
 
   const saveCart = (newCart: CartItem[]) => {
@@ -129,21 +164,48 @@ export default function PainelLojistaClient({
   };
 
   const handleAddToCart = (produtoId: number, quantidade: number) => {
+    const prod = produtoMap.get(produtoId);
+    if (!prod) return;
+    const maxStock = Number(prod.estoque || 0);
+
     const existingIndex = cart.findIndex((item) => item.produtoId === produtoId);
-    let newCart = [...cart];
+    const newCart = [...cart];
+    
+    let currentQty = 0;
     if (existingIndex > -1) {
-      newCart[existingIndex].quantidade += quantidade;
+      currentQty = newCart[existingIndex].quantidade;
+    }
+    
+    const totalRequested = currentQty + quantidade;
+    if (totalRequested > maxStock) {
+      showToast(`Estoque de atacado máximo: ${maxStock} un.`);
+      if (existingIndex > -1) {
+        newCart[existingIndex].quantidade = maxStock;
+      } else if (maxStock > 0) {
+        newCart.push({ produtoId, quantidade: maxStock });
+      }
     } else {
-      newCart.push({ produtoId, quantidade });
+      if (existingIndex > -1) {
+        newCart[existingIndex].quantidade = totalRequested;
+      } else {
+        newCart.push({ produtoId, quantidade });
+      }
+      showToast("Produto adicionado ao pedido!");
     }
     saveCart(newCart);
-    showToast("Produto adicionado ao pedido!");
   };
 
   const handleUpdateQuantity = (produtoId: number, delta: number) => {
+    const prod = produtoMap.get(produtoId);
+    const maxStock = prod ? Number(prod.estoque || 0) : 999990;
+
     const newCart = cart.map((item) => {
       if (item.produtoId === produtoId) {
         const newQty = item.quantidade + delta;
+        if (newQty > maxStock) {
+          showToast(`Estoque máximo do fornecedor: ${maxStock} un.`);
+          return { ...item, quantidade: maxStock };
+        }
         return { ...item, quantidade: Math.max(1, newQty) };
       }
       return item;
@@ -178,7 +240,7 @@ export default function PainelLojistaClient({
   const [activePopupOrder, setActivePopupOrder] = useState<Pedido | null>(null);
   const [isPending, startTransition] = useTransition();
   const [popupErro, setPopupErro] = useState<string | null>(null);
-  const [popupDescontoPercentual, setPopupDescontoPercentual] = useState<number>(0);
+  const [popupDescontoValor, setPopupDescontoValor] = useState<number>(0);
   const [popupPagamento, setPopupPagamento] = useState<string>("Dinheiro");
 
   // ─── CÁLCULOS FINANCEIROS EM TEMPO REAL ───────────────────────────────────────
@@ -192,7 +254,7 @@ export default function PainelLojistaClient({
     return lojistaAtual?.codigoRevenda ? `https://mouratoassociados.com.br/r/${lojistaAtual.codigoRevenda}` : "";
   }, [lojistaAtual]);
 
-  const produtoMap = useMemo(() => new Map(produtos.map((p) => [p.id, p])), [produtos]);
+  const produtoMap = new Map(produtos.map((p) => [p.id, p]));
 
   const comprasFornecedor = useMemo(() => {
     return pedidos.filter((pedido) =>
@@ -209,9 +271,7 @@ export default function PainelLojistaClient({
     );
   }, [pedidos]);
 
-  const vendasQrConfirmadas = useMemo(() => {
-    return vendasQr.filter((pedido) => ["pago", "enviado", "entregue"].includes(String(pedido.status || "")));
-  }, [vendasQr]);
+  const vendasQrConfirmadas = vendasQr.filter((pedido) => ["pago", "enviado", "entregue"].includes(String(pedido.status || "")));
 
   const totalComprado = useMemo(() => {
     return comprasFornecedor
@@ -235,8 +295,9 @@ export default function PainelLojistaClient({
   }, [comprasFornecedor]);
 
   const limiteDisponivel = useMemo(() => {
-    return Math.max(0, 10000 - saldoDevedor);
-  }, [saldoDevedor]);
+    const limiteAprovado = Number(lojistaAtual?.limiteAprovado ?? 0);
+    return Math.max(0, limiteAprovado - saldoDevedor);
+  }, [lojistaAtual?.limiteAprovado, saldoDevedor]);
 
   // Níveis de Parceiro: Bronze (< 2k), Prata (< 5k), Ouro (< 10k), Diamante (>= 10k)
   const nivelParceiro = useMemo(() => {
@@ -259,7 +320,9 @@ export default function PainelLojistaClient({
 
     const faturamento = doMes.reduce((acc, p) => acc + Number(p.total || 0), 0);
     const lucro = doMes.reduce((acc, p) => acc + Number(p.lucroBruto || 0), 0);
-    const totalPedidos = pedidos.filter((p) => p.status !== "cancelado").length;
+    const totalPedidos = pedidos.filter(
+      (p) => !["cancelado", "rejeitado"].includes(p.status)
+    ).length;
 
     return {
       faturamentoMes: faturamento,
@@ -286,46 +349,47 @@ export default function PainelLojistaClient({
 
   // DRE Comercial
   const dreReport = useMemo(() => {
-    const receitaBruta = vendasQrConfirmadas.reduce((acc, p) => acc + Number(p.total || 0), 0);
-    const cmv = vendasQrConfirmadas.reduce((acc, p) => {
-      const prod = p.produtoId ? produtoMap.get(p.produtoId) : null;
-      return acc + Number(prod?.precoAtacado || 0) * Number(p.quantidade || 1);
-    }, 0);
-    const lucroBruto = receitaBruta - cmv;
+    let receitaSugerida = 0;
+    let custoCompra = 0;
+    let descontoConcedido = 0;
 
-    // Custos simulados (mock) com base no faturamento
-    const fretes = receitaBruta > 0 ? Math.round(receitaBruta * 0.015) : 0; // 1.5%
-    const taxasGateway = receitaBruta > 0 ? Math.round(receitaBruta * 0.03) : 0; // 3%
-    const despesasGerais = receitaBruta > 0 ? 150 : 0; // Fixo se vendeu algo
+    vendasQrConfirmadas.forEach((p) => {
+      const qty = Number(p.quantidade || 1);
+      const precoTab = Number(p.precoTabela || p.precoUnitario || 0);
+      const desc = Number(p.descontoConcedido || 0);
+      
+      const totalSugerido = p.precoTabela ? (precoTab * qty) : (Number(p.total || 0) + desc);
+      
+      receitaSugerida += totalSugerido;
+      custoCompra += Number(p.custoUnitario || 0) * qty;
+      descontoConcedido += desc;
+    });
 
-    const lucroOperacional = lucroBruto - fretes - taxasGateway - despesasGerais;
-    const lucroLiquido = lucroOperacional;
+    const receitaReal = receitaSugerida - descontoConcedido;
+    const lucroLiquido = receitaReal - custoCompra;
 
     return {
-      receitaBruta,
-      cmv,
-      lucroBruto,
-      fretes,
-      taxasGateway,
-      despesasGerais,
-      lucroOperacional,
+      receitaSugerida,
+      custoCompra,
+      descontoConcedido,
+      receitaReal,
       lucroLiquido,
     };
-  }, [vendasQrConfirmadas, produtoMap]);
+  }, [vendasQrConfirmadas]);
 
   // Preview do Carrinho no rodapé
   const cartTotals = useMemo(() => {
     let itemsCount = 0;
     let totalValue = 0;
     cart.forEach((item) => {
-      const prod = produtoMap.get(item.produtoId);
+      const prod = produtos.find((produto) => produto.id === item.produtoId);
       if (prod) {
         itemsCount += item.quantidade;
         totalValue += Number(prod.precoAtacado || 0) * item.quantidade;
       }
     });
     return { itemsCount, totalValue };
-  }, [cart, produtoMap]);
+  }, [cart, produtos]);
 
   // Produtos formatados com estoque pessoal do lojista
   const produtosComEstoquePessoal = useMemo(() => {
@@ -335,27 +399,54 @@ export default function PainelLojistaClient({
     }));
   }, [produtos, estoquePessoal]);
 
+  const estoquePessoalRows = useMemo(() => {
+    return produtos
+      .map((produto) => {
+        const quantidade = Number(estoquePessoal[String(produto.id)] || 0);
+        const custo = Number(produto.precoAtacado || 0);
+        return {
+          produto,
+          quantidade,
+          custo,
+          total: quantidade * custo,
+        };
+      })
+      .filter((row) => row.quantidade > 0);
+  }, [produtos, estoquePessoal]);
+
   const aguardandoLojista = useMemo(() => {
     return pedidos.filter((pedido) => pedido.status === "aguardando lojista");
   }, [pedidos]);
 
+  const navTabs = [
+    { id: "inicio", label: "Início", icon: "🏠", badge: aguardandoLojista.length },
+    { id: "produtos", label: "Produtos", icon: "🛍️" },
+    { id: "estoque", label: "Estoque", icon: "📦" },
+    { id: "carrinho", label: "Carrinho", icon: "🛒", badge: cart.length },
+    { id: "financeiro", label: "Financeiro", icon: "📊" },
+    { id: "perfil", label: "Perfil", icon: "👤" },
+  ];
+
   // Efeito de detecção de novo pedido pendente para popup
   useEffect(() => {
-    if (aguardandoLojista.length > 0) {
-      const novoPedido = aguardandoLojista.find(
-        (pedido) => !dismissedOrderIds.includes(pedido.id)
-      );
-      if (novoPedido) {
-        setActivePopupOrder(novoPedido);
-        setPopupErro(null);
-        setPopupDescontoPercentual(0);
-        setPopupPagamento("Dinheiro");
+    const syncPopup = window.setTimeout(() => {
+      if (aguardandoLojista.length > 0) {
+        const novoPedido = aguardandoLojista.find(
+          (pedido) => !dismissedOrderIds.includes(pedido.id)
+        );
+        if (novoPedido) {
+          setActivePopupOrder(novoPedido);
+          setPopupErro(null);
+          setPopupDescontoValor(0);
+          setPopupPagamento("Dinheiro");
+        } else {
+          setActivePopupOrder(null);
+        }
       } else {
         setActivePopupOrder(null);
       }
-    } else {
-      setActivePopupOrder(null);
-    }
+    }, 0);
+    return () => window.clearTimeout(syncPopup);
   }, [aguardandoLojista, dismissedOrderIds]);
 
   function handleConfirmarVendaPopup() {
@@ -365,7 +456,7 @@ export default function PainelLojistaClient({
     const formData = new FormData();
     formData.append("pedidoId", String(activePopupOrder.id));
     formData.append("pagamento", popupPagamento);
-    formData.append("descontoPercentual", String(popupDescontoPercentual));
+    formData.append("descontoValor", String(popupDescontoValor));
 
     startTransition(async () => {
       const result = await confirmarVendaLojista(formData);
@@ -380,44 +471,122 @@ export default function PainelLojistaClient({
     });
   }
 
-  function handleDispensarPopup() {
-    if (activePopupOrder) {
-      setDismissedOrderIds((prev) => [...prev, activePopupOrder.id]);
-      setActivePopupOrder(null);
-    }
+  function handleFecharPopup() {
+    if (!activePopupOrder) return;
+    setDismissedOrderIds((prev) => [...prev, activePopupOrder.id]);
+    setActivePopupOrder(null);
+  }
+
+  function handleRejeitarVendaPopup() {
+    if (!activePopupOrder) return;
+    setPopupErro(null);
+
+    startTransition(async () => {
+      const result = await rejeitarVendaLojista(activePopupOrder.id);
+      if (result.success) {
+        setDismissedOrderIds((prev) => [...prev, activePopupOrder.id]);
+        setActivePopupOrder(null);
+        showToast("Pedido rejeitado sem baixar estoque.");
+        router.refresh();
+      } else {
+        setPopupErro(result.error || "Erro ao rejeitar pedido.");
+      }
+    });
   }
 
   const popupProduto = activePopupOrder?.produtoId ? produtoMap.get(activePopupOrder.produtoId) : null;
   const popupCustoUnitario = popupProduto?.precoAtacado || 0;
   const popupPrecoTabela = popupProduto?.preco || 0;
+  const popupQuantidade = activePopupOrder?.quantidade || 1;
+  const popupTotalSugerido = Number(activePopupOrder?.total || 0);
+  const popupTotalCusto = popupCustoUnitario * popupQuantidade;
+  const popupPrecoFinalEstimado = Math.max(popupTotalCusto, popupTotalSugerido - popupDescontoValor);
+  const popupLucroEstimado = popupPrecoFinalEstimado - popupTotalCusto;
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 font-sans selection:bg-amber-500 selection:text-black antialiased">
+    <div className="min-h-screen bg-stone-50 text-stone-900 font-sans selection:bg-zinc-900 selection:text-white antialiased">
       {/* ─── TOAST NOTIFICATION DE ESTADO ─── */}
       {toastMessage && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 text-stone-950 font-black px-6 py-3 rounded-full shadow-2xl border border-amber-300/30 text-xs tracking-widest uppercase animate-bounce">
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-white text-zinc-950 font-black px-6 py-3 rounded-full shadow-2xl border border-zinc-200 text-xs tracking-widest uppercase animate-bounce">
           ✨ {toastMessage}
         </div>
       )}
 
       {/* Conteúdo Centralizado ou em Painel de Tela Cheia */}
-      <div className="fixed inset-0 w-full bg-stone-950 flex flex-col overflow-hidden z-50">
-        
-        {/* HEADER DE LUXO (Black & Gold) */}
-        <header className="bg-stone-900/90 backdrop-blur-md text-white px-4 py-4 flex items-center justify-between border-b border-amber-500/10 shrink-0 shadow-lg">
+      <div className="fixed inset-0 w-full bg-stone-50 flex overflow-hidden z-50">
+        <aside className="hidden lg:flex lg:w-72 xl:w-80 flex-col bg-white text-stone-900 sticky top-0 h-screen border-r border-stone-200">
+          <div className="p-6 border-b border-stone-200">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-900 text-lg font-serif font-bold">M&A</div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold">Painel do Lojista</p>
+                <h2 className="text-sm font-bold text-stone-900 truncate max-w-[190px]">{lojistaAtual.nome}</h2>
+              </div>
+            </div>
+          </div>
+
+          <nav className="flex-1 p-4 space-y-2">
+            {navTabs.map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${isSelected ? "bg-white text-zinc-950 border border-zinc-200 shadow-md font-bold" : "bg-stone-100 text-stone-700 hover:bg-stone-200"}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </span>
+                  {tab.badge ? (
+                    <span className="min-w-[24px] rounded-full bg-red-500 text-[10px] font-black text-white px-2 py-1 text-center">{tab.badge}</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-stone-200 space-y-3">
+            <Link
+              href="/"
+              className="block w-full text-center bg-stone-100 text-stone-900 border border-stone-200 rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-stone-200"
+            >
+              Voltar ao Site
+            </Link>
+            <button
+              onClick={async () => {
+                await logoutLojista();
+                window.location.href = "/lojista";
+              }}
+              className="w-full bg-red-50 text-red-650 border border-red-100 rounded-2xl px-4 py-3 text-sm font-bold transition hover:bg-red-100"
+            >
+              Sair do Painel
+            </button>
+          </div>
+        </aside>
+
+        <div className="flex-1 flex flex-col">
+          {/* HEADER DE LUXO (White & Stone) */}
+          <header className="bg-white/95 backdrop-blur-md text-stone-900 px-4 py-4 flex items-center justify-between border-b border-stone-200 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-              <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="relative h-11 w-auto object-contain" />
+            <div className="relative">
+              <OptimizedImage
+                src="/brand/logo-ma.webp"
+                alt="Mourato & Associados"
+                width={120}
+                height={44}
+                priority
+                className="relative h-11 w-auto object-contain"
+              />
             </div>
             <div>
-              <p className="text-[8px] text-amber-500/70 font-black uppercase tracking-[0.25em]">Mourato & Associados</p>
-              <h1 className="text-xs font-bold text-white max-w-[150px] truncate">{lojistaAtual.nome}</h1>
+              <p className="text-[8px] text-stone-500 font-black uppercase tracking-[0.25em]">Mourato & Associados</p>
+              <h1 className="text-xs font-bold text-stone-900 max-w-[150px] truncate">{lojistaAtual.nome}</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-black text-amber-500 uppercase tracking-widest">
+            <span className="inline-flex items-center rounded-full bg-stone-100 border border-stone-200 px-2.5 py-0.5 text-[10px] font-black text-stone-800 uppercase tracking-widest">
               🏆 {nivelParceiro}
             </span>
             <button
@@ -425,7 +594,7 @@ export default function PainelLojistaClient({
                 await logoutLojista();
                 window.location.href = "/lojista";
               }}
-              className="bg-red-600/10 border border-red-500/10 text-red-400 rounded-lg p-2.5 hover:bg-red-600/20 transition-all text-xs shadow-inner cursor-pointer"
+              className="bg-red-50 border border-red-100 text-red-600 rounded-lg p-2.5 hover:bg-red-100 transition-all text-xs cursor-pointer"
               title="Sair do Painel"
             >
               🚪
@@ -440,21 +609,21 @@ export default function PainelLojistaClient({
           {/* TELA 1: INÍCIO (HUB DO LOJISTA)                                     */}
           {/* ─────────────────────────────────────────────────────────────────── */}
           {activeTab === "inicio" && (
-            <div className="space-y-5">
+             <div className="space-y-5">
               
               {/* Alerta de Vendas Aguardando Confirmação */}
               {aguardandoLojista.length > 0 && (
-                <div className="relative group overflow-hidden rounded-2xl border border-red-500/20 bg-red-950/20 p-4 shadow-2xl flex items-center justify-between gap-4 animate-pulse">
+                <div className="relative group overflow-hidden rounded-2xl border border-red-200 bg-red-50 p-4 shadow-md flex items-center justify-between gap-4 animate-pulse">
                   <div>
-                    <h3 className="text-xs font-black text-red-500 uppercase tracking-wider">Ação Necessária!</h3>
-                    <p className="text-[10px] text-red-200/80 mt-1">Você possui {aguardandoLojista.length} venda(s) de clientes aguardando sua liberação de estoque.</p>
+                    <h3 className="text-xs font-black text-red-650 uppercase tracking-wider">Ação Necessária!</h3>
+                    <p className="text-[10px] text-red-800 mt-1">Você possui {aguardandoLojista.length} venda(s) de clientes aguardando sua liberação de estoque.</p>
                   </div>
                   <button
                     onClick={() => {
                       const firstPending = aguardandoLojista[0];
                       setActivePopupOrder(firstPending);
                     }}
-                    className="bg-red-500 hover:bg-red-600 text-white font-black text-[9px] px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap"
+                    className="bg-red-600 hover:bg-red-700 text-white font-black text-[9px] px-3.5 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border border-red-500 shadow-sm"
                   >
                     Liberar
                   </button>
@@ -463,28 +632,28 @@ export default function PainelLojistaClient({
 
               {/* Informações de Perfil e Link QR */}
               {linkRevenda && (
-                <div className="rounded-2xl border border-amber-500/10 bg-stone-900/40 p-4 shadow-xl flex items-center justify-between gap-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm flex items-center justify-between gap-4 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-stone-500/5 rounded-full blur-3xl pointer-events-none"></div>
                   <div className="flex-grow min-w-0">
-                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-amber-500">Seu Link de Vendas</p>
-                    <h2 className="mt-1 text-sm font-serif font-bold text-stone-100 truncate">Catálogo Digital Lojista</h2>
-                    <p className="mt-1.5 text-[10px] text-stone-400 truncate max-w-[200px]">{linkRevenda}</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-500">Seu Link de Vendas</p>
+                    <h2 className="mt-1 text-sm font-serif font-bold text-stone-900 truncate">Catálogo Digital Lojista</h2>
+                    <p className="mt-1.5 text-[10px] text-stone-500 truncate max-w-[200px]">{linkRevenda}</p>
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(linkRevenda);
                         showToast("Link copiado!");
                       }}
-                      className="mt-3.5 bg-gradient-to-r from-amber-500/10 to-yellow-600/10 hover:from-amber-500/20 hover:to-yellow-600/20 border border-amber-500/20 text-amber-500 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest transition-all cursor-pointer"
+                      className="mt-3.5 bg-white hover:bg-stone-50 text-zinc-950 border border-zinc-200 text-[9px] font-black px-3.5 py-2 rounded-lg uppercase tracking-widest transition-all cursor-pointer shadow-sm"
                     >
                       Copiar Link
                     </button>
                   </div>
                   <div className="relative group shrink-0">
-                    <div className="absolute -inset-0.5 bg-amber-500/20 rounded-xl blur opacity-30 group-hover:opacity-100 transition"></div>
+                    <div className="absolute -inset-0.5 bg-stone-200 rounded-xl blur opacity-30 group-hover:opacity-100 transition"></div>
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(linkRevenda)}&color=d4af37&bgcolor=1c1917`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(linkRevenda)}&color=1c1917&bgcolor=ffffff`}
                       alt="QR Code Revenda"
-                      className="relative h-20 w-20 rounded-xl border border-stone-800 bg-stone-900 p-1.5"
+                      className="relative h-20 w-20 rounded-xl border border-stone-200 bg-white p-1.5"
                     />
                   </div>
                 </div>
@@ -492,60 +661,60 @@ export default function PainelLojistaClient({
 
               {/* CARDS PRINCIPAIS DE DESEMPENHO */}
               <div className="space-y-3">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500/80 mb-2">Desempenho Comercial</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-500 mb-2">Desempenho Comercial</h3>
                 <div className="grid grid-cols-2 gap-3">
                   
                   {/* Vendas do Mês */}
-                  <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-md flex flex-col justify-between h-28 hover:border-amber-500/20 transition-all duration-300">
-                    <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest">Vendas do Mês</p>
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm flex flex-col justify-between h-28 hover:border-stone-300 transition-all duration-300">
+                    <p className="text-[8px] font-black text-stone-500 uppercase tracking-widest">Vendas do Mês</p>
                     <div>
-                      <p className="text-sm font-serif font-black text-amber-500">R$ {faturamentoMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                      <p className="text-[8px] text-stone-500 mt-1 uppercase">Vendas QR confirmadas</p>
+                      <p className="text-sm font-serif font-black text-stone-900">R$ {faturamentoMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-[8px] text-stone-400 mt-1 uppercase">Vendas QR confirmadas</p>
                     </div>
                   </div>
 
                   {/* Lucro Atual */}
-                  <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-md flex flex-col justify-between h-28 hover:border-amber-500/20 transition-all duration-300">
-                    <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest">Lucro Atual</p>
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm flex flex-col justify-between h-28 hover:border-stone-300 transition-all duration-300">
+                    <p className="text-[8px] font-black text-stone-500 uppercase tracking-widest">Lucro Atual</p>
                     <div>
-                      <p className="text-sm font-serif font-black text-emerald-500">R$ {lucroMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                      <p className="text-[8px] text-stone-500 mt-1 uppercase">Ganhos do mês corrente</p>
+                      <p className="text-sm font-serif font-black text-emerald-650">R$ {lucroMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-[8px] text-stone-400 mt-1 uppercase">Ganhos do mês corrente</p>
                     </div>
                   </div>
 
                   {/* Pedidos Realizados */}
-                  <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-md flex flex-col justify-between h-28 hover:border-amber-500/20 transition-all duration-300">
-                    <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest">Pedidos Realizados</p>
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm flex flex-col justify-between h-28 hover:border-stone-300 transition-all duration-300">
+                    <p className="text-[8px] font-black text-stone-500 uppercase tracking-widest">Pedidos Realizados</p>
                     <div>
-                      <p className="text-lg font-serif font-black text-stone-100">{pedidosRealizados}</p>
-                      <p className="text-[8px] text-stone-500 mt-1 uppercase">Total de compras/vendas</p>
+                      <p className="text-lg font-serif font-black text-stone-900">{pedidosRealizados}</p>
+                      <p className="text-[8px] text-stone-400 mt-1 uppercase">Total de compras/vendas</p>
                     </div>
                   </div>
 
                   {/* Estoque Disponível */}
-                  <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-md flex flex-col justify-between h-28 hover:border-amber-500/20 transition-all duration-300">
-                    <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest">Estoque Pessoal</p>
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm flex flex-col justify-between h-28 hover:border-stone-300 transition-all duration-300">
+                    <p className="text-[8px] font-black text-stone-500 uppercase tracking-widest">Estoque Pessoal</p>
                     <div>
-                      <p className="text-lg font-serif font-black text-stone-100">{totalEstoqueDisponivel} un.</p>
-                      <p className="text-[8px] text-stone-500 mt-1 uppercase">Unidades sob custódia</p>
+                      <p className="text-lg font-serif font-black text-stone-900">{totalEstoqueDisponivel} un.</p>
+                      <p className="text-[8px] text-stone-400 mt-1 uppercase">Unidades sob custódia</p>
                     </div>
                   </div>
 
                   {/* Saldo Devedor */}
-                  <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-md flex flex-col justify-between h-28 hover:border-amber-500/20 transition-all duration-300">
-                    <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest">Saldo Devedor</p>
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm flex flex-col justify-between h-28 hover:border-stone-300 transition-all duration-300">
+                    <p className="text-[8px] font-black text-stone-500 uppercase tracking-widest">Saldo Devedor</p>
                     <div>
-                      <p className="text-sm font-serif font-black text-red-500">R$ {saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                      <p className="text-[8px] text-stone-500 mt-1 uppercase">Pendente com fornecedor</p>
+                      <p className="text-sm font-serif font-black text-red-600">R$ {saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-[8px] text-stone-400 mt-1 uppercase">Pendente com fornecedor</p>
                     </div>
                   </div>
 
                   {/* Limite Disponível */}
-                  <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-md flex flex-col justify-between h-28 hover:border-amber-500/20 transition-all duration-300">
-                    <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest">Crédito Disponível</p>
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm flex flex-col justify-between h-28 hover:border-stone-300 transition-all duration-300">
+                    <p className="text-[8px] font-black text-stone-500 uppercase tracking-widest">Crédito Disponível</p>
                     <div>
-                      <p className="text-sm font-serif font-black text-blue-400">R$ {limiteDisponivel.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                      <p className="text-[8px] text-stone-500 mt-1 uppercase">De limite de R$ 10.000</p>
+                      <p className="text-sm font-serif font-black text-blue-650">R$ {limiteDisponivel.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-[8px] text-stone-400 mt-1 uppercase">De limite de R$ {Number(lojistaAtual?.limiteAprovado ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
 
@@ -555,7 +724,7 @@ export default function PainelLojistaClient({
               {/* Atalho Site Final */}
               <Link
                 href="/"
-                className="block w-full bg-stone-900 border border-stone-800 rounded-2xl p-4 text-center text-xs font-black text-amber-500 hover:bg-stone-850 hover:border-amber-500/20 transition-all uppercase tracking-widest shadow-lg cursor-pointer"
+                className="block w-full bg-white border border-zinc-200 rounded-2xl p-4 text-center text-xs font-black text-zinc-950 hover:bg-stone-50 transition-all uppercase tracking-widest shadow-md cursor-pointer"
               >
                 🌐 Acessar Catálogo de Clientes
               </Link>
@@ -572,44 +741,114 @@ export default function PainelLojistaClient({
           )}
 
           {/* ─────────────────────────────────────────────────────────────────── */}
+          {/* TELA: ESTOQUE PESSOAL DO LOJISTA                                   */}
+          {/* ─────────────────────────────────────────────────────────────────── */}
+          {activeTab === "estoque" && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="flex justify-between items-center mb-1">
+                <div>
+                  <h2 className="text-sm font-serif font-bold text-stone-900 uppercase tracking-wider">📦 Meu Estoque Pessoal</h2>
+                  <p className="text-[10px] text-stone-500 mt-0.5 uppercase tracking-wider">Produtos físicos pronta entrega sob sua custódia</p>
+                </div>
+                <span className="text-[10px] font-black bg-stone-100 border border-stone-200 text-stone-700 rounded-full px-2.5 py-1 uppercase tracking-wider">
+                  {estoquePessoalRows.length} itens distintos
+                </span>
+              </div>
+
+              <div className="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-stone-200 text-left">
+                    <thead className="bg-stone-100/80 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-600 uppercase tracking-wider">Produto</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-600 uppercase tracking-wider text-center">Quantidade</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-600 uppercase tracking-wider text-right">Custo Unitário</th>
+                        <th className="px-4 py-3 text-[9px] font-black text-stone-600 uppercase tracking-wider text-right">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {estoquePessoalRows.map((row) => (
+                        <tr key={row.produto.id} className="hover:bg-stone-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <p className="text-xs font-bold text-stone-900">{row.produto.nome}</p>
+                            <p className="text-[9px] text-stone-400 mt-0.5">{row.produto.marca} / {row.produto.volume}</p>
+                          </td>
+                          <td className="px-4 py-3 text-xs font-black text-stone-800 text-center">
+                            <span className="inline-block px-2.5 py-0.5 rounded bg-stone-100 border border-stone-200">
+                              {row.quantidade} un.
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-stone-700 text-right font-medium">
+                            R$ {row.custo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </td>
+                          <td className="px-4 py-3 text-xs font-black text-stone-900 text-right font-serif">
+                            R$ {row.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      ))}
+
+                      {estoquePessoalRows.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-8 text-center text-xs text-stone-400 italic">
+                            Você não possui produtos em seu estoque pessoal.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {estoquePessoalRows.length > 0 && (
+                  <div className="bg-stone-50 px-4 py-3.5 border-t border-stone-200 flex justify-between items-center text-xs">
+                    <span className="text-stone-500 font-bold uppercase tracking-wider text-[10px]">Valor Total Investido:</span>
+                    <span className="font-serif font-black text-stone-900 text-sm">
+                      R$ {estoquePessoalRows.reduce((acc, r) => acc + r.total, 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ─────────────────────────────────────────────────────────────────── */}
           {/* TELA 3: CARRINHO DO LOJISTA                                        */}
           {/* ─────────────────────────────────────────────────────────────────── */}
           {activeTab === "carrinho" && (
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-1">
-                <h2 className="text-sm font-serif font-bold text-stone-100 uppercase tracking-wider">🛒 Carrinho de Estoque</h2>
-                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">{cart.length} itens no rascunho</span>
+                <h2 className="text-sm font-serif font-bold text-stone-900 uppercase tracking-wider">🛒 Carrinho de Estoque</h2>
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">{cart.length} itens no rascunho</span>
               </div>
 
               {orderSent ? (
-                <div className="rounded-2xl border border-amber-500/20 bg-stone-900/60 p-8 text-center space-y-4 shadow-xl">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20">
+                <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center space-y-4 shadow-sm">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 border border-stone-200">
                     <span className="text-3xl">✨</span>
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-serif font-bold text-stone-100">Pedido Enviado com Sucesso!</h3>
-                    <div className="inline-flex rounded-full bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 text-xs font-black text-amber-500 uppercase tracking-widest">
+                    <h3 className="text-lg font-serif font-bold text-stone-900">Pedido Enviado com Sucesso!</h3>
+                    <div className="inline-flex rounded-full bg-stone-100 border border-stone-200 px-4 py-1.5 text-xs font-black text-stone-700 uppercase tracking-widest">
                       Status: Aguardando Aprovação do Fornecedor
                     </div>
-                    <p className="text-[10px] text-stone-400 mt-2 leading-relaxed">Seu pedido foi registrado no sistema e aguarda a validação do administrador para o envio dos produtos ao seu estoque pessoal.</p>
+                    <p className="text-[10px] text-stone-500 mt-2 leading-relaxed">Seu pedido foi registrado no sistema e aguarda a validação do administrador para o envio dos produtos ao seu estoque pessoal.</p>
                   </div>
                   <button
                     onClick={() => {
                       setOrderSent(false);
                       setActiveTab("produtos");
                     }}
-                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-950 font-black text-[10px] py-3.5 rounded-xl uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                    className="w-full bg-white border border-zinc-200 hover:bg-stone-50 text-zinc-950 font-black text-[10px] py-3.5 rounded-xl uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm"
                   >
                     Voltar ao Catálogo
                   </button>
                 </div>
               ) : cart.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-stone-800 bg-stone-900/20 p-10 text-center text-stone-400 space-y-4">
+                <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center text-stone-500 space-y-4 shadow-sm">
                   <span className="text-4xl block">🛍️</span>
                   <p className="text-xs italic">Seu carrinho está vazio.</p>
                   <button
                     onClick={() => setActiveTab("produtos")}
-                    className="inline-flex items-center justify-center bg-stone-900 border border-stone-800 hover:border-amber-500/20 text-amber-500 font-bold text-[10px] px-6 py-3 rounded-xl uppercase tracking-widest transition-all cursor-pointer"
+                    className="inline-flex items-center justify-center bg-white border border-zinc-200 text-zinc-950 hover:bg-stone-50 font-bold text-[10px] px-6 py-3 rounded-xl uppercase tracking-widest transition-all cursor-pointer shadow-sm"
                   >
                     Adicionar Produtos
                   </button>
@@ -625,45 +864,48 @@ export default function PainelLojistaClient({
                       const subtotal = unitPrice * item.quantidade;
 
                       return (
-                        <div key={item.produtoId} className="rounded-xl border border-stone-800 bg-stone-900/40 p-3 shadow-md flex justify-between items-center gap-3">
+                        <div key={item.produtoId} className="rounded-xl border border-stone-200 bg-white p-3 shadow-sm flex justify-between items-center gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-stone-800 bg-stone-900/60 p-1">
-                              {prod.imagem ? (
-                                <img src={prod.imagem} alt={prod.nome} className="h-full w-full object-cover rounded" />
-                              ) : (
-                                <div className="h-full w-full flex items-center justify-center text-stone-600 italic font-serif text-[10px]">M&A</div>
-                              )}
+                            <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-50 p-1">
+                              <OptimizedImage
+                                src={prod.imagem}
+                                alt={prod.nome}
+                                fill
+                                sizes="56px"
+                                className="object-cover rounded"
+                                fallbackText="M&A"
+                              />
                             </div>
                             <div className="min-w-0">
-                              <h4 className="font-bold text-stone-100 text-xs truncate">{prod.nome}</h4>
-                              <p className="text-[9px] text-stone-400 mt-0.5">{prod.marca} - {prod.volume}</p>
-                              <p className="text-[9px] text-amber-500 font-bold mt-1">Atacado: R$ {unitPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                              <h4 className="font-bold text-stone-900 text-xs truncate">{prod.nome}</h4>
+                              <p className="text-[9px] text-stone-500 mt-0.5">{prod.marca} - {prod.volume}</p>
+                              <p className="text-[9px] text-stone-900 font-bold mt-1">Atacado: R$ {unitPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                             </div>
                           </div>
 
                           <div className="flex flex-col items-end gap-2 shrink-0">
                             {/* Controle de quantidade */}
-                            <div className="flex items-center gap-1.5 bg-stone-900 border border-stone-800 rounded-lg p-1">
+                            <div className="flex items-center gap-1.5 bg-stone-105 border border-stone-200 rounded-lg p-1">
                               <button
                                 onClick={() => handleUpdateQuantity(item.produtoId, -1)}
-                                className="h-6 w-6 rounded flex items-center justify-center text-xs font-bold text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer"
+                                className="h-6 w-6 rounded flex items-center justify-center text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-200 transition cursor-pointer"
                               >
                                 -
                               </button>
-                              <span className="w-6 text-center text-xs font-bold text-stone-100">{item.quantidade}</span>
+                              <span className="w-6 text-center text-xs font-bold text-stone-900">{item.quantidade}</span>
                               <button
                                 onClick={() => handleUpdateQuantity(item.produtoId, 1)}
-                                className="h-6 w-6 rounded flex items-center justify-center text-xs font-bold text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer"
+                                className="h-6 w-6 rounded flex items-center justify-center text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-200 transition cursor-pointer"
                               >
                                 +
                               </button>
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-stone-200">R$ {subtotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                              <span className="text-xs font-bold text-stone-900">R$ {subtotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                               <button
                                 onClick={() => handleRemoveItem(item.produtoId)}
-                                className="text-red-400 hover:text-red-300 text-xs p-1 cursor-pointer"
+                                className="text-red-650 hover:text-red-500 text-xs p-1 cursor-pointer"
                                 title="Remover item"
                               >
                                 🗑️
@@ -676,17 +918,17 @@ export default function PainelLojistaClient({
                   </div>
 
                   {/* Resumo de valores */}
-                  <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 space-y-3">
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 space-y-3 shadow-sm">
                     <div className="flex justify-between text-xs">
-                      <span className="text-stone-400">Total do Lote:</span>
-                      <span className="font-serif font-black text-amber-500 text-sm">R$ {cartTotals.totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                      <span className="text-stone-500">Total do Lote:</span>
+                      <span className="font-serif font-black text-stone-900 text-sm">R$ {cartTotals.totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                     </div>
-                    <p className="text-[8px] text-stone-400/80 leading-relaxed uppercase tracking-wider">
+                    <p className="text-[8px] text-stone-500 leading-relaxed uppercase tracking-wider">
                       ℹ️ O envio gerará um pedido pendente de aprovação do fornecedor. Não há necessidade de escolha de forma de pagamento agora (a ser combinada após a liberação).
                     </p>
 
                     {orderError && (
-                      <div className="rounded-lg border border-red-500/20 bg-red-950/20 px-3 py-2 text-xs font-bold text-red-400 text-center">
+                      <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600 text-center">
                         ⚠️ {orderError}
                       </div>
                     )}
@@ -694,7 +936,7 @@ export default function PainelLojistaClient({
                     <button
                       onClick={handleEnviarPedido}
                       disabled={isSendingOrder}
-                      className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 hover:from-amber-500 hover:to-yellow-700 text-stone-950 font-black text-[10px] py-3.5 rounded-xl uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none shadow-lg cursor-pointer"
+                      className="w-full bg-white border border-zinc-200 hover:bg-stone-50 text-zinc-950 font-black text-[10px] py-3.5 rounded-xl uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none shadow-md cursor-pointer"
                     >
                       {isSendingOrder ? "Processando..." : "Enviar Pedido de Estoque"}
                     </button>
@@ -712,29 +954,29 @@ export default function PainelLojistaClient({
               
               {/* Resumo Financeiro */}
               <div className="space-y-3">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500/80 mb-2">Resumo Financeiro</h3>
-                <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 space-y-3.5 shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl"></div>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-500 mb-2">Resumo Financeiro</h3>
+                <div className="rounded-2xl border border-stone-200 bg-white p-4 space-y-3.5 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-stone-500/5 rounded-full blur-2xl"></div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider">Total Comprado</p>
-                      <p className="font-serif font-black text-stone-100 text-sm mt-0.5">R$ {totalComprado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-[8px] font-bold text-stone-500 uppercase tracking-wider">Total Comprado</p>
+                      <p className="font-serif font-black text-stone-900 text-sm mt-0.5">R$ {totalComprado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider">Total Pago</p>
-                      <p className="font-serif font-black text-emerald-500 text-sm mt-0.5">R$ {totalPago.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-[8px] font-bold text-stone-500 uppercase tracking-wider">Total Pago</p>
+                      <p className="font-serif font-black text-emerald-650 text-sm mt-0.5">R$ {totalPago.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider">Saldo Devedor</p>
-                      <p className="font-serif font-black text-red-500 text-sm mt-0.5">R$ {saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-[8px] font-bold text-stone-500 uppercase tracking-wider">Saldo Devedor</p>
+                      <p className="font-serif font-black text-red-600 text-sm mt-0.5">R$ {saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider">Status Financeiro</p>
+                      <p className="text-[8px] font-bold text-stone-500 uppercase tracking-wider">Status Financeiro</p>
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider mt-1.5 ${
                         saldoDevedor > 0
-                          ? "bg-red-500/10 border border-red-500/20 text-red-400"
-                          : "bg-green-500/10 border border-green-500/20 text-green-400"
+                          ? "bg-red-50 border border-red-100 text-red-600"
+                          : "bg-green-50 border border-green-100 text-green-700"
                       }`}>
                         {saldoDevedor > 0 ? "Pendente" : "Quitado"}
                       </span>
@@ -745,57 +987,49 @@ export default function PainelLojistaClient({
 
               {/* DRE COMERCIAL */}
               <div className="space-y-3">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500/80 mb-2">Demonstrativo DRE (Comercial)</h3>
-                <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 shadow-xl space-y-3 text-xs">
-                  <div className="flex justify-between font-bold border-b border-stone-800 pb-2">
-                    <span className="text-stone-300">Receita Bruta (Vendas)</span>
-                    <span className="text-stone-100">R$ {dreReport.receitaBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-500 mb-2">Demonstrativo DRE (Comercial)</h3>
+                <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm space-y-3 text-xs">
+                  <div className="flex justify-between font-bold border-b border-stone-100 pb-2">
+                    <span className="text-stone-700">Receita Estimada (Valor Sugerido)</span>
+                    <span className="text-stone-900">R$ {dreReport.receitaSugerida.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between text-stone-400">
-                    <span>(-) Custo de Mercadorias (CMV)</span>
-                    <span className="text-red-400">- R$ {dreReport.cmv.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between text-stone-600">
+                    <span>(-) Custo da Compra (Fornecedor)</span>
+                    <span className="text-red-650">- R$ {dreReport.custoCompra.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between font-bold border-y border-stone-800/80 py-2 my-1">
-                    <span className="text-stone-200">(=) Lucro Bruto</span>
-                    <span className="text-amber-500">R$ {dreReport.lucroBruto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between text-stone-600">
+                    <span>(-) Descontos Concedidos</span>
+                    <span className="text-red-650">- R$ {dreReport.descontoConcedido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between text-stone-400">
-                    <span>(-) Custos de Frete (Mock 1.5%)</span>
-                    <span className="text-red-400/80">- R$ {dreReport.fretes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between font-bold border-y border-stone-100 py-2 my-1">
+                    <span className="text-stone-850">(=) Preço Final Vendido</span>
+                    <span className="text-stone-900">R$ {dreReport.receitaReal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between text-stone-400">
-                    <span>(-) Taxas Gateway (Mock 3%)</span>
-                    <span className="text-red-400/80">- R$ {dreReport.taxasGateway.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-stone-400 border-b border-stone-800 pb-2 mb-1">
-                    <span>(-) Despesas Gerais (Mock)</span>
-                    <span className="text-red-400/80">- R$ {dreReport.despesasGerais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between font-black border-t border-amber-500/10 pt-2 text-sm">
-                    <span className="text-amber-500">(=) Lucro Líquido Operacional</span>
-                    <span className="text-emerald-400 font-serif">R$ {dreReport.lucroLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between font-black border-t border-stone-200 pt-2 text-sm">
+                    <span className="text-stone-900">(=) Lucro Líquido Real</span>
+                    <span className="text-emerald-650 font-serif">R$ {dreReport.lucroLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>
 
               {/* Histórico de Pagamentos */}
               <div className="space-y-3">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500/80 mb-2">Histórico de Pagamentos (Amortizações)</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-500 mb-2">Histórico de Pagamentos (Amortizações)</h3>
                 <div className="space-y-2.5">
                   {historicoPagamentos.map((pag, idx) => (
-                    <div key={idx} className="rounded-xl border border-stone-800/80 bg-stone-900/40 p-3 shadow-md flex justify-between items-center gap-3">
+                    <div key={idx} className="rounded-xl border border-stone-200 bg-white p-3 shadow-sm flex justify-between items-center gap-3">
                       <div>
-                        <p className="text-xs font-bold text-stone-100">{pag.descricao}</p>
-                        <p className="text-[9px] text-stone-500 mt-0.5">Lote pago em {pag.data}</p>
+                        <p className="text-xs font-bold text-stone-900">{pag.descricao}</p>
+                        <p className="text-[9px] text-stone-400 mt-0.5">Lote pago em {pag.data}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs font-black text-emerald-500">+ R$ {pag.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        <span className="text-xs font-black text-emerald-650">+ R$ {pag.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                   ))}
 
                   {historicoPagamentos.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-stone-800 bg-stone-900/10 p-6 text-center text-xs text-stone-500 italic">
+                    <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50 p-6 text-center text-xs text-stone-400 italic">
                       Nenhum registro de pagamento amortizado.
                     </div>
                   )}
@@ -810,10 +1044,10 @@ export default function PainelLojistaClient({
           {/* ─────────────────────────────────────────────────────────────────── */}
           {activeTab === "perfil" && (
             <div className="space-y-4">
-              <h2 className="text-sm font-serif font-bold text-stone-100 uppercase tracking-wider mb-2">👤 Dados Cadastrais</h2>
+              <h2 className="text-sm font-serif font-bold text-stone-900 uppercase tracking-wider mb-2">👤 Dados Cadastrais</h2>
 
-              <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 space-y-4 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl"></div>
+              <div className="rounded-2xl border border-stone-200 bg-white p-4 space-y-4 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-stone-500/5 rounded-full blur-3xl"></div>
                 
                 {[
                   ["Nome Completo", lojistaAtual.nome],
@@ -824,9 +1058,9 @@ export default function PainelLojistaClient({
                   ["Cidade / UF", lojistaAtual.cidade ? `${lojistaAtual.cidade} - ${lojistaAtual.estado || ""}` : "Não cadastrado"],
                   ["CEP", lojistaAtual.cep || "Não cadastrado"],
                 ].map(([label, value]) => (
-                  <div key={label} className="border-b border-stone-800/60 pb-3 last:border-b-0 last:pb-0">
-                    <p className="text-[8px] font-bold text-stone-500 uppercase tracking-wider">{label}</p>
-                    <p className="text-xs font-bold text-stone-200 mt-1">{value}</p>
+                  <div key={label} className="border-b border-stone-100 pb-3 last:border-b-0 last:pb-0">
+                    <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider">{label}</p>
+                    <p className="text-xs font-bold text-stone-900 mt-1">{value}</p>
                   </div>
                 ))}
               </div>
@@ -837,7 +1071,7 @@ export default function PainelLojistaClient({
                   await logoutLojista();
                   window.location.href = "/lojista";
                 }}
-                className="w-full mt-4 bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 text-red-400 font-black text-[10px] py-4 rounded-xl uppercase tracking-widest transition-all cursor-pointer shadow-lg text-center"
+                className="w-full mt-4 bg-red-50 border border-red-100 hover:bg-red-100 text-red-655 font-black text-[10px] py-4 rounded-xl uppercase tracking-widest transition-all cursor-pointer shadow-sm text-center"
               >
                 🚪 Sair da Conta do Lojista
               </button>
@@ -848,18 +1082,18 @@ export default function PainelLojistaClient({
 
         {/* ─── PREVIEW FLUTUANTE DO CARRINHO (Meu Pedido) ─── */}
         {activeTab !== "carrinho" && cart.length > 0 && (
-          <div className="fixed bottom-20 left-4 right-4 z-40 bg-stone-900 border border-amber-500/20 shadow-2xl rounded-2xl p-3.5 flex justify-between items-center gap-3 animate-in slide-in-from-bottom duration-300">
+          <div className="fixed bottom-20 left-4 right-4 z-40 bg-white border border-stone-200 shadow-2xl rounded-2xl p-3.5 flex justify-between items-center gap-3 animate-in slide-in-from-bottom duration-300">
             <div>
-              <p className="text-[8px] font-black uppercase text-amber-500 tracking-wider">Meu Pedido Atual</p>
-              <p className="text-xs font-bold text-stone-100 mt-0.5">
+              <p className="text-[8px] font-black uppercase text-stone-500 tracking-wider">Meu Pedido Atual</p>
+              <p className="text-xs font-bold text-stone-900 mt-0.5">
                 {cartTotals.itemsCount} {cartTotals.itemsCount === 1 ? "Item" : "Itens"}
-                <span className="mx-2 text-stone-600">|</span>
+                <span className="mx-2 text-stone-300">|</span>
                 R$ {cartTotals.totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
             </div>
             <button
               onClick={() => setActiveTab("carrinho")}
-              className="bg-gradient-to-r from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700 text-stone-950 font-black text-[9px] px-4 py-2.5 rounded-xl uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              className="bg-white border border-zinc-200 hover:bg-stone-50 text-zinc-950 font-black text-[9px] px-4 py-2.5 rounded-xl uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm"
             >
               Finalizar Pedido
             </button>
@@ -867,14 +1101,8 @@ export default function PainelLojistaClient({
         )}
 
         {/* 📱 MENU INFERIOR DE 5 ABAS TÁTEIS (Responsivo/Celular) */}
-        <nav className="bg-stone-900/95 backdrop-blur-md border-t border-stone-800/80 h-16 w-full flex justify-around items-center px-2 shrink-0 shadow-2xl z-30">
-          {[
-            { id: "inicio", label: "Início", icon: "🏠", badge: aguardandoLojista.length },
-            { id: "produtos", label: "Produtos", icon: "🛍️" },
-            { id: "carrinho", label: "Carrinho", icon: "🛒", badge: cart.length },
-            { id: "financeiro", label: "Financeiro", icon: "📊" },
-            { id: "perfil", label: "Perfil", icon: "👤" },
-          ].map((tab) => {
+        <nav className="lg:hidden bg-white/95 backdrop-blur-md border-t border-stone-200 h-16 w-full flex justify-around items-center px-2 shrink-0 shadow-sm z-30">
+          {navTabs.map((tab) => {
             const isSelected = activeTab === tab.id;
             return (
               <button
@@ -886,7 +1114,7 @@ export default function PainelLojistaClient({
                   }
                 }}
                 className={`flex flex-col items-center justify-center flex-1 h-full relative transition-all duration-300 cursor-pointer ${
-                  isSelected ? "text-amber-500 scale-105" : "text-stone-500 hover:text-stone-400"
+                  isSelected ? "text-zinc-950 font-bold scale-105" : "text-stone-500 hover:text-stone-750"
                 }`}
               >
                 <span className="text-xl mb-0.5">{tab.icon}</span>
@@ -902,54 +1130,105 @@ export default function PainelLojistaClient({
         </nav>
 
       </div>
+      </div>
 
       {/* 🚨 WINDOW POPUP AUTOMÁTICO DE NOVO PEDIDO DO QR CODE 🚨 */}
       {activePopupOrder && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-stone-900 p-5 shadow-2xl border border-amber-500/20 animate-in fade-in zoom-in duration-200 flex flex-col gap-4 text-stone-100">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-stone-200 animate-in fade-in zoom-in duration-200 flex flex-col gap-4 text-stone-900">
             
             {/* Cabeçalho */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-2xl animate-bounce">🚨</span>
                 <div>
-                  <h3 className="text-xs font-black text-amber-500 uppercase tracking-widest">Novo Pedido no QR!</h3>
-                  <p className="text-[10px] text-stone-400 mt-0.5">Aguardando sua confirmação</p>
+                  <h3 className="text-xs font-black text-stone-900 uppercase tracking-widest">Novo Pedido no QR!</h3>
+                  <p className="text-[10px] text-stone-500 mt-0.5">Aguardando sua confirmação</p>
                 </div>
               </div>
               <button
-                onClick={handleDispensarPopup}
-                className="text-stone-400 hover:text-stone-200 text-sm font-bold p-1 rounded-full hover:bg-stone-850 cursor-pointer"
+                onClick={handleFecharPopup}
+                className="text-stone-500 hover:text-stone-850 text-sm font-bold p-1 rounded-full hover:bg-stone-100 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             {/* Informações do Pedido */}
-            <div className="rounded-xl bg-stone-850 border border-stone-800 p-3 text-xs space-y-2">
+            <div className="rounded-xl bg-stone-50 border border-stone-200 p-3 text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-stone-400 font-medium">Produto:</span>
-                <span className="font-bold text-stone-200 truncate max-w-[180px]">{activePopupOrder.produtoNome || "Produto"}</span>
+                <span className="text-stone-500 font-medium">Produto:</span>
+                <span className="font-bold text-stone-900 truncate max-w-[180px]">{activePopupOrder.produtoNome || "Produto"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-400 font-medium">Quantidade:</span>
-                <span className="font-bold text-stone-200">{activePopupOrder.quantidade || 1} un.</span>
+                <span className="text-stone-500 font-medium">Quantidade:</span>
+                <span className="font-bold text-stone-900">{activePopupOrder.quantidade || 1} un.</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-400 font-medium">Total Sugerido:</span>
-                <span className="font-black text-amber-500 text-sm">R$ {Number(activePopupOrder.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                <span className="text-stone-500 font-medium">Total Sugerido:</span>
+                <span className="font-black text-stone-900 text-sm">R$ {Number(activePopupOrder.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
+
+            {/* Informações do Cliente */}
+            {(() => {
+              const parsedInfo = activePopupOrder.observacao ? parseClienteInfo(activePopupOrder.observacao) : null;
+              if (!parsedInfo) return null;
+              return (
+                <div className="rounded-xl bg-stone-50 border border-stone-200 p-3 text-xs space-y-1.5 text-left">
+                  <p className="text-[9px] font-black text-stone-700 uppercase tracking-wider mb-1">Dados de Entrega do Cliente</p>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500 font-medium">Nome:</span>
+                    <span className="font-bold text-stone-900">{parsedInfo.nome}</span>
+                  </div>
+                  {parsedInfo.contato && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500 font-medium">Contato:</span>
+                      <a
+                        href={`https://wa.me/${parsedInfo.contato.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-bold text-zinc-950 font-bold hover:underline transition-colors"
+                      >
+                        {parsedInfo.contato}
+                      </a>
+                    </div>
+                  )}
+                  {parsedInfo.endereco ? (
+                    <div className="flex flex-col gap-0.5 pt-1 border-t border-stone-200 mt-1">
+                      <span className="text-[9px] text-stone-500 font-medium uppercase tracking-wider">Endereço de Entrega:</span>
+                      <span className="font-bold text-stone-900 leading-tight">
+                        {parsedInfo.endereco}
+                      </span>
+                      {parsedInfo.bairro && (
+                        <span className="text-stone-800">
+                          {parsedInfo.bairro} - {parsedInfo.cidadeEstado}
+                        </span>
+                      )}
+                      {parsedInfo.cep && (
+                        <span className="text-stone-700">
+                          CEP: {parsedInfo.cep}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="pt-1 border-t border-stone-200 mt-1">
+                      <span className="text-stone-500 text-[10px] italic">{parsedInfo.endereco}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Configurações de Venda do Lojista */}
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-wider text-stone-400 mb-1">Forma de Pagamento Recebida</label>
+                <label className="block text-[9px] font-black uppercase tracking-wider text-stone-500 mb-1">Forma de Pagamento Recebida</label>
                 <select
                   value={popupPagamento}
                   onChange={(e) => setPopupPagamento(e.target.value)}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-stone-800 bg-stone-850 px-3 py-2.5 text-xs font-bold text-stone-200 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-xs font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 >
                   <option value="Dinheiro">💵 Dinheiro</option>
                   <option value="Pix">📱 Pix</option>
@@ -960,29 +1239,41 @@ export default function PainelLojistaClient({
               </div>
 
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-wider text-stone-400 mb-1">Aplicar Desconto (%)</label>
+                <label className="block text-[9px] font-black uppercase tracking-wider text-stone-500 mb-1">Aplicar Desconto (R$)</label>
                 <input
                   type="number"
                   min="0"
-                  max="90"
-                  step="1"
-                  placeholder="0"
-                  value={popupDescontoPercentual || ""}
-                  onChange={(e) => setPopupDescontoPercentual(Math.min(90, Math.max(0, Number(e.target.value))))}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={popupDescontoValor || ""}
+                  onChange={(e) => setPopupDescontoValor(Math.max(0, Number(e.target.value)))}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-stone-800 bg-stone-850 px-3 py-2.5 text-xs font-bold text-stone-200 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-xs font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 />
-                {popupCustoUnitario > 0 && popupPrecoTabela > 0 && (
+                {popupCustoUnitario > 0 && (
                   <span className="text-[9px] text-stone-500 block text-right mt-1.5 uppercase">
-                    Custo Mínimo: R$ {popupCustoUnitario.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    Custo do Fornecedor: R$ {popupTotalCusto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </span>
                 )}
+              </div>
+
+              {/* Simulação em Tempo Real */}
+              <div className="rounded-xl bg-stone-100 border border-stone-200 p-3 text-xs space-y-1.5 text-left">
+                <p className="text-[9px] font-black text-emerald-700 uppercase tracking-wider mb-1">Resumo da Simulação</p>
+                <div className="flex justify-between">
+                  <span className="text-stone-500 font-medium">Preço Final Cliente:</span>
+                  <span className="font-bold text-stone-900">R$ {popupPrecoFinalEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-500 font-medium">Seu Lucro Líquido:</span>
+                  <span className="font-black text-emerald-700">R$ {popupLucroEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
               </div>
             </div>
 
             {/* Alerta de erro do popup */}
             {popupErro && (
-              <div className="rounded-lg border border-red-500/20 bg-red-950/20 px-3 py-2 text-xs font-bold text-red-400 text-center">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-650 text-center">
                 ⚠️ {popupErro}
               </div>
             )}
@@ -990,16 +1281,16 @@ export default function PainelLojistaClient({
             {/* Ações */}
             <div className="grid grid-cols-2 gap-2.5 mt-1">
               <button
-                onClick={handleDispensarPopup}
+                onClick={handleRejeitarVendaPopup}
                 disabled={isPending}
-                className="rounded-xl border border-stone-800 bg-stone-850 py-3 text-xs font-black uppercase tracking-wider text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-all cursor-pointer disabled:opacity-50"
+                className="rounded-xl border border-red-200 bg-red-50 py-3 text-xs font-black uppercase tracking-wider text-red-600 hover:bg-red-100 transition-all cursor-pointer disabled:opacity-50"
               >
-                Ignorar
+                Rejeitar Pedido
               </button>
               <button
                 onClick={handleConfirmarVendaPopup}
                 disabled={isPending}
-                className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700 text-stone-950 py-3 text-xs font-black uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                className="rounded-xl bg-white border border-zinc-200 hover:bg-stone-50 text-zinc-950 py-3 text-xs font-black uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-50 shadow-sm"
               >
                 {isPending ? "Processando…" : "Confirmar Venda"}
               </button>

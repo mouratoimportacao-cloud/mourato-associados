@@ -1,16 +1,38 @@
 "use server";
 
 import { prisma } from "../../../lib/prisma";
+import { materializeImportedImage, normalizeImportedImage } from "../../../lib/imported-image";
 import { revalidatePath } from "next/cache";
 import * as XLSX from "xlsx";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import sharp from "sharp";
+
 async function imageToDataUrl(file: File) {
   const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  const mimeType = file.type || "image/jpeg";
+  const buffer = await sharp(Buffer.from(bytes))
+    .rotate()
+    .resize({ width: 1600, height: 2000, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer();
+  return `data:image/webp;base64,${buffer.toString("base64")}`;
+}
 
-  return `data:${mimeType};base64,${buffer.toString("base64")}`;
+async function imageFromFormData(formData: FormData) {
+  const imageDataUrl = String(formData.get("imagemDataUrl") || "").trim();
+  if (imageDataUrl) {
+    if (!/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)) {
+      throw new Error("A imagem enviada está em formato inválido.");
+    }
+    return imageDataUrl;
+  }
+
+  const imageFile = formData.get("imagemFile") as File | null;
+  if (imageFile && imageFile.size > 0) {
+    return imageToDataUrl(imageFile);
+  }
+
+  return null;
 }
 
 export async function createProduto(formData: FormData) {
@@ -67,12 +89,9 @@ export async function createProduto(formData: FormData) {
       return Math.max(max, codigoAtual);
     }, 0) + 1;
 
-    const imageFile = formData.get("imagemFile") as File | null;
-    if (imageFile && imageFile.size > 0) {
-      imagem = await imageToDataUrl(imageFile);
-    }
+    imagem = await imageFromFormData(formData);
 
-    await prisma.produto.create({
+    const produtoCriado = await prisma.produto.create({
       data: {
         codigo,
         nome,
@@ -109,6 +128,10 @@ export async function createProduto(formData: FormData) {
       },
     });
 
+    if (imagem && !produtoCriado?.imagem) {
+      throw new Error("O produto foi criado, mas a imagem não foi persistida.");
+    }
+
     revalidatePath("/admin/produtos");
     revalidatePath("/produtos");
     revalidatePath("/");
@@ -138,16 +161,9 @@ export async function updateProduto(id: number, formData: FormData) {
 
   // Novos campos técnicos
   const concentracao = formData.get("concentracao") as string;
-  const origem = formData.get("origem") as string;
-  const tipo_perfume = formData.get("tipo_perfume") as string;
-  const genero = formData.get("genero") as string;
-  const familia_olfativa = formData.getAll("familia_olfativa") as string[];
   const notas_topo = formData.get("notas_topo") as string;
   const notas_coracao = formData.get("notas_coracao") as string;
   const notas_fundo = formData.get("notas_fundo") as string;
-  const fixacao_estimada = formData.get("fixacao_estimada") as string;
-  const projecao = formData.get("projecao") as string;
-  const ocasiao_uso = formData.getAll("ocasiao_uso") as string[];
   const similaridade_inspiracao = formData.get("similaridade_inspiracao") as string;
   const descricao_olfativa = formData.get("descricao_olfativa") as string;
 
@@ -168,10 +184,8 @@ export async function updateProduto(id: number, formData: FormData) {
   try {
     let imagem: string | null = undefined as any;
 
-    const imageFile = formData.get("imagemFile") as File | null;
-    if (imageFile && imageFile.size > 0) {
-      imagem = await imageToDataUrl(imageFile);
-    }
+    const imagemRecebida = await imageFromFormData(formData);
+    if (imagemRecebida) imagem = imagemRecebida;
 
     const updateData: any = {
       nome,
@@ -225,10 +239,14 @@ export async function updateProduto(id: number, formData: FormData) {
       updateData.imagem = imagem;
     }
 
-    await prisma.produto.update({
+    const produtoAtualizado = await prisma.produto.update({
       where: { id },
       data: updateData,
     });
+
+    if (imagemRecebida && !produtoAtualizado?.imagem) {
+      throw new Error("Os dados foram atualizados, mas a imagem não foi persistida.");
+    }
 
     revalidatePath("/admin/produtos");
     revalidatePath("/produtos");
@@ -385,7 +403,6 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       const row = rows[i];
       const errors: string[] = [];
       const warnings: string[] = [];
-      const mappedData: any = {};
 
       const getVal = (field: string) => {
         const colName = mapping[field];
@@ -421,7 +438,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         errors.push("O campo 'Nome' é obrigatório e está vazio ou ausente.");
       }
 
-      let brandRaw = getVal("marca");
+      const brandRaw = getVal("marca");
       let marca = brandRaw !== undefined ? String(brandRaw).trim() : "";
       if (!marca && nome) {
         marca = extractBrandFromName(nome, knownBrands);
@@ -430,7 +447,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         warnings.push("Marca ausente.");
       }
 
-      let volumeRaw = getVal("volume");
+      const volumeRaw = getVal("volume");
       let volume = volumeRaw !== undefined ? String(volumeRaw).trim() : "";
       if (!volume && nome) {
         const extractedVolume = extractVolumeFromName(nome);
@@ -444,7 +461,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         warnings.push("Volume ausente.");
       }
 
-      let categoriaRaw = getVal("categoria");
+      const categoriaRaw = getVal("categoria");
       let categoria = categoriaRaw !== undefined ? String(categoriaRaw).trim() : "";
       if (!categoria) {
         if (nome && isArabicProduct(nome, marca)) {
@@ -460,7 +477,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       }
 
       // Categoria principal e Tags
-      let categoriaPrincipalRaw = getVal("categoria_principal");
+      const categoriaPrincipalRaw = getVal("categoria_principal");
       let categoria_principal = categoriaPrincipalRaw !== undefined ? String(categoriaPrincipalRaw).trim() : "";
       if (!categoria_principal) {
         if (categoria.includes("Perfume") || categoria === "Oud") {
@@ -548,11 +565,9 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         errors.push(`Estoque lojista não pode ser negativo: ${estoqueLojista}.`);
       }
 
-      const imagemRaw = getVal("imagem");
-      const imagem = imagemRaw !== undefined ? String(imagemRaw).trim() : "";
-      if (!imagem) {
-        warnings.push("Imagem ausente.");
-      }
+      const imagemNormalizada = normalizeImportedImage(getVal("imagem"));
+      const imagem = imagemNormalizada.src;
+      if (imagemNormalizada.warning) warnings.push(imagemNormalizada.warning);
 
       const descricaoRaw = getVal("descricao");
       const descricao = descricaoRaw !== undefined ? String(descricaoRaw).trim() : "";
@@ -715,6 +730,7 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         descricao_olfativa
       } = mappedData;
 
+      const imagemMaterializada = await materializeImportedImage(imagem);
       const savePayload = {
         nome,
         marca,
@@ -727,7 +743,7 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         estoque: estoqueGeral,
         estoqueLojista,
         descricao,
-        imagem: imagem || null,
+        imagem: imagemMaterializada,
         categoria_principal,
         tags,
         concentracao,

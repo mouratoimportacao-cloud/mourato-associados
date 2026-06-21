@@ -201,6 +201,9 @@ const globalStore = globalThis as unknown as {
   loadingStore?: Promise<void>;
   pgPool?: any;
   lastLoadedAt?: number;
+  transactionDepth?: number;
+  transactionDirty?: boolean;
+  transactionQueue?: Promise<void>;
 };
 
 const storePath = join(process.cwd(), ".data", "store.json");
@@ -262,19 +265,6 @@ function emptyStore() {
       Usuario: 0,
     } as Record<TableName, number>,
   };
-}
-
-function mergeInitialProducts(produtos: MemoryRow[]) {
-  const existingIds = new Set(produtos.map((produto) => Number(produto.id)));
-  const nextProducts = produtos.map(withProdutoDefaults);
-
-  initialProducts.forEach((produto) => {
-    if (!existingIds.has(Number(produto.id))) {
-      nextProducts.push(withProdutoDefaults(produto));
-    }
-  });
-
-  return nextProducts;
 }
 
 function withProdutoDefaults(produto: MemoryRow): MemoryRow {
@@ -384,7 +374,7 @@ function loadLocalStore() {
     const raw = readFileSync(storePath, "utf8");
     const parsed = JSON.parse(raw) as ReturnType<typeof emptyStore>;
 
-    let produtosSalvos = parsed.rows?.Produto ?? [];
+    const produtosSalvos = parsed.rows?.Produto ?? [];
     const uniqueMap = new Map<number, any>();
     produtosSalvos.forEach((p: any) => {
       if (p && p.id) {
@@ -433,7 +423,7 @@ async function loadPostgresStore() {
     }
 
     const parsed = result.rows[0].data as ReturnType<typeof emptyStore>;
-    let produtosSalvos = parsed.rows?.Produto ?? [];
+    const produtosSalvos = parsed.rows?.Produto ?? [];
     const uniqueMap = new Map<number, any>();
     produtosSalvos.forEach((p: any) => {
       if (p && p.id) {
@@ -562,6 +552,17 @@ async function syncToGithub(contentStr: string) {
 async function saveStore() {
   if (!globalStore.memoryDb || !globalStore.memorySeq) return;
 
+  if ((globalStore.transactionDepth || 0) > 0) {
+    globalStore.transactionDirty = true;
+    return;
+  }
+
+  await persistStore();
+}
+
+async function persistStore() {
+  if (!globalStore.memoryDb || !globalStore.memorySeq) return;
+
   const contentStr = JSON.stringify(
     {
       rows: globalStore.memoryDb,
@@ -585,9 +586,46 @@ async function saveStore() {
   );
 }
 
+async function runTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
+  const previousQueue = globalStore.transactionQueue || Promise.resolve();
+  let releaseQueue!: () => void;
+  globalStore.transactionQueue = new Promise<void>((resolve) => {
+    releaseQueue = resolve;
+  });
+
+  await previousQueue;
+  await store();
+
+  const rowsBackup = structuredClone(globalStore.memoryDb);
+  const seqBackup = structuredClone(globalStore.memorySeq);
+  globalStore.transactionDepth = (globalStore.transactionDepth || 0) + 1;
+  globalStore.transactionDirty = false;
+  globalStore.lastLoadedAt = Date.now();
+
+  try {
+    const result = await callback(prisma);
+    globalStore.transactionDepth = Math.max(0, (globalStore.transactionDepth || 1) - 1);
+
+    if (globalStore.transactionDepth === 0 && globalStore.transactionDirty) {
+      globalStore.transactionDirty = false;
+      await persistStore();
+    }
+
+    return result;
+  } catch (error) {
+    globalStore.memoryDb = rowsBackup;
+    globalStore.memorySeq = seqBackup;
+    globalStore.transactionDepth = Math.max(0, (globalStore.transactionDepth || 1) - 1);
+    globalStore.transactionDirty = false;
+    throw error;
+  } finally {
+    releaseQueue();
+  }
+}
+
 async function store() {
   const now = Date.now();
-  const cacheDuration = 5000; // Cache de 5 segundos para requisições seguidas no Neon
+  const cacheDuration = 1000; // Atualizações operacionais devem aparecer em até 1 segundo
 
   if (shouldUsePostgres()) {
     const cacheExpired = !globalStore.lastLoadedAt || (now - globalStore.lastLoadedAt > cacheDuration);
@@ -639,8 +677,19 @@ function matchesWhere(row: MemoryRow, where?: Where): boolean {
   }
 
   return Object.entries(where).every(([key, value]) => {
-    if (value && typeof value === "object" && "in" in value && Array.isArray((value as { in: unknown[] }).in)) {
-      return (value as { in: unknown[] }).in.includes(row[key]);
+    if (value && typeof value === "object") {
+      if ("in" in value && Array.isArray((value as { in: unknown[] }).in)) {
+        return (value as { in: unknown[] }).in.includes(row[key]);
+      }
+      if ("notIn" in value && Array.isArray((value as { notIn: unknown[] }).notIn)) {
+        return !(value as { notIn: unknown[] }).notIn.includes(row[key]);
+      }
+      if ("not" in value) {
+        return row[key] !== (value as { not: unknown }).not;
+      }
+      if ("equals" in value) {
+        return row[key] === (value as { equals: unknown }).equals;
+      }
     }
 
     return row[key] === value;
@@ -762,5 +811,7 @@ export const prisma = {
     update: (args: UpdateArgs<Partial<UsuarioData>>) => update("Usuario", args),
     delete: (args: DeleteArgs) => remove("Usuario", args),
   },
+  $transaction: <T>(callback: (tx: any) => Promise<T>) =>
+    runTransaction(callback),
   $disconnect: () => Promise.resolve(),
 };

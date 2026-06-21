@@ -11,26 +11,10 @@ export const metadata = {
 
 export const revalidate = 60;
 
-function moeda(valor: number | null | undefined) {
-  return valor ? `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Sob consulta";
-}
-
-function precoPromocional(produto: any) {
-  const preco = Number(produto.preco || 0);
-  const desconto = Number(produto.descontoPercentual || 0);
-
-  if (!produto.promocaoAtiva || !preco || !desconto) {
-    return null;
-  }
-
-  return preco * (1 - desconto / 100);
-}
-
 export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
     orderBy: { id: 'asc' }
   });
-  const produtosVitrine = produtos.filter((produto: any) => produto.vitrine || produto.promocaoAtiva);
   const produtosPublicos = produtos;
 
   return (

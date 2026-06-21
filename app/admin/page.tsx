@@ -27,10 +27,6 @@ export default async function AdminPage() {
   });
   const countLojistasPendentes = todosLojistas.filter((lojista: { status?: string | null }) => lojista.status !== "aprovado").length;
   const produtos = await prisma.produto.findMany();
-  const totalEstoqueProdutos = produtos.reduce((acc: number, produto: any) => {
-    const custoReal = (produto.custoDolar || 0) * (produto.cotacaoDolar || 0);
-    return acc + custoReal * (produto.estoque || 0);
-  }, 0);
 
   const pedidos = await prisma.pedido.findMany();
   const pedidosValidos = pedidos.filter((pedido: any) => pedido.status !== "cancelado");
@@ -40,34 +36,32 @@ export default async function AdminPage() {
     String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
     String(pedido.pagamento || "").includes("Compra do fornecedor")
   );
-  const vendasQrConfirmadas = pedidosValidos.filter((pedido: any) =>
-    (String(pedido.tipoFluxo || "") === "venda_qr" || String(pedido.pagamento || "").includes("Venda via QR do lojista")) &&
+  const vendasSiteDireto = pedidosValidos.filter((pedido: any) =>
+    String(pedido.tipoFluxo || "") === "intencao_site" &&
     ["pago", "enviado", "entregue"].includes(String(pedido.status || ""))
   );
+
   const faturamentoAtacado = comprasFornecedor.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0);
+  const faturamentoVendasSiteDireto = vendasSiteDireto.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0);
+
   const totalPagoLojistas = comprasFornecedor.reduce((acc: number, pedido: any) => {
     if (pedido.totalPagoFornecedor !== null && pedido.totalPagoFornecedor !== undefined) {
       return acc + Number(pedido.totalPagoFornecedor || 0);
     }
     return ["pago", "enviado", "entregue"].includes(String(pedido.status || "")) ? acc + Number(pedido.total || 0) : acc;
   }, 0);
-  const receitaVendasQr = vendasQrConfirmadas.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0);
-  const totalFaturamento = faturamentoAtacado + receitaVendasQr;
+
+  const totalFaturamento = faturamentoAtacado + faturamentoVendasSiteDireto;
   
-  const custoMercadorias = vendasQrConfirmadas.reduce((acc: number, pedido: any) => {
-    const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
-    return acc + Number(pedido.custoUnitario || produto?.precoAtacado || 0) * Number(pedido.quantidade || 1);
+  const custoMercadorias = comprasFornecedor.concat(vendasSiteDireto).reduce((acc: number, pedido: any) => {
+    const prod = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
+    const itemCost = Number(prod?.custoDolar || 0) * Number(prod?.cotacaoDolar || 0) || (Number(pedido.precoUnitario || prod?.precoAtacado || 0) * 0.6);
+    return acc + itemCost * Number(pedido.quantidade || 1);
   }, 0);
 
-  const descontoConcedido = vendasQrConfirmadas.reduce((acc: number, pedido: any) => {
-    const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
-    const precoTabela = Number(pedido.precoTabela || produto?.preco || 0);
-    const precoVendido = Number(pedido.precoUnitario || 0);
-    const desconto = precoTabela > precoVendido ? (precoTabela - precoVendido) * Number(pedido.quantidade || 1) : 0;
-    return acc + desconto;
-  }, 0);
+  const descontoConcedido = pedidosValidos.reduce((acc: number, pedido: any) => acc + Number(pedido.descontoConcedido || 0), 0);
 
-  const lucroBruto = receitaVendasQr - custoMercadorias;
+  const lucroBruto = totalFaturamento - custoMercadorias;
 
   const valorEmAbertoFornecedor = comprasFornecedor.reduce((acc: number, pedido: any) => {
     if (pedido.saldoFornecedor !== null && pedido.saldoFornecedor !== undefined) {
@@ -76,11 +70,14 @@ export default async function AdminPage() {
     return pedido.status === "pendente fornecedor" ? acc + Number(pedido.total || 0) : acc;
   }, 0);
 
-  const totalQuitado = totalPagoLojistas + receitaVendasQr;
+  const totalQuitado = totalPagoLojistas + faturamentoVendasSiteDireto;
   const totalPendente = valorEmAbertoFornecedor;
   const receitaBruta = totalFaturamento;
 
-  const produtosVendidos = vendasQrConfirmadas.reduce((map: Map<string, number>, pedido: any) => {
+  const comprasEfetivadas = comprasFornecedor
+    .filter((pedido: any) => ["pago", "enviado", "entregue"].includes(String(pedido.status || "")))
+    .concat(vendasSiteDireto);
+  const produtosVendidos = comprasEfetivadas.reduce((map: Map<string, number>, pedido: any) => {
     const nome = String(pedido.produtoNome || "Produto");
     map.set(nome, (map.get(nome) || 0) + Number(pedido.quantidade || 1));
     return map;
@@ -162,7 +159,7 @@ export default async function AdminPage() {
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
-            <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
+            <img src="/brand/logo-ma.webp" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
           </Link>
           <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Painel de Gestão</p>
         </div>

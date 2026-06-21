@@ -112,16 +112,14 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
   const vendasConfirmadas = vendasCliente.filter((pedido: any) => ["pago", "enviado", "entregue"].includes(pedido.status));
   const totalVendido = vendasConfirmadas.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0);
   const custoVendido = vendasConfirmadas.reduce((acc: number, pedido: any) => {
-    const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
-    return acc + Number(produto?.precoAtacado || 0) * Number(pedido.quantidade || 1);
+    return acc + Number(pedido.custoUnitario || 0) * Number(pedido.quantidade || 1);
   }, 0);
   const descontoConcedido = vendasConfirmadas.reduce((acc: number, pedido: any) => {
-    const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
-    const precoTabela = Number(produto?.preco || 0);
-    const precoVendido = Number(pedido.precoUnitario || 0);
-    return acc + (precoTabela > precoVendido ? (precoTabela - precoVendido) * Number(pedido.quantidade || 1) : 0);
+    return acc + Number(pedido.descontoConcedido || 0);
   }, 0);
-  const lucroBruto = totalVendido - custoVendido;
+  const lucroBruto = vendasConfirmadas.reduce((acc: number, pedido: any) => {
+    return acc + Number(pedido.lucroBruto || 0);
+  }, 0);
 
   const rankingProdutos = Array.from(vendasConfirmadas.reduce((map: Map<string, number>, pedido: any) => {
     const nome = String(pedido.produtoNome || "Produto");
@@ -152,7 +150,7 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
-            <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
+            <img src="/brand/logo-ma.webp" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
           </Link>
           <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Painel de Gestão</p>
         </div>

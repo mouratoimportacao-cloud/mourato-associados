@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import FiltrosProdutos from "../../../components/FiltrosProdutos";
+import OptimizedImage from "../../../components/OptimizedImage";
 
 interface Produto {
   id: number;
@@ -35,8 +36,6 @@ interface Produto {
   similaridade_inspiracao?: string | null;
   descricao_olfativa?: string | null;
 }
-
-const categoriasBase = ["Perfume", "Perfume Feminino", "Perfume Masculino", "Perfume Árabe", "Oud", "Cosmético", "Skincare", "Outros"];
 
 function moeda(valor: number | null | undefined) {
   return valor ? `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Consultar";
@@ -168,18 +167,19 @@ export default function ListaProdutosLojista({
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {produtosFiltrados.map((produto) => {
-                const valorPromocional = precoPromocional(produto);
-
                 return (
                   <tr key={produto.id} className="hover:bg-gray-50 transition-colors align-middle">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-4">
-                        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                          {produto.imagem ? (
-                            <img src={produto.imagem} alt={produto.nome} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-gray-300 italic font-serif text-xs">M&A</div>
-                          )}
+                        <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                          <OptimizedImage
+                            src={produto.imagem}
+                            alt={produto.nome}
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                            fallbackText="M&A"
+                          />
                         </div>
                         <div>
                           <div className="text-sm font-bold text-gray-900">
@@ -192,7 +192,7 @@ export default function ListaProdutosLojista({
                           <button
                             type="button"
                             onClick={() => setSelectedProduto(produto)}
-                            className="mt-1 text-xs font-bold text-luxury-gold hover:text-luxury-black uppercase tracking-widest"
+                            className="mt-1 text-xs font-bold text-stone-600 hover:text-stone-900 uppercase tracking-widest underline"
                           >
                             Ver produto
                           </button>
@@ -218,19 +218,30 @@ export default function ListaProdutosLojista({
                           id={`qty-desktop-${produto.id}`}
                           type="number"
                           min={1}
+                          max={produto.estoque}
                           defaultValue={1}
-                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold font-bold text-center"
+                          disabled={produto.estoque <= 0}
+                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
                         />
                         <button
                           type="button"
                           onClick={() => {
                             const inputEl = document.getElementById(`qty-desktop-${produto.id}`) as HTMLInputElement;
                             const qty = Number(inputEl?.value || 1);
+                            if (qty > produto.estoque) {
+                              alert(`Quantidade solicitada (${qty} un.) excede o estoque disponível do fornecedor (${produto.estoque} un.).`);
+                              return;
+                            }
                             onAddToCart(produto.id, qty);
                           }}
-                          className="rounded-lg bg-luxury-black hover:bg-luxury-gold text-white hover:text-black px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer"
+                          disabled={produto.estoque <= 0}
+                          className={`rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                            produto.estoque > 0
+                              ? "bg-white hover:bg-stone-50 text-zinc-950 border border-zinc-200 shadow-sm"
+                              : "bg-stone-100 text-stone-400 pointer-events-none"
+                          }`}
                         >
-                          Adicionar ao Pedido
+                          {produto.estoque > 0 ? "Adicionar ao Pedido" : "Indisponível"}
                         </button>
                       </div>
                     </td>
@@ -249,18 +260,21 @@ export default function ListaProdutosLojista({
         </div>
 
         {/* MOBILE CARDS VIEW (Fornecedor) */}
-        <div className="md:hidden space-y-4 max-h-[70vh] overflow-y-auto p-1.5 bg-gray-50">
+        <div className="md:hidden space-y-4 p-1.5 bg-gray-50">
           {produtosFiltrados.map((produto) => {
             return (
               <div key={produto.id} className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm space-y-3">
                 {/* 1. Header: Foto + Nome */}
                 <div className="flex gap-3 items-start">
-                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                    {produto.imagem ? (
-                      <img src={produto.imagem} alt={produto.nome} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-gray-300 italic font-serif text-[10px]">M&A</div>
-                    )}
+                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                    <OptimizedImage
+                      src={produto.imagem}
+                      alt={produto.nome}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      fallbackText="M&A"
+                    />
                   </div>
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -276,7 +290,7 @@ export default function ListaProdutosLojista({
                     <button
                       type="button"
                       onClick={() => setSelectedProduto(produto)}
-                      className="mt-1 text-[10px] font-black text-luxury-gold hover:text-luxury-black uppercase tracking-wider block"
+                      className="mt-1 text-[10px] font-black text-stone-600 hover:text-stone-900 uppercase tracking-wider block underline"
                     >
                       Ver detalhes
                     </button>
@@ -305,8 +319,10 @@ export default function ListaProdutosLojista({
                       id={`qty-mobile-${produto.id}`}
                       type="number"
                       min={1}
+                      max={produto.estoque}
                       defaultValue={1}
-                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-luxury-gold bg-white font-bold text-center"
+                      disabled={produto.estoque <= 0}
+                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-zinc-950 bg-white font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
                     />
                   </div>
                   <button
@@ -314,11 +330,20 @@ export default function ListaProdutosLojista({
                     onClick={() => {
                       const inputEl = document.getElementById(`qty-mobile-${produto.id}`) as HTMLInputElement;
                       const qty = Number(inputEl?.value || 1);
+                      if (qty > produto.estoque) {
+                        alert(`Quantidade solicitada (${qty} un.) excede o estoque disponível do fornecedor (${produto.estoque} un.).`);
+                        return;
+                      }
                       onAddToCart(produto.id, qty);
                     }}
-                    className="flex-grow rounded-lg bg-luxury-black py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-luxury-gold transition-colors cursor-pointer text-center"
+                    disabled={produto.estoque <= 0}
+                    className={`flex-grow rounded-lg py-2 text-[10px] font-black uppercase tracking-widest transition-colors text-center ${
+                      produto.estoque > 0
+                        ? "bg-white text-zinc-950 border border-zinc-200 hover:bg-stone-50 transition-colors cursor-pointer shadow-sm"
+                        : "bg-stone-50 text-stone-400 pointer-events-none"
+                    }`}
                   >
-                    Adicionar ao Pedido
+                    {produto.estoque > 0 ? "Adicionar ao Pedido" : "Indisponível"}
                   </button>
                 </div>
               </div>
@@ -346,12 +371,15 @@ export default function ListaProdutosLojista({
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 pt-0">
-              <div className="aspect-[3/4] overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
-                {selectedProduto.imagem ? (
-                  <img src={selectedProduto.imagem} alt={selectedProduto.nome} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-gray-300 italic font-serif">Mourato</div>
-                )}
+              <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
+                <OptimizedImage
+                  src={selectedProduto.imagem}
+                  alt={selectedProduto.nome}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 350px"
+                  className="object-cover"
+                  fallbackText="Mourato"
+                />
               </div>
               <div className="space-y-4">
                 <span className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest">{selectedProduto.marca}</span>
@@ -364,7 +392,7 @@ export default function ListaProdutosLojista({
                   <div className="mt-4 pt-4 border-t border-gray-100 text-xs space-y-3 text-gray-600 font-sans">
                     {selectedProduto.descricao_olfativa && (
                       <p className="text-gray-700 italic leading-relaxed">
-                        "{selectedProduto.descricao_olfativa}"
+                        {selectedProduto.descricao_olfativa}
                       </p>
                     )}
 
