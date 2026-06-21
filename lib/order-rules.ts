@@ -9,20 +9,18 @@ export function calcularVendaComDesconto({
   precoTabela,
   custoUnitario,
   quantidade,
-  descontoPercentual,
+  descontoValor,
   precoAtual,
 }: {
   precoTabela: number;
   custoUnitario: number;
   quantidade: number;
-  descontoPercentual: number;
+  descontoValor: number;
   precoAtual: number;
 }) {
-  const descontoSeguro = Math.max(0, Math.min(90, Number(descontoPercentual || 0)));
-  const precoComDesconto =
-    descontoSeguro > 0
-      ? precoTabela * (1 - descontoSeguro / 100)
-      : Number(precoAtual || precoTabela || 0);
+  const valorDescontoSeguro = Math.max(0, Number(descontoValor || 0));
+  const unitDiscount = valorDescontoSeguro / quantidade;
+  const precoComDesconto = precoAtual - unitDiscount;
   const precoFinal = Math.max(custoUnitario, precoComDesconto);
   const total = precoFinal * quantidade;
 

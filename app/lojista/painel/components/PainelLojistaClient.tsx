@@ -239,7 +239,7 @@ export default function PainelLojistaClient({
   const [activePopupOrder, setActivePopupOrder] = useState<Pedido | null>(null);
   const [isPending, startTransition] = useTransition();
   const [popupErro, setPopupErro] = useState<string | null>(null);
-  const [popupDescontoPercentual, setPopupDescontoPercentual] = useState<number>(0);
+  const [popupDescontoValor, setPopupDescontoValor] = useState<number>(0);
   const [popupPagamento, setPopupPagamento] = useState<string>("Dinheiro");
 
   // ─── CÁLCULOS FINANCEIROS EM TEMPO REAL ───────────────────────────────────────
@@ -419,7 +419,7 @@ export default function PainelLojistaClient({
         if (novoPedido) {
           setActivePopupOrder(novoPedido);
           setPopupErro(null);
-          setPopupDescontoPercentual(0);
+          setPopupDescontoValor(0);
           setPopupPagamento("Dinheiro");
         } else {
           setActivePopupOrder(null);
@@ -438,7 +438,7 @@ export default function PainelLojistaClient({
     const formData = new FormData();
     formData.append("pedidoId", String(activePopupOrder.id));
     formData.append("pagamento", popupPagamento);
-    formData.append("descontoPercentual", String(popupDescontoPercentual));
+    formData.append("descontoValor", String(popupDescontoValor));
 
     startTransition(async () => {
       const result = await confirmarVendaLojista(formData);
@@ -479,6 +479,11 @@ export default function PainelLojistaClient({
   const popupProduto = activePopupOrder?.produtoId ? produtoMap.get(activePopupOrder.produtoId) : null;
   const popupCustoUnitario = popupProduto?.precoAtacado || 0;
   const popupPrecoTabela = popupProduto?.preco || 0;
+  const popupQuantidade = activePopupOrder?.quantidade || 1;
+  const popupTotalSugerido = Number(activePopupOrder?.total || 0);
+  const popupTotalCusto = popupCustoUnitario * popupQuantidade;
+  const popupPrecoFinalEstimado = Math.max(popupTotalCusto, popupTotalSugerido - popupDescontoValor);
+  const popupLucroEstimado = popupPrecoFinalEstimado - popupTotalCusto;
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 font-sans selection:bg-amber-500 selection:text-black antialiased">
@@ -1147,23 +1152,35 @@ export default function PainelLojistaClient({
               </div>
 
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-wider text-stone-400 mb-1">Aplicar Desconto (%)</label>
+                <label className="block text-[9px] font-black uppercase tracking-wider text-stone-400 mb-1">Aplicar Desconto (R$)</label>
                 <input
                   type="number"
                   min="0"
-                  max="90"
-                  step="1"
-                  placeholder="0"
-                  value={popupDescontoPercentual || ""}
-                  onChange={(e) => setPopupDescontoPercentual(Math.min(90, Math.max(0, Number(e.target.value))))}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={popupDescontoValor || ""}
+                  onChange={(e) => setPopupDescontoValor(Math.max(0, Number(e.target.value)))}
                   disabled={isPending}
                   className="w-full rounded-lg border border-stone-800 bg-stone-850 px-3 py-2.5 text-xs font-bold text-stone-200 focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
-                {popupCustoUnitario > 0 && popupPrecoTabela > 0 && (
+                {popupCustoUnitario > 0 && (
                   <span className="text-[9px] text-stone-500 block text-right mt-1.5 uppercase">
-                    Custo Mínimo: R$ {popupCustoUnitario.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    Custo do Fornecedor: R$ {popupTotalCusto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </span>
                 )}
+              </div>
+
+              {/* Simulação em Tempo Real */}
+              <div className="rounded-xl bg-stone-850 border border-stone-800 p-3 text-xs space-y-1.5 text-left">
+                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-wider mb-1">Resumo da Simulação</p>
+                <div className="flex justify-between">
+                  <span className="text-stone-400 font-medium">Preço Final Cliente:</span>
+                  <span className="font-bold text-stone-200">R$ {popupPrecoFinalEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-400 font-medium">Seu Lucro Líquido:</span>
+                  <span className="font-black text-emerald-500">R$ {popupLucroEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
               </div>
             </div>
 

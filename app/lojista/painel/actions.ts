@@ -135,7 +135,7 @@ export async function confirmarVendaLojista(
 
   const pedidoId = Number(formData.get("pedidoId"));
   const pagamento = String(formData.get("pagamento") || "Dinheiro");
-  const descontoPercentual = Number(formData.get("descontoPercentual") || 0);
+  const descontoValor = Number(formData.get("descontoValor") || 0);
 
   if (!pedidoId) return { success: false, error: "Pedido inválido." };
 
@@ -174,12 +174,14 @@ export async function confirmarVendaLojista(
       const custoUnitario = Number(
         pedido.custoUnitario || produto?.precoAtacado || 0
       );
+      const precoAtual = Number(pedido.precoUnitario || precoTabela || 0);
+
       const venda = calcularVendaComDesconto({
         precoTabela,
         custoUnitario,
         quantidade,
-        descontoPercentual,
-        precoAtual: Number(pedido.precoUnitario || precoTabela || 0),
+        descontoValor,
+        precoAtual,
       });
 
       estoquePessoal[String(produtoId)] = estoqueAtual - quantidade;
@@ -191,7 +193,7 @@ export async function confirmarVendaLojista(
         where: { id: pedidoId },
         data: {
           precoUnitario: venda.precoFinal,
-          precoTabela,
+          precoTabela: precoAtual, // Salva o valor sugerido do site original
           custoUnitario,
           descontoConcedido: venda.descontoConcedido,
           lucroBruto: venda.lucroBruto,

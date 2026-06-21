@@ -51,19 +51,16 @@ export default async function AdminPage() {
   const totalFaturamento = faturamentoAtacado + receitaVendasQr;
   
   const custoMercadorias = vendasQrConfirmadas.reduce((acc: number, pedido: any) => {
-    const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
-    return acc + Number(pedido.custoUnitario || produto?.precoAtacado || 0) * Number(pedido.quantidade || 1);
+    return acc + Number(pedido.custoUnitario || 0) * Number(pedido.quantidade || 1);
   }, 0);
 
   const descontoConcedido = vendasQrConfirmadas.reduce((acc: number, pedido: any) => {
-    const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
-    const precoTabela = Number(pedido.precoTabela || produto?.preco || 0);
-    const precoVendido = Number(pedido.precoUnitario || 0);
-    const desconto = precoTabela > precoVendido ? (precoTabela - precoVendido) * Number(pedido.quantidade || 1) : 0;
-    return acc + desconto;
+    return acc + Number(pedido.descontoConcedido || 0);
   }, 0);
 
-  const lucroBruto = receitaVendasQr - custoMercadorias;
+  const lucroBruto = vendasQrConfirmadas.reduce((acc: number, pedido: any) => {
+    return acc + Number(pedido.lucroBruto || 0);
+  }, 0);
 
   const valorEmAbertoFornecedor = comprasFornecedor.reduce((acc: number, pedido: any) => {
     if (pedido.saldoFornecedor !== null && pedido.saldoFornecedor !== undefined) {
