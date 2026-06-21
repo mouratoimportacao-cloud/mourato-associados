@@ -1,0 +1,21 @@
+{
+  "name": "Mourato & Associados",
+  "short_name": "M&A",
+  "description": "Perfumaria de luxo, cosméticos e skincare",
+  "start_url": "/produtos",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#D4AF37",
+  "icons": [
+    {
+      "src": "/brand/logo-ma.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/logo-ma.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ export default async function Navbar() {
 
   return (
     <>
-      <nav className="fixed left-0 right-0 top-0 z-50 bg-black/95 backdrop-blur-md border-b border-gold/15 flex flex-col">
+      <nav className="fixed left-0 right-0 top-0 z-50 bg-[#1A1A1A]/98 backdrop-blur-md border-b border-gold/20 flex flex-col">
       <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16">
         {/* Linha Principal (Amazon Style) */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-6 py-3 min-h-20">

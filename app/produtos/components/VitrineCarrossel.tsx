@@ -1,21 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-
-function moeda(valor: number | null | undefined) {
-  return valor ? `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Sob consulta";
-}
-
-function precoPromocional(produto: any) {
-  const preco = Number(produto.preco || 0);
-  const desconto = Number(produto.descontoPercentual || 0);
-
-  if (!produto.promocaoAtiva || !preco || !desconto) {
-    return null;
-  }
-
-  return preco * (1 - desconto / 100);
-}
+import CardProduto from "../../components/CardProduto";
 
 export default function VitrineCarrossel({ produtos }: { produtos: any[] }) {
   const carrosselRef = useRef<HTMLDivElement>(null);
@@ -147,59 +133,13 @@ export default function VitrineCarrossel({ produtos }: { produtos: any[] }) {
         className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-none py-4 px-2"
         style={{ scrollbarWidth: "none" }}
       >
-        {displayProdutos.map((produto: any, index: number) => {
-          const promoPrice = precoPromocional(produto);
-          return (
-            <article
-              key={`${produto.id}-${index}`}
-              className="w-64 shrink-0 overflow-hidden border border-zinc-900 bg-neutral-950 hover:border-gold/30 hover:scale-[1.01] transition-all duration-300 shadow-2xl relative rounded-2xl"
-            >
-              {produto.promocaoAtiva && produto.descontoPercentual ? (
-                <div className="absolute left-3 top-3 z-10 rounded-full bg-red-600 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
-                  -{produto.descontoPercentual}%
-                </div>
-              ) : null}
-              <div className="aspect-[4/5] overflow-hidden bg-neutral-900/50 flex items-center justify-center border-b border-zinc-900">
-                {produto.imagem ? (
-                  <img src={produto.imagem} alt={produto.nome} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-zinc-700 italic font-serif">
-                    M&A
-                  </div>
-                )}
-              </div>
-              <div className="p-5 space-y-3">
-                <div className="flex justify-between gap-3 items-center">
-                  <span className="text-[9px] font-bold text-gold uppercase tracking-widest">{produto.marca}</span>
-                  <span className="text-[9px] text-zinc-500 uppercase tracking-widest">{produto.categoria}</span>
-                </div>
-                <h3 className="text-md font-serif text-gray-100 leading-snug h-12 overflow-hidden line-clamp-2">{produto.nome}</h3>
-                <div className="border-t border-zinc-900 pt-3 space-y-3">
-                  {promoPrice ? (
-                    <div className="rounded-xl bg-red-950/40 border border-red-900/50 px-3 py-2 text-white shadow-md">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">Oferta</span>
-                        <span className="text-[10px] line-through text-zinc-500">{moeda(produto.preco)}</span>
-                      </div>
-                      <div className="text-lg font-black text-red-500 mt-0.5">{moeda(promoPrice)}</div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between rounded-xl border border-zinc-900 px-3 py-2 bg-neutral-900/30">
-                      <span className="text-[10px] uppercase tracking-widest text-zinc-500">Preço</span>
-                      <span className="text-sm font-bold text-gray-200">{moeda(produto.preco)}</span>
-                    </div>
-                  )}
-                  <a
-                    href={`#produto-${produto.id}`}
-                    className="block w-full rounded-full bg-gold hover:bg-white text-black font-bold text-center text-[9px] py-2 px-3 uppercase tracking-widest transition-all"
-                  >
-                    Comprar
-                  </a>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+        {displayProdutos.map((produto: any, index: number) => (
+          <CardProduto
+            key={`${produto.id}-${index}`}
+            produto={produto}
+            variant="compact"
+          />
+        ))}
       </div>
     </div>
   );
