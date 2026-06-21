@@ -130,7 +130,7 @@ export default function ProdutoDetalheClient({ produto }: { produto: Produto }) 
             <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.3em] text-luxury-gold sm:text-xs">{produto.marca}</span>
             <h1 className="text-3xl font-serif tracking-tight text-white sm:text-4xl">{produto.nome}</h1>
             <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 sm:text-sm">
-              Cód. {produto.codigo ?? produto.id} • {produto.volume} • {produto.categoria}
+              {produto.volume} • {produto.categoria}
             </p>
           </div>
 
@@ -146,7 +146,11 @@ export default function ProdutoDetalheClient({ produto }: { produto: Produto }) 
             ) : (
               <div className="text-3xl font-bold text-gold">{moeda(produto.preco)}</div>
             )}
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-green-500">Estoque disponível: {produto.estoque} unidades</p>
+            {produto.estoque > 0 ? (
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-green-500">Estoque disponível: {produto.estoque} unidades</p>
+            ) : (
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-red-500">Não disponível: 0 unidades</p>
+            )}
           </div>
 
           {produto.descricao && (
@@ -172,17 +176,39 @@ export default function ProdutoDetalheClient({ produto }: { produto: Produto }) 
 
           <div className="space-y-4 border-t border-zinc-900 pt-6">
             <div className="flex items-center gap-4">
-              <div className="flex items-center overflow-hidden rounded-full border border-zinc-800 bg-neutral-950">
-                <button type="button" aria-label="Diminuir quantidade" onClick={() => setQuantidade((q) => Math.max(1, q - 1))} className="min-h-11 px-4 font-bold text-zinc-500 hover:text-white">−</button>
-                <span className="w-10 text-center text-xs font-bold text-white">{quantidade}</span>
-                <button type="button" aria-label="Aumentar quantidade" onClick={() => setQuantidade((q) => Math.min(produto.estoque, q + 1))} className="min-h-11 px-4 font-bold text-zinc-500 hover:text-white">+</button>
+              <div className={`flex items-center overflow-hidden rounded-full border bg-neutral-950 ${produto.estoque > 0 ? "border-zinc-800" : "border-zinc-900 opacity-50 pointer-events-none"}`}>
+                <button type="button" aria-label="Diminuir quantidade" disabled={produto.estoque <= 0} onClick={() => setQuantidade((q) => Math.max(1, q - 1))} className="min-h-11 px-4 font-bold text-zinc-500 hover:text-white">−</button>
+                <span className="w-10 text-center text-xs font-bold text-white">{produto.estoque > 0 ? quantidade : 0}</span>
+                <button type="button" aria-label="Aumentar quantidade" disabled={produto.estoque <= 0} onClick={() => setQuantidade((q) => Math.min(produto.estoque, q + 1))} className="min-h-11 px-4 font-bold text-zinc-500 hover:text-white">+</button>
               </div>
               <span className="text-xs font-light text-zinc-500">Selecione a quantidade</span>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <button type="button" onClick={() => handleAddToCart(true)} className="w-full rounded-full bg-gold py-3.5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-white">Comprar</button>
-              <button type="button" onClick={() => handleAddToCart(false)} className="w-full rounded-full border border-zinc-800 bg-neutral-950 py-3.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:border-zinc-600">Adicionar ao carrinho</button>
+              <button 
+                type="button" 
+                disabled={produto.estoque <= 0} 
+                onClick={() => handleAddToCart(true)} 
+                className={`w-full rounded-full py-3.5 text-xs font-black uppercase tracking-widest transition-colors ${
+                  produto.estoque > 0 
+                    ? "bg-gold text-black hover:bg-white" 
+                    : "bg-neutral-900 text-zinc-500 cursor-not-allowed pointer-events-none"
+                }`}
+              >
+                {produto.estoque > 0 ? "Comprar" : "Indisponível"}
+              </button>
+              <button 
+                type="button" 
+                disabled={produto.estoque <= 0} 
+                onClick={() => handleAddToCart(false)} 
+                className={`w-full rounded-full py-3.5 text-xs font-black uppercase tracking-widest transition-colors ${
+                  produto.estoque > 0 
+                    ? "border border-zinc-800 bg-neutral-950 text-white hover:border-zinc-600" 
+                    : "border border-zinc-900 bg-neutral-900/50 text-zinc-500 cursor-not-allowed pointer-events-none"
+                }`}
+              >
+                {produto.estoque > 0 ? "Adicionar ao carrinho" : "Reposição"}
+              </button>
             </div>
 
             <p className="rounded-xl border border-zinc-900 bg-neutral-900/30 px-4 py-3 text-[10px] leading-relaxed text-zinc-500">

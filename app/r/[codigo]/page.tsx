@@ -28,8 +28,7 @@ export default async function CatalogoRevendaPage({ params }: { params: Promise<
     .map((produto: any) => ({
       ...produto,
       estoque: Number(estoquePessoal[String(produto.id)] ?? 0),
-    }))
-    .filter((produto: any) => produto.estoque > 0);
+    }));
 
   return (
     <div className="flex min-h-screen flex-col max-w-full overflow-x-hidden">

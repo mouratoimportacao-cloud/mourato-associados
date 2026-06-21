@@ -291,15 +291,30 @@ function PedidosGrupo({
                             Decisão exclusiva do lojista
                           </span>
                         ) : (
-                          <form action={atualizarStatusPedido} className="admin-action-row inline-flex items-center gap-2">
+                          <form action={atualizarStatusPedido} className="admin-action-row flex items-end gap-2">
                             <input type="hidden" name="pedidoId" value={pedido.id} />
-                            <select name="status" defaultValue={pedido.status} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold uppercase tracking-widest bg-white">
-                              {statuses.map((status) => (
-                                <option key={status} value={status}>{status}</option>
-                              ))}
-                            </select>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Status</span>
+                              <select name="status" defaultValue={pedido.status} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold uppercase tracking-widest bg-white text-gray-800">
+                                {statuses.map((status) => (
+                                  <option key={status} value={status}>{status}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Desconto (R$)</span>
+                              <input
+                                type="number"
+                                name="desconto"
+                                step="0.01"
+                                min="0"
+                                defaultValue={pedido.descontoConcedido || 0}
+                                placeholder="0.00"
+                                className="w-24 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold bg-white text-gray-800"
+                              />
+                            </div>
                             <ConfirmSubmitButton
-                              message={`Confirmar alteração do pedido #${pedido.id} para o status selecionado?`}
+                              message={`Confirmar alteração do pedido #${pedido.id} para o status e desconto selecionados?`}
                               className="rounded-lg bg-luxury-black px-3 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-luxury-gold transition-colors"
                             >
                               📥 Salvar

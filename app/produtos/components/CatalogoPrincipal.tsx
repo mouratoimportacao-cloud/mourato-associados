@@ -22,7 +22,7 @@ type Produto = {
 
 export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: Produto[]; lojistaId?: number | null }) {
   const produtosVitrine = useMemo(
-    () => produtos.filter((produto) => Boolean(produto.vitrine) && (produto.estoque || 0) > 0),
+    () => produtos.filter((produto) => Boolean(produto.vitrine)),
     [produtos]
   );
 

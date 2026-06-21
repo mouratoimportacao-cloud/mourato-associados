@@ -23,6 +23,8 @@ import { getAdminSession } from "../../../lib/auth";
 export async function atualizarStatusPedido(formData: FormData) {
   const pedidoId = Number(formData.get("pedidoId"));
   const status = String(formData.get("status") || "");
+  const descontoInput = formData.get("desconto");
+  const descontoVal = descontoInput !== null && descontoInput !== undefined && descontoInput !== "" ? Number(descontoInput) : null;
 
   if (!pedidoId || !status) return;
 
@@ -32,6 +34,32 @@ export async function atualizarStatusPedido(formData: FormData) {
       const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId } });
       if (!pedido) return;
       pedidoUsuarioId = Number(pedido.usuarioId || 0);
+
+      if (descontoVal !== null && !isNaN(descontoVal)) {
+        const novoDesconto = Math.max(0, descontoVal);
+        const precoTabela = Number(pedido.precoTabela ?? pedido.precoUnitario ?? 0);
+        const quantidade = Number(pedido.quantidade ?? 1);
+        const custoUnitario = Number(pedido.custoUnitario ?? 0);
+
+        const novoTotal = Math.max(0, (precoTabela * quantidade) - novoDesconto);
+        const novoPrecoUnitario = quantidade > 0 ? (novoTotal / quantidade) : 0;
+        const novoLucroBruto = novoTotal - (quantidade * custoUnitario);
+
+        await prisma.pedido.update({
+          where: { id: pedidoId },
+          data: {
+            descontoConcedido: novoDesconto,
+            total: novoTotal,
+            precoUnitario: novoPrecoUnitario,
+            lucroBruto: novoLucroBruto,
+          },
+        });
+
+        pedido.descontoConcedido = novoDesconto;
+        pedido.total = novoTotal;
+        pedido.precoUnitario = novoPrecoUnitario;
+        pedido.lucroBruto = novoLucroBruto;
+      }
 
       if (
         pedido.tipoFluxo === "venda_qr" &&

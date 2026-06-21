@@ -192,7 +192,7 @@ export default function ListaProdutosLojista({
                           <button
                             type="button"
                             onClick={() => setSelectedProduto(produto)}
-                            className="mt-1 text-xs font-bold text-luxury-gold hover:text-luxury-black uppercase tracking-widest"
+                            className="mt-1 text-xs font-bold text-stone-600 hover:text-stone-900 uppercase tracking-widest underline"
                           >
                             Ver produto
                           </button>
@@ -221,7 +221,7 @@ export default function ListaProdutosLojista({
                           max={produto.estoque}
                           defaultValue={1}
                           disabled={produto.estoque <= 0}
-                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-luxury-gold font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
+                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
                         />
                         <button
                           type="button"
@@ -237,8 +237,8 @@ export default function ListaProdutosLojista({
                           disabled={produto.estoque <= 0}
                           className={`rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
                             produto.estoque > 0
-                              ? "bg-luxury-black hover:bg-luxury-gold text-white hover:text-black"
-                              : "bg-gray-100 text-gray-400 pointer-events-none"
+                              ? "bg-white hover:bg-stone-50 text-zinc-950 border border-zinc-200 shadow-sm"
+                              : "bg-stone-100 text-stone-400 pointer-events-none"
                           }`}
                         >
                           {produto.estoque > 0 ? "Adicionar ao Pedido" : "Indisponível"}
@@ -260,7 +260,7 @@ export default function ListaProdutosLojista({
         </div>
 
         {/* MOBILE CARDS VIEW (Fornecedor) */}
-        <div className="md:hidden space-y-4 max-h-[70vh] overflow-y-auto p-1.5 bg-gray-50">
+        <div className="md:hidden space-y-4 p-1.5 bg-gray-50">
           {produtosFiltrados.map((produto) => {
             return (
               <div key={produto.id} className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm space-y-3">
@@ -290,7 +290,7 @@ export default function ListaProdutosLojista({
                     <button
                       type="button"
                       onClick={() => setSelectedProduto(produto)}
-                      className="mt-1 text-[10px] font-black text-luxury-gold hover:text-luxury-black uppercase tracking-wider block"
+                      className="mt-1 text-[10px] font-black text-stone-600 hover:text-stone-900 uppercase tracking-wider block underline"
                     >
                       Ver detalhes
                     </button>
@@ -322,7 +322,7 @@ export default function ListaProdutosLojista({
                       max={produto.estoque}
                       defaultValue={1}
                       disabled={produto.estoque <= 0}
-                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-luxury-gold bg-white font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
+                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-zinc-950 bg-white font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
                     />
                   </div>
                   <button
@@ -339,8 +339,8 @@ export default function ListaProdutosLojista({
                     disabled={produto.estoque <= 0}
                     className={`flex-grow rounded-lg py-2 text-[10px] font-black uppercase tracking-widest transition-colors text-center ${
                       produto.estoque > 0
-                        ? "bg-luxury-black text-white hover:bg-luxury-gold transition-colors cursor-pointer"
-                        : "bg-gray-150 text-gray-400 pointer-events-none"
+                        ? "bg-white text-zinc-950 border border-zinc-200 hover:bg-stone-50 transition-colors cursor-pointer shadow-sm"
+                        : "bg-stone-50 text-stone-400 pointer-events-none"
                     }`}
                   >
                     {produto.estoque > 0 ? "Adicionar ao Pedido" : "Indisponível"}

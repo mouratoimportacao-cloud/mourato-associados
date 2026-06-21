@@ -281,7 +281,6 @@ export default function CatalogoProdutos({
                   <span className="text-[8px] sm:text-[10px] text-zinc-500 font-medium uppercase tracking-tighter truncate max-w-[50%]">{produto.categoria}</span>
                 </div>
                 <h3 className="text-xs sm:text-lg font-serif text-gray-100 leading-tight group-hover:text-gold transition-colors line-clamp-2">
-                  <span className="mr-1 rounded bg-neutral-900 px-1 py-0.5 text-[8px] sm:text-[10px] font-black text-zinc-400 font-sans">Cód. {produto.codigo ?? produto.id}</span>
                   {produto.nome}
                 </h3>
                 <p className="text-[10px] sm:text-xs text-zinc-500 font-light italic">{produto.volume}</p>
@@ -299,7 +298,7 @@ export default function CatalogoProdutos({
                     </span>
                   )}
                   <span className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-widest ${produto.estoque > 0 ? "text-green-500" : "text-red-400"}`}>
-                    {produto.estoque > 0 ? "Disponível" : "Esgotado"}
+                    {produto.estoque > 0 ? "Disponível" : "Não disponível - 0 unidades"}
                   </span>
                 </div>
                  <div className="flex flex-col gap-2 mt-3">
