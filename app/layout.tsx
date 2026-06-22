@@ -28,9 +28,9 @@ export const metadata: Metadata = {
     images: ["/brand/logo-ma.webp"],
   },
   icons: {
-    icon: "/brand/logo-ma.webp",
-    shortcut: "/brand/logo-ma.webp",
-    apple: "/brand/logo-ma.webp",
+    icon: "/brand/logomarca1.png",
+    shortcut: "/brand/logomarca1.png",
+    apple: "/brand/logomarca1.png",
   },
 };
 
