@@ -7,7 +7,8 @@ interface FiltrosProdutosProps {
 }
 
 export default function FiltrosProdutos({ total, quantidade, onChange }: FiltrosProdutosProps) {
-  const opcoes = [total, 8, 16];
+  const opcoesBase = [8, 16].filter(qty => qty < total);
+  const opcoes = [total, ...opcoesBase];
 
   return (
     <div className="flex items-center gap-2.5">
@@ -18,12 +19,12 @@ export default function FiltrosProdutos({ total, quantidade, onChange }: Filtros
           type="button"
           onClick={() => onChange(qty)}
           className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all cursor-pointer ${
-            quantidade === qty || (qty === total && quantidade >= total)
+            (qty === total && quantidade >= total) || quantidade === qty
               ? "bg-gold text-black shadow-sm"
               : "bg-white text-zinc-600 border border-zinc-300 hover:border-gold hover:text-gold"
           }`}
         >
-          {qty >= total ? "Todos" : qty}
+          {qty === total ? "Todos" : qty}
         </button>
       ))}
     </div>

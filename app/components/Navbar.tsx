@@ -18,18 +18,18 @@ export default async function Navbar() {
 
   return (
     <>
-      <nav className="fixed left-0 right-0 top-0 z-50 bg-[#1A1A1A]/98 backdrop-blur-md border-b border-gold/20 flex flex-col">
-      <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16">
+      <nav className="fixed left-0 right-0 top-0 z-50 bg-white/98 backdrop-blur-md flex flex-col">
+      <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16 bg-[#0A0A0A]">
         {/* Linha Principal (Amazon Style) */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-6 py-2 md:py-3 min-h-14 md:min-h-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-6 py-1.5 md:py-5 min-h-12 md:min-h-[100px]">
           
           {/* Logo Mourato & Associados */}
           <div className="flex justify-between items-center w-full md:w-auto flex-shrink-0">
             <Link
               href="/"
-              className="text-sm sm:text-lg md:text-xl font-serif font-black brand-text-relief-gold transition-all duration-300 tracking-wider whitespace-nowrap"
+              className="flex items-center transition-all duration-300"
             >
-              MOURATO & ASSOCIADOS
+              <img src="/brand/logomarca1.png" alt="Mourato & Associados" className="h-10 sm:h-[60px] md:h-[70px] w-auto rounded-full" />
             </Link>
 
             {/* Mobile Actions: Carrinho */}
@@ -39,8 +39,8 @@ export default async function Navbar() {
           </div>
 
           {/* Barra de Busca Centralizada (Ocupa ~50% no Desktop) */}
-          <div className="w-full md:flex-grow md:max-w-xl lg:max-w-2xl">
-            <Suspense fallback={<div className="h-10 bg-neutral-900 rounded-full w-full animate-pulse border border-zinc-800" />}>
+          <div className="w-full md:flex-grow md:max-w-sm lg:max-w-md">
+            <Suspense fallback={<div className="h-10 bg-zinc-800 rounded-full w-full animate-pulse border border-zinc-600" />}>
               <NavbarBusca />
             </Suspense>
           </div>
@@ -49,7 +49,7 @@ export default async function Navbar() {
           <div className="hidden md:flex items-center justify-end gap-3 flex-shrink-0">
             <Link
               href="/lojista"
-              className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-gold transition-colors font-bold mr-1"
+              className="text-[10px] uppercase tracking-widest text-zinc-300 hover:text-gold transition-colors font-bold mr-1"
             >
               Área Lojista
             </Link>
@@ -65,7 +65,7 @@ export default async function Navbar() {
                     rel="noopener noreferrer"
                     aria-label={social.label}
                     title={social.label}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-full social-embossed p-2"
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-full border border-zinc-600 hover:border-gold bg-transparent p-2 transition-all hover:scale-105"
                   >
                     <img src={social.icon} alt="" className="h-full w-full object-contain hover:scale-105 transition-transform duration-300" />
                   </a>
@@ -75,9 +75,9 @@ export default async function Navbar() {
 
             <Link
               href="/admin"
-              className="text-[9px] border border-gold/30 text-gold px-2.5 py-1.5 uppercase tracking-wider hover:bg-gold hover:text-black transition-all font-bold rounded"
+              className="text-[9px] border border-zinc-600 text-zinc-400 px-2.5 py-1.5 uppercase tracking-wider hover:bg-gold hover:text-black hover:border-gold transition-all font-bold rounded opacity-50 hover:opacity-100"
             >
-              Restrito
+              Admin
             </Link>
 
             <CarrinhoButton />
@@ -87,7 +87,7 @@ export default async function Navbar() {
       </div>
 
       {/* Linha Inferior: Categorias */}
-      <Suspense fallback={<div className="h-[40px] bg-neutral-950/90 border-t border-zinc-900/60 w-full animate-pulse" />}>
+      <Suspense fallback={<div className="h-[40px] bg-[#0A0A0A] border-t border-zinc-800 w-full animate-pulse" />}>
         <NavbarCategorias />
       </Suspense>
 

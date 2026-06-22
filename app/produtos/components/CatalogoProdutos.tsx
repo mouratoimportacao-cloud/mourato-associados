@@ -206,7 +206,7 @@ export default function CatalogoProdutos({
       <section className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <span className="text-gold text-[10px] font-bold uppercase tracking-[0.3em] mb-1 block font-sans">Catálogo Completo</span>
-          <h2 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A]">Escolha sua fragrância</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif bg-gradient-to-r from-white to-[#D4AF37] bg-clip-text text-transparent font-black leading-relaxed">Escolha sua fragrância</h2>
         </div>
         <Link href="/lojista" className="px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white text-zinc-600 border border-zinc-300 hover:border-gold hover:text-gold transition-all text-center">Área Lojista</Link>
       </section>

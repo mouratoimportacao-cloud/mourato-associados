@@ -44,7 +44,7 @@ export default function NavbarCategorias() {
   };
 
   return (
-    <div className="w-full bg-neutral-950/90 border-t border-zinc-900/60 overflow-x-auto scrollbar-none scroll-smooth">
+    <div className="w-full bg-[#0A0A0A] overflow-x-auto scrollbar-none scroll-smooth">
       <div className="max-w-7xl mx-auto flex items-center gap-6 sm:gap-8 px-4 sm:px-8 py-2.5 whitespace-nowrap min-h-[40px] justify-start md:justify-center">
         {CATEGORIAS.map((cat) => {
           const isActive = activeCategory === cat.value;
@@ -53,7 +53,7 @@ export default function NavbarCategorias() {
               key={cat.label}
               type="button"
               onClick={() => handleCategorySelect(cat.value)}
-              className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 pb-0.5 cursor-pointer hover:text-gold ${
+              className={`text-[9px] sm:text-[13px] md:text-[15px] font-semibold uppercase tracking-wide transition-all duration-300 pb-0.5 cursor-pointer hover:text-gold ${
                 isActive
                   ? "text-gold border-b border-gold font-extrabold"
                   : "text-zinc-400"

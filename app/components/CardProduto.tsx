@@ -53,7 +53,7 @@ export default function CardProduto({ produto, variant = "full", onAddToCart }: 
   return (
     <div
       id={!isCompact ? `produto-${produto.id}` : undefined}
-      className={`${isCompact ? "w-64 shrink-0 overflow-hidden" : "group/card flex flex-col h-full overflow-visible"} border border-zinc-800 bg-[#111111] shadow-lg hover:shadow-xl hover:border-gold/30 rounded-2xl transition-all duration-300 text-white`}
+      className={`${isCompact ? "w-64 shrink-0 overflow-hidden" : "group/card flex flex-col h-full overflow-visible"} border border-zinc-500/30 bg-[#1E1E1E] shadow-lg hover:shadow-xl hover:border-gold/40 rounded-2xl transition-all duration-300 text-white`}
     >
       {/* Imagem */}
       <div className={`relative ${isCompact ? "aspect-[4/5]" : "aspect-[3/4]"} overflow-hidden bg-neutral-900/50 ${isCompact ? "" : "m-2 rounded-xl border border-zinc-800/50"}`}>

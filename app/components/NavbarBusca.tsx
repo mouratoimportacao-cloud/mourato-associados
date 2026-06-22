@@ -35,7 +35,7 @@ export default function NavbarBusca() {
         value={busca}
         onChange={handleChange}
         placeholder="Buscar perfume, marca, fragrância..."
-        className="w-full h-10 rounded-full border border-zinc-800 bg-neutral-900 px-5 pr-12 text-xs text-white placeholder-zinc-500 shadow-inner outline-none transition duration-300 focus:border-gold focus:ring-1 focus:ring-gold/30"
+        className="w-full h-9 sm:h-10 rounded-full border border-zinc-600 bg-zinc-800 px-4 sm:px-5 pr-10 sm:pr-12 text-[11px] sm:text-xs text-white placeholder-zinc-400 shadow-inner outline-none transition duration-300 focus:border-gold focus:ring-1 focus:ring-gold/30"
       />
       <button
         type="submit"
