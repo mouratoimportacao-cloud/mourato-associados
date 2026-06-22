@@ -6,7 +6,7 @@ import { getAdminSession } from "../../../lib/auth";
 
 export async function limparTodosPedidosAction() {
   const session = await getAdminSession();
-  if (!session) return { success: false, error: "Não autorizado" };
+  if (!session) return;
 
   try {
     const pedidos = await prisma.pedido.findMany();
@@ -14,7 +14,6 @@ export async function limparTodosPedidosAction() {
       await prisma.pedido.delete({ where: { id: p.id } });
     }
 
-    // Resetar o estoquePessoal de todos os lojistas
     const usuarios = await prisma.usuario.findMany({
       where: { tipo: "lojista" },
     });
@@ -32,9 +31,7 @@ export async function limparTodosPedidosAction() {
     revalidatePath("/admin/pedidos");
     revalidatePath("/admin/lojistas");
     revalidatePath("/lojista/painel");
-    return { success: true };
   } catch (error) {
     console.error("Erro ao limpar pedidos:", error);
-    return { success: false, error: "Erro interno" };
   }
 }

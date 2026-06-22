@@ -2,7 +2,7 @@
 
 import { deleteProduto } from "../actions";
 import { useMemo, useState, useTransition } from "react";
-import FiltrosProdutos from "../../../components/FiltrosProdutos";
+
 import OptimizedImage from "../../../components/OptimizedImage";
 
 interface Produto {
@@ -143,7 +143,7 @@ export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutos
             <p className="text-xs text-gray-500 font-sans">Mostrando {produtosFiltrados.length} de {produtos.length} produtos</p>
           </div>
         </div>
-        <FiltrosProdutos theme="light" onChange={setFiltros} />
+        {/* Filtros removidos - categorias no navbar */}
       </div>
       <div className="admin-table-scroll max-h-[70vh] overflow-auto">
         <table className="min-w-full divide-y divide-gray-200">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import FiltrosProdutos from "../../../components/FiltrosProdutos";
+
 import OptimizedImage from "../../../components/OptimizedImage";
 
 interface Produto {
@@ -151,7 +151,7 @@ export default function ListaProdutosLojista({
               <p className="text-xs text-gray-500 font-sans">Mostrando {produtosFiltrados.length} de {produtos.length} produtos disponíveis</p>
             </div>
           </div>
-          <FiltrosProdutos theme="light" onChange={setFiltros} />
+          {/* Filtros removidos */}
         </div>
 
         <div className="admin-table-scroll max-h-[72vh] overflow-auto hidden md:block">
