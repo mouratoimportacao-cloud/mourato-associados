@@ -21,36 +21,19 @@ export default async function Navbar() {
       <nav className="fixed left-0 right-0 top-0 z-50 bg-[#1A1A1A]/98 backdrop-blur-md border-b border-gold/20 flex flex-col">
       <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16">
         {/* Linha Principal (Amazon Style) */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-6 py-3 min-h-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-6 py-2 md:py-3 min-h-14 md:min-h-20">
           
           {/* Logo Mourato & Associados */}
           <div className="flex justify-between items-center w-full md:w-auto flex-shrink-0">
             <Link
               href="/"
-              className="text-lg sm:text-xl font-serif font-black brand-text-relief-gold transition-all duration-300 tracking-wider whitespace-nowrap"
+              className="text-sm sm:text-lg md:text-xl font-serif font-black brand-text-relief-gold transition-all duration-300 tracking-wider whitespace-nowrap"
             >
               MOURATO & ASSOCIADOS
             </Link>
 
-            {/* Mobile Actions: Carrinho e Redes Sociais */}
+            {/* Mobile Actions: Carrinho */}
             <div className="flex md:hidden items-center gap-2">
-              <div className="flex items-center gap-1">
-                {socials.slice(0, 3).map((social) =>
-                  social.href ? (
-                    <a
-                      key={social.label}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={social.label}
-                      title={social.label}
-                      className="h-6 w-6 inline-flex items-center justify-center rounded-full social-embossed p-1"
-                    >
-                      <img src={social.icon} alt="" className="h-full w-full object-contain" />
-                    </a>
-                  ) : null
-                )}
-              </div>
               <CarrinhoButton />
             </div>
           </div>

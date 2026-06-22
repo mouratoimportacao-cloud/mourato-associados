@@ -56,15 +56,15 @@ export default async function Footer() {
               )}
             </div>
             {socialLinks.whatsapp && (
-              <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-[11px] text-zinc-400 hover:text-gold transition-colors">
+              <a href="https://wa.me/5511978990034" target="_blank" rel="noopener noreferrer" className="text-[11px] text-zinc-400 hover:text-gold transition-colors">
                 Fale conosco via WhatsApp
               </a>
             )}
           </div>
 
           {/* QR Code */}
-          <div className="col-span-2 sm:col-span-1 flex sm:justify-end">
-            <div className="flex items-center gap-3">
+          <div className="col-span-2 sm:col-span-1 flex justify-center sm:justify-end">
+            <div className="flex flex-col sm:flex-row items-center gap-3">
               <div className="rounded-xl border border-gold/30 bg-white p-2 shadow-lg">
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(socialLinks.siteUrl)}`}
@@ -72,7 +72,7 @@ export default async function Footer() {
                   className="h-20 w-20 object-contain"
                 />
               </div>
-              <p className="text-[9px] text-zinc-400 max-w-[80px] leading-tight">Escaneie para acessar o catálogo</p>
+              <p className="text-[9px] text-zinc-400 text-center sm:text-left sm:max-w-[80px] leading-tight">Escaneie para acessar o catálogo</p>
             </div>
           </div>
         </div>
@@ -80,12 +80,12 @@ export default async function Footer() {
         {/* Copyright + Confiança */}
         <div className="border-t border-zinc-800 mt-6 pt-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div className="flex flex-wrap items-center gap-4 text-[10px] text-zinc-400">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[10px] text-zinc-400">
               <span className="border border-gold/20 rounded px-2 py-1">✓ Garantia de Autenticidade</span>
               <span className="border border-gold/20 rounded px-2 py-1">✓ Produto 100% Original</span>
             </div>
             <p className="text-[10px] text-zinc-500">
-              © 2026 Mourato & Associados · CNPJ: 00.000.000/0001-00
+              © 2026 Mourato & Associados. Todos os direitos reservados.
             </p>
           </div>
         </div>

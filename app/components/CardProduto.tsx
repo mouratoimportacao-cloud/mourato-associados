@@ -153,32 +153,73 @@ export default function CardProduto({ produto, variant = "full", onAddToCart }: 
               </svg>
             </button>
 
-            {/* Dropdown */}
+            {/* Dropdown desktop / Bottom sheet mobile */}
             {detalhesAberto && (
-              <div data-dropdown className="absolute left-0 right-0 z-20 bg-[#0D0D0D] border border-gold/20 rounded-xl p-4 shadow-2xl space-y-2.5 text-[11px]">
-                {produto.descricao && (
-                  <p className="leading-relaxed text-white">{produto.descricao}</p>
-                )}
-                {produto.descricao_olfativa && (
-                  <p className="italic text-gold/80">&ldquo;{produto.descricao_olfativa}&rdquo;</p>
-                )}
-                {produto.concentracao && (
-                  <div><span className="text-gold font-bold">Concentração:</span> <span className="text-white">{produto.concentracao}</span></div>
-                )}
-                {(produto.notas_topo || produto.notas_coracao || produto.notas_fundo) && (
-                  <div className="space-y-1">
-                    <span className="text-gold font-bold block">Notas Olfativas:</span>
-                    <div className="pl-2 border-l-2 border-gold/50 space-y-1">
-                      {produto.notas_topo && <div><span className="text-gold/70 font-medium">Topo:</span> <span className="text-white">{produto.notas_topo}</span></div>}
-                      {produto.notas_coracao && <div><span className="text-gold/70 font-medium">Coração:</span> <span className="text-white">{produto.notas_coracao}</span></div>}
-                      {produto.notas_fundo && <div><span className="text-gold/70 font-medium">Fundo:</span> <span className="text-white">{produto.notas_fundo}</span></div>}
+              <>
+                {/* Desktop dropdown */}
+                <div data-dropdown className="hidden sm:block absolute left-0 right-0 z-20 bg-[#0D0D0D] border border-gold/20 rounded-xl p-4 shadow-2xl space-y-2.5 text-[11px]">
+                  {produto.descricao && (
+                    <p className="leading-relaxed text-white">{produto.descricao}</p>
+                  )}
+                  {produto.descricao_olfativa && (
+                    <p className="italic text-gold/80">&ldquo;{produto.descricao_olfativa}&rdquo;</p>
+                  )}
+                  {produto.concentracao && (
+                    <div><span className="text-gold font-bold">Concentração:</span> <span className="text-white">{produto.concentracao}</span></div>
+                  )}
+                  {(produto.notas_topo || produto.notas_coracao || produto.notas_fundo) && (
+                    <div className="space-y-1">
+                      <span className="text-gold font-bold block">Notas Olfativas:</span>
+                      <div className="pl-2 border-l-2 border-gold/50 space-y-1">
+                        {produto.notas_topo && <div><span className="text-gold/70 font-medium">Topo:</span> <span className="text-white">{produto.notas_topo}</span></div>}
+                        {produto.notas_coracao && <div><span className="text-gold/70 font-medium">Coração:</span> <span className="text-white">{produto.notas_coracao}</span></div>}
+                        {produto.notas_fundo && <div><span className="text-gold/70 font-medium">Fundo:</span> <span className="text-white">{produto.notas_fundo}</span></div>}
+                      </div>
                     </div>
+                  )}
+                  {produto.similaridade_inspiracao && (
+                    <div><span className="text-gold font-bold">Inspirado em:</span> <span className="text-white">{produto.similaridade_inspiracao}</span></div>
+                  )}
+                </div>
+
+                {/* Mobile bottom sheet */}
+                <div className="sm:hidden fixed inset-0 z-50" onClick={() => setDetalhesAberto(false)}>
+                  <div className="absolute inset-0 bg-black/60" />
+                  <div className="absolute bottom-0 left-0 right-0 bg-[#0D0D0D] border-t border-gold/20 rounded-t-2xl p-5 space-y-3 text-[12px] max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-10 h-1 bg-zinc-600 rounded-full mx-auto mb-3" />
+                    <h4 className="text-sm font-serif text-white font-bold">{produto.nome}</h4>
+                    {produto.descricao && (
+                      <p className="leading-relaxed text-zinc-300">{produto.descricao}</p>
+                    )}
+                    {produto.descricao_olfativa && (
+                      <p className="italic text-gold/80">&ldquo;{produto.descricao_olfativa}&rdquo;</p>
+                    )}
+                    {produto.concentracao && (
+                      <div><span className="text-gold font-bold">Concentração:</span> <span className="text-white">{produto.concentracao}</span></div>
+                    )}
+                    {(produto.notas_topo || produto.notas_coracao || produto.notas_fundo) && (
+                      <div className="space-y-1">
+                        <span className="text-gold font-bold block">Notas Olfativas:</span>
+                        <div className="pl-3 border-l-2 border-gold/50 space-y-1">
+                          {produto.notas_topo && <div><span className="text-gold/70 font-medium">Topo:</span> <span className="text-white">{produto.notas_topo}</span></div>}
+                          {produto.notas_coracao && <div><span className="text-gold/70 font-medium">Coração:</span> <span className="text-white">{produto.notas_coracao}</span></div>}
+                          {produto.notas_fundo && <div><span className="text-gold/70 font-medium">Fundo:</span> <span className="text-white">{produto.notas_fundo}</span></div>}
+                        </div>
+                      </div>
+                    )}
+                    {produto.similaridade_inspiracao && (
+                      <div><span className="text-gold font-bold">Inspirado em:</span> <span className="text-white">{produto.similaridade_inspiracao}</span></div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setDetalhesAberto(false)}
+                      className="block w-full rounded-full py-3 mt-3 text-center text-[10px] font-black uppercase tracking-widest bg-zinc-800 text-white hover:bg-zinc-700 cursor-pointer"
+                    >
+                      Fechar
+                    </button>
                   </div>
-                )}
-                {produto.similaridade_inspiracao && (
-                  <div><span className="text-gold font-bold">Inspirado em:</span> <span className="text-white">{produto.similaridade_inspiracao}</span></div>
-                )}
-              </div>
+                </div>
+              </>
             )}
           </div>
         )}
@@ -202,12 +243,13 @@ export default function CardProduto({ produto, variant = "full", onAddToCart }: 
             </button>
           ) : (
             <a
-              href={`https://wa.me/5511999999999?text=${encodeURIComponent(`Olá! Tenho interesse no produto: ${produto.nome} (${produto.volume}) - ${moeda(produto.preco)}`)}`}
+              href={`https://wa.me/5511978990034?text=${encodeURIComponent(`Olá! Tenho interesse no produto: ${produto.nome} (${produto.volume}) - ${moeda(produto.preco)}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full rounded-full py-3 text-center text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer bg-green-600 text-white hover:bg-green-500"
+              className="block w-full rounded-full py-3 text-center text-[10px] sm:text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer bg-green-600 text-white hover:bg-green-500"
             >
-              Encomendar via WhatsApp
+              <span className="hidden sm:inline">Encomendar via WhatsApp</span>
+              <span className="sm:hidden">Encomendar</span>
             </a>
           )}
         </div>

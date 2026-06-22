@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 
 const CATEGORIAS = [
   { label: "Ver Todos", value: "todos" },
-  { label: "Masculinos", value: "Perfume Masculino" },
-  { label: "Femininos", value: "Perfume Feminino" },
+  { label: "Masculinos", value: "Masculino" },
+  { label: "Femininos", value: "Feminino" },
   { label: "Árabes", value: "Perfume Árabe" },
   { label: "Cosméticos", value: "Cosmético" },
   { label: "Kits & Presentes", value: "Kits" },

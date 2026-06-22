@@ -60,7 +60,7 @@ export default function CatalogoProdutos({
 }) {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("todos");
-  const [quantidade, setQuantidade] = useState(8);
+  const [quantidade, setQuantidade] = useState(999);
   const searchParams = useSearchParams();
 
   // Sincroniza busca da URL
@@ -126,10 +126,14 @@ export default function CatalogoProdutos({
             getArrayValue(produto.tags).includes("Perfume Árabe");
           if (!isArab) return false;
         } else {
-          const matchesLegacyCat = 
+          // Verifica categoria, categoria_principal, genero e tags
+          const pTags = getArrayValue(produto.tags);
+          const matchesCat = 
             produto.categoria === categoria || 
-            produto.categoria_principal === categoria;
-          if (!matchesLegacyCat) return false;
+            produto.categoria_principal === categoria ||
+            produto.genero === categoria ||
+            pTags.includes(categoria);
+          if (!matchesCat) return false;
         }
       }
 
@@ -144,6 +148,7 @@ export default function CatalogoProdutos({
         (produto.similaridade_inspiracao || "").toLowerCase().includes(termo);
       if (!passaBusca) return false;
 
+      // 3. Fim dos filtros
       return true;
     });
   }, [busca, categoria, produtosOrdenados]);
@@ -198,12 +203,12 @@ export default function CatalogoProdutos({
 
   return (
     <>
-      <section className="mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <section className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <span className="text-luxury-gold text-[10px] font-bold uppercase tracking-[0.3em] mb-3 block font-sans">Catálogo Completo</span>
-          <h2 className="text-4xl font-serif text-[#1A1A1A]">Escolha sua fragrância</h2>
+          <span className="text-gold text-[10px] font-bold uppercase tracking-[0.3em] mb-1 block font-sans">Catálogo Completo</span>
+          <h2 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A]">Escolha sua fragrância</h2>
         </div>
-        <Link href="/lojista" className="btn-luxury-outline text-center">Área Lojista</Link>
+        <Link href="/lojista" className="px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white text-zinc-600 border border-zinc-300 hover:border-gold hover:text-gold transition-all text-center">Área Lojista</Link>
       </section>
 
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -213,7 +218,7 @@ export default function CatalogoProdutos({
         <FiltrosProdutos total={produtosFiltrados.length} quantidade={quantidade} onChange={setQuantidade} />
       </div>
 
-      <div className="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 sm:gap-x-8 sm:gap-y-16">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-x-6 sm:gap-y-10">
         {produtosVisiveis.map((produto) => (
           <CardProduto
             key={produto.id}

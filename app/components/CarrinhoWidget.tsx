@@ -634,7 +634,7 @@ export default function CarrinhoWidget() {
             </button>
 
             <a
-              href={`https://wa.me/5511999999999?text=${encodeURIComponent(
+              href={`https://wa.me/5511978990034?text=${encodeURIComponent(
                 `Olá! Gostaria de finalizar meu pedido:\n\n${cartItems.map(item => `• ${item.nome} (${item.volume}) x${item.quantidade} - ${formatMoeda(item.preco * item.quantidade)}`).join('\n')}\n\nTotal: ${formatMoeda(subtotal)}`
               )}`}
               target="_blank"

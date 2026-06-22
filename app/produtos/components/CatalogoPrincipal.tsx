@@ -28,21 +28,17 @@ export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: P
 
   return (
     <div className="space-y-12">
-      {/* Vitrine de Destaques */}
+      {/* Destaques */}
       {produtosVitrine.length > 0 && (
-        <section className="relative overflow-hidden rounded-[2rem] border-2 border-gold/30 bg-neutral-950 p-6 md:p-8 lg:p-10 shadow-[0_0_35px_rgba(212,175,55,0.07)]">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
-          
-          <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+        <section className="mb-8 bg-[#1A1A1A] rounded-2xl p-5 sm:p-8 border border-gold/15 shadow-lg">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="h-6 w-1 bg-gold rounded-full" />
             <div>
-              <span className="text-gold text-[10px] font-bold uppercase tracking-[0.35em] block mb-2 font-sans">
-                Destaques & Promoções
+              <span className="text-gold text-[9px] font-bold uppercase tracking-[0.35em] block font-sans">
+                Destaques
               </span>
-              <h2 className="text-3xl font-serif text-white">Vitrine M&A Fragrâncias</h2>
+              <h2 className="text-xl sm:text-2xl font-serif text-white">Em Destaque</h2>
             </div>
-            <p className="text-zinc-500 text-xs font-light max-w-md">
-              Deslize ou use as setas laterais para consultar nossos destaques e ofertas.
-            </p>
           </div>
           <VitrineCarrossel produtos={produtosVitrine} />
         </section>

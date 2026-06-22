@@ -43,7 +43,7 @@ export default function CarrinhoButton() {
       onClick={handleOpenCart}
       aria-label={`Carrinho de Compras, ${itemCount} itens`}
       title="Ver meu carrinho de compras"
-      className="relative h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-gold/15 hover:border-gold/60 bg-[#0D0D0D] hover:bg-gold/5 text-gold text-[9px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-md active:scale-95"
+      className="relative h-10 px-2.5 sm:px-3.5 inline-flex items-center gap-2 rounded-lg border border-gold/15 hover:border-gold/60 bg-[#0D0D0D] hover:bg-gold/5 text-gold text-[9px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-md active:scale-95"
     >
       <div className="relative h-5 w-5">
         <svg
@@ -66,7 +66,7 @@ export default function CarrinhoButton() {
           </span>
         )}
       </div>
-      <span>Carrinho</span>
+      <span className="hidden sm:inline">Carrinho</span>
     </button>
   );
 }
