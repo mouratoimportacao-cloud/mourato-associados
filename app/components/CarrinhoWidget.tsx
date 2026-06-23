@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { obterLojistaPorCodigo, registrarIntencaoCompraCarrinho } from "../produtos/actions";
+import { criarPreferenciaPagamento } from "../checkout/actions";
 import OptimizedImage from "./OptimizedImage";
 
 interface CartItem {
@@ -162,20 +163,39 @@ export default function CarrinhoWidget() {
         quantidade: item.quantidade,
       }));
 
+      // 1. Registra pedido no banco
       const res = await registrarIntencaoCompraCarrinho(
         itemsPayload,
         params.codigo || null,
         clienteInfo
       );
 
-      if (res.success) {
-        setCheckoutSuccess({ message: res.message });
-        // Limpa carrinho
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+
+      // 2. Cria preferência no Mercado Pago
+      const mpItems = cartItems.map((item) => ({
+        nome: item.nome,
+        quantidade: item.quantidade,
+        preco: item.preco,
+      }));
+
+      const mp = await criarPreferenciaPagamento(mpItems, clienteInfo);
+
+      if (mp.success && mp.url) {
+        // Limpa carrinho e redireciona para Mercado Pago
         localStorage.removeItem("ma-cart");
         setCartItems([]);
         window.dispatchEvent(new CustomEvent("cart-updated"));
+        window.location.href = mp.url;
       } else {
-        alert(res.message);
+        // Mercado Pago falhou mas pedido foi registrado
+        setCheckoutSuccess({ message: res.message + " (Pagamento será confirmado via WhatsApp)" });
+        localStorage.removeItem("ma-cart");
+        setCartItems([]);
+        window.dispatchEvent(new CustomEvent("cart-updated"));
       }
     });
   };
@@ -609,7 +629,7 @@ export default function CarrinhoWidget() {
             </div>
 
             <p className="text-[10px] text-zinc-500 font-light leading-relaxed">
-              Checkout preparado para Mercado Pago. Até a ativação das credenciais, o pedido será registrado para atendimento e confirmação.
+              Pagamento seguro via Mercado Pago. Aceita PIX, cartão de crédito e débito.
             </p>
 
             <button
