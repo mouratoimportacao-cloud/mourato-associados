@@ -70,7 +70,7 @@ export async function atualizarStatusPedido(formData: FormData) {
         );
       }
 
-    const statusEntrega = ["pago", "enviado", "entregue"];
+    const statusEntrega = ["aguardando pagamento", "pago", "enviado", "entregue"];
     const pagamento = String(pedido.pagamento || "");
 
     const fluxoFornecedor =
@@ -354,11 +354,11 @@ export async function deletePedido(
 
   if (
     pedido &&
-    ["pago", "enviado", "entregue", "cancelado"].includes(pedido.status)
+    ["aguardando pagamento", "pago", "enviado", "entregue", "cancelado"].includes(pedido.status)
   ) {
     return {
       success: false,
-      error: "Não é permitido excluir pedido com status finalizado",
+      error: "Não é permitido excluir pedido com status finalizado ou em processo de pagamento",
     };
   }
 
