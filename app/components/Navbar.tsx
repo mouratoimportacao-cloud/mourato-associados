@@ -36,26 +36,15 @@ export default async function Navbar() {
               />
             </Link>
 
-            {/* Mobile Actions: Carrinho e Redes Sociais */}
-            <div className="flex md:hidden items-center gap-2">
-              <div className="flex items-center gap-1">
-                {socials.slice(0, 3).map((social) =>
-                  social.href ? (
-                    <a
-                      key={social.label}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={social.label}
-                      title={social.label}
-                      className="h-6 w-6 inline-flex items-center justify-center rounded-full social-embossed p-1"
-                    >
-                      <img src={social.icon} alt="" className="h-full w-full object-contain" />
-                    </a>
-                  ) : null
-                )}
-              </div>
+            {/* Mobile Actions: Apenas Carrinho e Lojista */}
+            <div className="flex md:hidden items-center gap-3">
               <CarrinhoButton />
+              <Link
+                href="/lojista"
+                className="text-[9px] font-black border border-gold/40 text-gold hover:bg-gold hover:text-black transition-all px-2.5 py-1.5 rounded uppercase tracking-wider whitespace-nowrap"
+              >
+                Lojista
+              </Link>
             </div>
           </div>
 

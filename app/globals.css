@@ -269,3 +269,12 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #FDFDFD !important;
   transition: background-color 5000s ease-in-out 0s !important;
 }
+
+/* Ocultar barra de rolagem mantendo a funcionalidade de scroll */
+.scrollbar-none {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;  /* Chrome, Safari and Opera */
+}
