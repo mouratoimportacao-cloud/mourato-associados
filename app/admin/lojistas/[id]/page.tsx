@@ -150,7 +150,7 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
-            <img src="/brand/logo-ma.webp" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
+            <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
           </Link>
           <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Painel de Gestão</p>
         </div>
@@ -172,7 +172,7 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
             <span>🎯</span> Radar
           </Link>
           <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>📊</span> DRE
+            <span>💰</span> Financeiro
           </Link>
           <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>⚙️</span> Configurar

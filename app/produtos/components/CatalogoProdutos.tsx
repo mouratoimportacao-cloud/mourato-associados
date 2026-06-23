@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { slugify } from "../../../lib/slug";
 import FiltrosProdutos from "../../components/FiltrosProdutos";
-import CardProduto from "../../components/CardProduto";
+import OptimizedImage from "../../components/OptimizedImage";
 
 type Produto = {
   id: number;
@@ -53,22 +54,23 @@ function precoPromocional(produto: Produto) {
 
 export default function CatalogoProdutos({ 
   produtos, 
-  lojistaId 
+  lojistaId,
 }: { 
   produtos: Produto[]; 
   lojistaId?: number | null; 
 }) {
-  const [busca, setBusca] = useState("");
-  const [categoria, setCategoria] = useState("todos");
-  const [quantidade, setQuantidade] = useState(999);
   const searchParams = useSearchParams();
-
-  // Sincroniza busca da URL
-  useEffect(() => {
-    const query = searchParams.get("busca") || "";
-    setBusca(query);
-  }, [searchParams]);
-
+  const [busca, setBusca] = useState(() => searchParams.get("busca") || "");
+  const [categoria, setCategoria] = useState("todos");
+  const [filtros, setFiltros] = useState<any>({
+    origem: "todos",
+    genero: "todos",
+    concentracao: "todos",
+    categoriaPrincipal: "todos",
+    tags: [],
+    familiaOlfativa: [],
+    ocasiaoUso: []
+  });
   // Escuta os eventos globais da Navbar (Busca e Categoria)
   useEffect(() => {
     const handleSearch = (e: Event) => {
@@ -109,31 +111,69 @@ export default function CatalogoProdutos({
     const termo = busca.trim().toLowerCase();
 
     return produtosOrdenados.filter((produto) => {
-      // 1. Filtragem da Categoria do Menu/Navbar
+      // 1. Filtragem da Categoria do Menu/Navbar (Legado)
       if (categoria !== "todos") {
         if (categoria === "Promoções") {
-          if (!produto.promocaoAtiva) return false;
-        } else if (categoria === "Kits") {
+          const isPromo =
+            produto.promocaoAtiva ||
+            (produto.descontoPercentual && Number(produto.descontoPercentual) > 0);
+          if (!isPromo) return false;
+        } else if (categoria === "Kits" || categoria === "Kit") {
           const isKit =
+            produto.categoria === "Kit" ||
+            produto.categoria === "Kits" ||
+            produto.categoria_principal === "Kit" ||
+            produto.categoria_principal === "Kits" ||
             produto.nome.toLowerCase().includes("kit") ||
             produto.volume.toLowerCase().includes("kit") ||
             produto.categoria.toLowerCase().includes("kit") ||
-            (produto.categoria_principal || "").toLowerCase().includes("kit");
+            (produto.categoria_principal || "").toLowerCase().includes("kit") ||
+            getArrayValue(produto.tags).includes("Kit") ||
+            getArrayValue(produto.tags).includes("Kits");
           if (!isKit) return false;
         } else if (categoria === "Perfume Árabe") {
           const isArab = 
             produto.categoria === "Perfume Árabe" || 
-            getArrayValue(produto.tags).includes("Perfume Árabe");
+            produto.categoria === "Perfumes Árabes" ||
+            getArrayValue(produto.tags).includes("Perfume Árabe") ||
+            getArrayValue(produto.tags).includes("Perfumes Árabes");
           if (!isArab) return false;
+        } else if (categoria === "Perfume Masculino") {
+          const isMasculino =
+            getArrayValue(produto.tags).includes("Masculino") ||
+            produto.genero === "Masculino" ||
+            produto.categoria === "Perfume Masculino" ||
+            produto.categoria === "Masculino" ||
+            produto.nome.toLowerCase().includes("for man") ||
+            produto.nome.toLowerCase().includes("men") ||
+            produto.nome.toLowerCase().includes("homme");
+          if (!isMasculino) return false;
+        } else if (categoria === "Perfume Feminino") {
+          const isFeminino =
+            getArrayValue(produto.tags).includes("Feminino") ||
+            produto.genero === "Feminino" ||
+            produto.categoria === "Perfume Feminino" ||
+            produto.categoria === "Feminino" ||
+            produto.nome.toLowerCase().includes("for woman") ||
+            produto.nome.toLowerCase().includes("woman") ||
+            produto.nome.toLowerCase().includes("femme");
+          if (!isFeminino) return false;
+        } else if (categoria === "Cosmético" || categoria === "Cosméticos") {
+          const isCosmetico =
+            produto.categoria === "Cosmético" ||
+            produto.categoria === "Cosméticos" ||
+            produto.categoria_principal === "Cosmético" ||
+            produto.categoria_principal === "Cosméticos" ||
+            getArrayValue(produto.tags).includes("Cosmético") ||
+            getArrayValue(produto.tags).includes("Cosméticos") ||
+            produto.nome.toLowerCase().includes("cosmético") ||
+            produto.nome.toLowerCase().includes("cosmetico");
+          if (!isCosmetico) return false;
         } else {
-          // Verifica categoria, categoria_principal, genero e tags
-          const pTags = getArrayValue(produto.tags);
-          const matchesCat = 
+          const matchesLegacyCat = 
             produto.categoria === categoria || 
-            produto.categoria_principal === categoria ||
-            produto.genero === categoria ||
-            pTags.includes(categoria);
-          if (!matchesCat) return false;
+            produto.categoria_principal === categoria;
+          if (!matchesLegacyCat) return false;
         }
       }
 
@@ -148,14 +188,51 @@ export default function CatalogoProdutos({
         (produto.similaridade_inspiracao || "").toLowerCase().includes(termo);
       if (!passaBusca) return false;
 
-      // 3. Fim dos filtros
+      // 3. Filtragem de Categoria Principal Avançada
+      if (filtros.categoriaPrincipal !== "todos") {
+        const cat = produto.categoria_principal || produto.categoria || "";
+        if (cat.toLowerCase() !== filtros.categoriaPrincipal.toLowerCase()) return false;
+      }
+
+      // 4. Origem
+      if (filtros.origem !== "todos") {
+        if (produto.origem !== filtros.origem) return false;
+      }
+
+      // 5. Gênero
+      if (filtros.genero !== "todos") {
+        if (produto.genero !== filtros.genero) return false;
+      }
+
+      // 6. Concentração
+      if (filtros.concentracao !== "todos") {
+        if (produto.concentracao !== filtros.concentracao) return false;
+      }
+
+      // 7. Tags (MultiSelect)
+      if (filtros.tags && filtros.tags.length > 0) {
+        const pTags = getArrayValue(produto.tags);
+        const match = filtros.tags.every((t: string) => pTags.includes(t));
+        if (!match) return false;
+      }
+
+      // 8. Família Olfativa (MultiSelect)
+      if (filtros.familiaOlfativa && filtros.familiaOlfativa.length > 0) {
+        const pFamilias = getArrayValue(produto.familia_olfativa);
+        const match = filtros.familiaOlfativa.every((f: string) => pFamilias.includes(f));
+        if (!match) return false;
+      }
+
+      // 9. Ocasião de Uso (MultiSelect)
+      if (filtros.ocasiaoUso && filtros.ocasiaoUso.length > 0) {
+        const pOcasioes = getArrayValue(produto.ocasiao_uso);
+        const match = filtros.ocasiaoUso.every((o: string) => pOcasioes.includes(o));
+        if (!match) return false;
+      }
+
       return true;
     });
-  }, [busca, categoria, produtosOrdenados]);
-
-  const produtosVisiveis = useMemo(() => {
-    return produtosFiltrados.slice(0, quantidade);
-  }, [produtosFiltrados, quantidade]);
+  }, [busca, categoria, filtros, produtosOrdenados]);
 
   function handleAddToCart(produto: Produto) {
     try {
@@ -163,7 +240,7 @@ export default function CatalogoProdutos({
       let cart: any[] = [];
       try {
         cart = JSON.parse(cartRaw);
-      } catch (e) {
+      } catch {
         cart = [];
       }
 
@@ -203,30 +280,94 @@ export default function CatalogoProdutos({
 
   return (
     <>
-      <section className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <section className="mb-12 hidden sm:flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
-          <span className="text-gold text-[10px] font-bold uppercase tracking-[0.3em] mb-1 block font-sans">Catálogo Completo</span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif bg-gradient-to-r from-white to-[#D4AF37] bg-clip-text text-transparent font-black leading-relaxed">Escolha sua fragrância</h2>
+          <span className="text-luxury-gold text-[10px] font-bold uppercase tracking-[0.3em] mb-3 block font-sans">Catálogo Completo</span>
+          <h2 className="text-4xl font-serif text-white">Escolha sua fragrância</h2>
         </div>
-        <Link href="/lojista" className="px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white text-zinc-600 border border-zinc-300 hover:border-gold hover:text-gold transition-all text-center">Área Lojista</Link>
+        <Link href="/lojista" className="btn-luxury-outline text-center">Área Lojista</Link>
       </section>
 
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">
-          {produtosFiltrados.length} {produtosFiltrados.length === 1 ? "produto encontrado" : "produtos encontrados"}
-        </p>
-        <FiltrosProdutos total={produtosFiltrados.length} quantidade={quantidade} onChange={setQuantidade} />
+      <div className="mb-8">
+        <FiltrosProdutos theme="dark" onChange={setFiltros} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-x-6 sm:gap-y-10">
-        {produtosVisiveis.map((produto) => (
-          <CardProduto
-            key={produto.id}
-            produto={produto}
-            variant="full"
-            onAddToCart={handleAddToCart}
-          />
-        ))}
+      <p className="mb-8 text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">
+        {produtosFiltrados.length} {produtosFiltrados.length === 1 ? "produto encontrado" : "produtos encontrados"}
+      </p>
+
+      <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 sm:gap-x-8 sm:gap-y-16">
+        {produtosFiltrados.map((produto) => {
+          const valorAtual = precoPromocional(produto);
+
+          return (
+            <div id={`produto-${produto.id}`} key={produto.id} className="group scroll-mt-32 flex flex-col h-full border border-zinc-900 bg-neutral-950 p-2.5 sm:p-4 shadow-2xl hover:shadow-gold/5 hover:border-gold/30 rounded-xl sm:rounded-2xl transition-all duration-500 text-white w-full max-w-sm mx-auto sm:max-w-none">
+              <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900/50 mb-3 sm:mb-6 border border-zinc-900 rounded-lg sm:rounded-xl transition-all duration-500">
+                {produto.promocaoAtiva && produto.descontoPercentual ? (
+                  <div className="absolute right-2 top-2 sm:right-3 sm:top-3 z-10 rounded-full bg-red-600 px-2 py-1 sm:px-3 sm:py-2 text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
+                    -{produto.descontoPercentual}%
+                  </div>
+                ) : null}
+                <OptimizedImage
+                  src={produto.imagem}
+                  alt={produto.nome}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  fallbackText="Maison Mourato"
+                />
+              </div>
+
+              <div className="flex flex-col flex-grow space-y-2">
+                <div className="flex justify-between items-start gap-1">
+                  <span className="text-[8px] sm:text-[10px] font-bold text-luxury-gold uppercase tracking-widest truncate max-w-[50%]">{produto.marca}</span>
+                  <span className="text-[8px] sm:text-[10px] text-zinc-500 font-medium uppercase tracking-tighter truncate max-w-[50%]">{produto.categoria}</span>
+                </div>
+                <h3 className="text-xs sm:text-lg font-serif text-gray-100 leading-tight group-hover:text-gold transition-colors line-clamp-2">
+                  {produto.nome}
+                </h3>
+                <p className="text-[10px] sm:text-xs text-zinc-500 font-light italic">{produto.volume}</p>
+
+                <div className="pt-2 sm:pt-4 mt-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border-t border-zinc-900">
+                  {valorAtual ? (
+                    <div className="rounded-xl bg-red-950/40 border border-red-900/50 p-1.5 sm:p-2 text-white shadow-md w-full sm:w-auto">
+                      <div className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest text-red-400">Oferta</div>
+                      <div className="text-[8px] sm:text-[10px] line-through text-zinc-500">{moeda(produto.preco)}</div>
+                      <div className="text-xs sm:text-lg font-black leading-none text-red-500">{moeda(valorAtual)}</div>
+                    </div>
+                  ) : (
+                    <span className="rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-gold w-fit">
+                      {moeda(produto.preco)}
+                    </span>
+                  )}
+                  <span className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-widest ${produto.estoque > 0 ? "text-green-500" : "text-red-400"}`}>
+                    {produto.estoque > 0 ? "Disponível" : "Não disponível - 0 unidades"}
+                  </span>
+                </div>
+                 <div className="flex flex-col gap-2 mt-3">
+                  <Link
+                    href={`/produto/${slugify(produto.nome)}`}
+                    className="block w-full rounded-full border border-gold/40 hover:border-gold hover:bg-gold/10 text-gold hover:text-white text-center py-2 sm:py-2.5 text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
+                  >
+                    Consultar produto
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleAddToCart(produto)}
+                    disabled={produto.estoque <= 0}
+                    className={`block w-full rounded-full py-2 sm:py-2.5 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                    produto.estoque > 0
+                      ? "bg-gold text-black hover:bg-white hover:text-black font-bold"
+                      : "bg-neutral-900 text-zinc-500 pointer-events-none"
+                  }`}
+                  >
+                    {produto.estoque > 0 ? "Adicionar ao carrinho" : "Reposição"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {produtosFiltrados.length === 0 && (

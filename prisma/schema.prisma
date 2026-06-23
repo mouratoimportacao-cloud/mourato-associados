@@ -87,3 +87,55 @@ bairro    String
 cidade    String
 estado    String
 }
+
+model Despesa {
+id          Int      @id @default(autoincrement())
+data        DateTime
+categoria   String
+valor       Float
+observacao  String?
+createdAt   DateTime @default(now())
+}
+
+model FechamentoMensal {
+id             Int      @id @default(autoincrement())
+mesAno         String   @unique
+receitaAtacado Float
+receitaSite    Float
+receitaTotal   Float
+cmv            Float
+valorEstoque   Float
+totalDespesas  Float
+saldoBancario  Float
+resultado      Float
+dadosDespesas  Json?
+createdAt      DateTime @default(now())
+}
+model LancamentoFinanceiro {
+id          Int      @id @default(autoincrement())
+data        DateTime
+competencia String
+tipo        String
+grupo       String
+categoria   String
+valor       Float
+observacao  String?
+createdAt   DateTime @default(now())
+}
+
+model FechamentoFinanceiro {
+id                    Int      @id @default(autoincrement())
+competencia           String   @unique
+fechadoEm              DateTime
+receitaAtacado         Float
+receitaSite            Float
+receitaTotal           Float
+cmv                    Float
+estoque                 Float
+contasReceber          Float
+totalDespesas          Float
+saldoBancario          Float
+resultadoOperacional   Float
+despesasPorCategoria   String   @db.Text
+createdAt              DateTime @default(now())
+}

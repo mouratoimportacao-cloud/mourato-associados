@@ -53,5 +53,6 @@ next-env.d.ts
 # zip and temporary files
 *.zip
 *.txt
+.tmp-flow/
 entrega-agente/
 .env*.local

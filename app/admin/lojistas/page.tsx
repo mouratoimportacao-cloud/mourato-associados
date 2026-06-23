@@ -34,7 +34,7 @@ export default async function LojistasAdminPage() {
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
-            <img src="/brand/logo-ma.webp" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
+            <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
           </Link>
           <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Painel de Gestão</p>
         </div>
@@ -56,7 +56,7 @@ export default async function LojistasAdminPage() {
             <span>🎯</span> Radar
           </Link>
           <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>📊</span> DRE
+            <span>💰</span> Financeiro
           </Link>
           <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>⚙️</span> Configurar
@@ -75,6 +75,9 @@ export default async function LojistasAdminPage() {
       <main className="admin-main flex-grow p-3 md:p-5">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
           <div>
+            <Link href="/admin" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-700 flex items-center gap-1 lg:hidden mb-2">
+              ← Voltar ao Dashboard
+            </Link>
             <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Cadastro de Lojistas</h1>
             <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mt-1">
               Crie acessos comerciais e acompanhe os cadastros
