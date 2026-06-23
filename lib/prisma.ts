@@ -109,7 +109,59 @@ type PedidoData = {
   status: string;
 };
 
-type TableName = "Produto" | "Pedido" | "Usuario";
+type LancamentoFinanceiroData = {
+  data: string;
+  competencia: string;
+  tipo: string;
+  grupo: string;
+  categoria: string;
+  valor: number;
+  observacao?: string | null;
+};
+
+type FechamentoFinanceiroData = {
+  competencia: string;
+  fechadoEm: string;
+  receitaAtacado: number;
+  receitaSite: number;
+  receitaTotal: number;
+  cmv: number;
+  estoque: number;
+  contasReceber: number;
+  totalDespesas: number;
+  saldoBancario: number;
+  resultadoOperacional: number;
+  despesasPorCategoria: Record<string, number>;
+};
+
+type DespesaData = {
+  data: string | Date;
+  categoria: string;
+  valor: number;
+  observacao?: string | null;
+};
+
+type FechamentoMensalData = {
+  mesAno: string;
+  receitaAtacado: number;
+  receitaSite: number;
+  receitaTotal: number;
+  cmv: number;
+  valorEstoque: number;
+  totalDespesas: number;
+  saldoBancario: number;
+  resultado: number;
+  dadosDespesas?: any | null;
+};
+
+type TableName =
+  | "Produto"
+  | "Pedido"
+  | "Usuario"
+  | "Despesa"
+  | "FechamentoMensal"
+  | "LancamentoFinanceiro"
+  | "FechamentoFinanceiro";
 type MemoryRow = Record<string, any>;
 
 const columns = {
@@ -192,6 +244,35 @@ const columns = {
     "historicoPagamentos",
     "createdAt",
   ],
+  LancamentoFinanceiro: [
+    "id",
+    "data",
+    "competencia",
+    "tipo",
+    "grupo",
+    "categoria",
+    "valor",
+    "observacao",
+    "createdAt",
+  ],
+  FechamentoFinanceiro: [
+    "id",
+    "competencia",
+    "fechadoEm",
+    "receitaAtacado",
+    "receitaSite",
+    "receitaTotal",
+    "cmv",
+    "estoque",
+    "contasReceber",
+    "totalDespesas",
+    "saldoBancario",
+    "resultadoOperacional",
+    "despesasPorCategoria",
+    "createdAt",
+  ],
+  Despesa: ["id", "data", "categoria", "valor", "observacao", "createdAt"],
+  FechamentoMensal: ["id", "mesAno", "receitaAtacado", "receitaSite", "receitaTotal", "cmv", "valorEstoque", "totalDespesas", "saldoBancario", "resultado", "dadosDespesas", "createdAt"]
 } as const;
 
 const globalStore = globalThis as unknown as {
@@ -258,11 +339,19 @@ function emptyStore() {
       Produto: initialProducts,
       Pedido: [],
       Usuario: [],
+      Despesa: [],
+      FechamentoMensal: [],
+      LancamentoFinanceiro: [],
+      FechamentoFinanceiro: [],
     } as Record<TableName, MemoryRow[]>,
     seq: {
       Produto: initialProducts.length,
       Pedido: 0,
       Usuario: 0,
+      Despesa: 0,
+      FechamentoMensal: 0,
+      LancamentoFinanceiro: 0,
+      FechamentoFinanceiro: 0,
     } as Record<TableName, number>,
   };
 }
@@ -394,11 +483,19 @@ function loadLocalStore() {
         Produto: produtos,
         Pedido: parsed.rows?.Pedido ?? [],
         Usuario: parsed.rows?.Usuario ?? [],
+        Despesa: parsed.rows?.Despesa ?? [],
+        FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
+        LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
+        FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
       },
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
         Pedido: parsed.seq?.Pedido ?? 0,
         Usuario: parsed.seq?.Usuario ?? 0,
+        Despesa: parsed.seq?.Despesa ?? 0,
+        FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
+        LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
+        FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
       },
     };
   } catch {
@@ -443,11 +540,19 @@ async function loadPostgresStore() {
         Produto: produtos,
         Pedido: parsed.rows?.Pedido ?? [],
         Usuario: parsed.rows?.Usuario ?? [],
+        Despesa: parsed.rows?.Despesa ?? [],
+        FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
+        LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
+        FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
       },
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
         Pedido: parsed.seq?.Pedido ?? 0,
         Usuario: parsed.seq?.Usuario ?? 0,
+        Despesa: parsed.seq?.Despesa ?? 0,
+        FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
+        LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
+        FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
       },
     };
   } catch (error) {
@@ -793,6 +898,19 @@ async function remove(table: TableName, args: DeleteArgs) {
 }
 
 export const prisma = {
+  despesa: {
+    ...model("Despesa"),
+    create: (args: WriteArgs<DespesaData>) => insert("Despesa", args.data),
+    update: (args: UpdateArgs<Partial<DespesaData>>) => update("Despesa", args),
+    delete: (args: DeleteArgs) => remove("Despesa", args),
+  },
+  fechamentoMensal: {
+    ...model("FechamentoMensal"),
+    create: (args: WriteArgs<FechamentoMensalData>) => insert("FechamentoMensal", args.data),
+    update: (args: UpdateArgs<Partial<FechamentoMensalData>>) => update("FechamentoMensal", args),
+    delete: (args: DeleteArgs) => remove("FechamentoMensal", args),
+  },
+
   produto: {
     ...model("Produto"),
     create: (args: WriteArgs<ProdutoData>) => insert("Produto", args.data),
@@ -810,6 +928,22 @@ export const prisma = {
     create: (args: WriteArgs<UsuarioData>) => insert("Usuario", args.data),
     update: (args: UpdateArgs<Partial<UsuarioData>>) => update("Usuario", args),
     delete: (args: DeleteArgs) => remove("Usuario", args),
+  },
+  lancamentoFinanceiro: {
+    ...model("LancamentoFinanceiro"),
+    create: (args: WriteArgs<LancamentoFinanceiroData>) =>
+      insert("LancamentoFinanceiro", args.data),
+    update: (args: UpdateArgs<Partial<LancamentoFinanceiroData>>) =>
+      update("LancamentoFinanceiro", args),
+    delete: (args: DeleteArgs) => remove("LancamentoFinanceiro", args),
+  },
+  fechamentoFinanceiro: {
+    ...model("FechamentoFinanceiro"),
+    create: (args: WriteArgs<FechamentoFinanceiroData>) =>
+      insert("FechamentoFinanceiro", args.data),
+    update: (args: UpdateArgs<Partial<FechamentoFinanceiroData>>) =>
+      update("FechamentoFinanceiro", args),
+    delete: (args: DeleteArgs) => remove("FechamentoFinanceiro", args),
   },
   $transaction: <T>(callback: (tx: any) => Promise<T>) =>
     runTransaction(callback),

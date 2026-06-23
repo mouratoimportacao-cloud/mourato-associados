@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
       "@next/next/no-img-element": "off",
       "@next/next/no-html-link-for-pages": "off",
       "react-hooks/purity": "off",
+      "react-hooks/preserve-manual-memoization": "off",
     },
   },
   // Override default ignores of eslint-config-next.
@@ -21,6 +22,8 @@ const eslintConfig = defineConfig([
     "build/**",
     ".data/**",
     ".tmp-flow/**",
+    "scratch/**",
+    "check_product_27_temp.js",
     "next-env.d.ts",
   ]),
 ]);

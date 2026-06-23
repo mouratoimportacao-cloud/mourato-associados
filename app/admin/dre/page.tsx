@@ -1,96 +1,62 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAdminSession, logoutAdmin } from "../../../lib/auth";
+import {
+  calcularFinanceiro,
+  normalizarCompetencia,
+} from "../../../lib/financeiro";
 import { prisma } from "../../../lib/prisma";
+import FinanceiroClient from "./FinanceiroClient";
 
 export const metadata = {
-  title: "DRE Consolidada | Mourato & Associados",
+  title: "Financeiro | Mourato & Associados",
 };
 
 export const dynamic = "force-dynamic";
 
-function formatMoney(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-export default async function DreAdminPage() {
+export default async function FinanceiroAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mes?: string }>;
+}) {
   const session = await getAdminSession();
+  if (!session) redirect("/admin/login");
 
-  if (!session) {
-    redirect("/admin/login");
-  }
+  const { mes } = await searchParams;
+  const competencia = normalizarCompetencia(mes);
+  const [produtos, pedidos, lancamentos, fechamentos] = await Promise.all([
+    prisma.produto.findMany(),
+    prisma.pedido.findMany(),
+    prisma.lancamentoFinanceiro.findMany(),
+    prisma.fechamentoFinanceiro.findMany({
+      orderBy: { competencia: "desc" },
+    }),
+  ]);
 
-  // Fetch all necessary data
-  const produtos = await prisma.produto.findMany();
-  const pedidos = await prisma.pedido.findMany();
-
-  const produtoMap = new Map(produtos.map((p: any) => [p.id, p]));
-  const pedidosValidos = pedidos.filter((p: any) => p.status !== "cancelado");
-
-  // Filter reseller purchase orders vs QR client sales
-  const comprasFornecedor = pedidosValidos.filter((pedido: any) =>
-    String(pedido.tipoFluxo || "") === "compra_fornecedor" ||
-    String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
-    String(pedido.pagamento || "").includes("Compra do fornecedor") ||
-    pedido.status === "pendente fornecedor"
+  const fechamento = fechamentos.find(
+    (item: any) => item.competencia === competencia
   );
-
-  const vendasSiteDireto = pedidosValidos.filter((pedido: any) =>
-    String(pedido.tipoFluxo || "") === "intencao_site" &&
-    ["pago", "enviado", "entregue"].includes(String(pedido.status || ""))
-  );
-
-  // 1. Receita Bruta Total = Faturamento de atacado com lojistas + Vendas diretas do site
-  const faturamentoAtacado = comprasFornecedor.reduce((acc, p) => acc + Number(p.total || 0), 0);
-  const faturamentoVendasSiteDireto = vendasSiteDireto.reduce((acc, p) => acc + Number(p.total || 0), 0);
-  const receitaBrutaTotal = faturamentoAtacado + faturamentoVendasSiteDireto;
-
-  // 2. Custo dos Produtos Vendidos (CMV do Fornecedor)
-  // Para atacado: custo real de importação (custoDolar * cotacaoDolar) ou 60% do atacado se zerado
-  const cmvCompras = comprasFornecedor.reduce((acc, p) => {
-    const prod = p.produtoId ? produtoMap.get(p.produtoId) : null;
-    const itemCost = Number(prod?.custoDolar || 0) * Number(prod?.cotacaoDolar || 0) || (Number(p.precoUnitario || prod?.precoAtacado || 0) * 0.6);
-    return acc + itemCost * Number(p.quantidade || 1);
-  }, 0);
-
-  // Para vendas diretas: custo de importação dos itens vendidos diretamente
-  const cmvVendasSiteDireto = vendasSiteDireto.reduce((acc, p) => {
-    const prod = p.produtoId ? produtoMap.get(p.produtoId) : null;
-    const itemCost = Number(prod?.custoDolar || 0) * Number(prod?.cotacaoDolar || 0) || (Number(p.precoUnitario || prod?.precoAtacado || 0) * 0.6);
-    return acc + itemCost * Number(p.quantidade || 1);
-  }, 0);
-
-  const cmvGeral = cmvCompras + cmvVendasSiteDireto;
-
-  // 3. Lucro Bruto / Líquido do Fornecedor
-  const lucroBruto = receitaBrutaTotal - cmvGeral;
-  const descontos = 0;
-  const fretes = 0;
-  const taxas = 0;
-  const despesasOperacionais = 0;
-
-  // 8. Resultado Operacional
-  const resultadoOperacional = lucroBruto;
-
-  // 9. Total quitado e total em aberto pelos lojistas
-  const totalPagoLojistas = comprasFornecedor.reduce((acc, p) => {
-    const total = Number(p.total || 0);
-    const totalPago = p.totalPagoFornecedor !== null && p.totalPagoFornecedor !== undefined
-      ? Number(p.totalPagoFornecedor || 0)
-      : ["pago", "enviado", "entregue"].includes(p.status) ? total : 0;
-    return acc + totalPago;
-  }, 0);
-
-  const totalEmAbertoLojistas = comprasFornecedor.reduce((acc, p) => {
-    const total = Number(p.total || 0);
-    const totalPago = p.totalPagoFornecedor !== null && p.totalPagoFornecedor !== undefined
-      ? Number(p.totalPagoFornecedor || 0)
-      : ["pago", "enviado", "entregue"].includes(p.status) ? total : 0;
-    return acc + (total - totalPago);
-  }, 0);
-
-  const contasAReceber = totalEmAbertoLojistas;
-  const resultadoLiquido = resultadoOperacional;
+  const calculado = calcularFinanceiro({
+    produtos,
+    pedidos,
+    lancamentos,
+    competencia,
+  });
+  const resumo = fechamento
+    ? {
+        ...calculado,
+        receitaAtacado: Number(fechamento.receitaAtacado || 0),
+        receitaSite: Number(fechamento.receitaSite || 0),
+        receitaTotal: Number(fechamento.receitaTotal || 0),
+        cmv: Number(fechamento.cmv || 0),
+        estoque: Number(fechamento.estoque || 0),
+        contasReceber: Number(fechamento.contasReceber || 0),
+        totalDespesas: Number(fechamento.totalDespesas || 0),
+        saldoBancario: Number(fechamento.saldoBancario || 0),
+        resultadoOperacional: Number(fechamento.resultadoOperacional || 0),
+        despesasPorCategoria: fechamento.despesasPorCategoria || {},
+      }
+    : calculado;
 
   async function handleLogout() {
     "use server";
@@ -99,147 +65,77 @@ export default async function DreAdminPage() {
   }
 
   return (
-    <div className="admin-shell min-h-screen bg-gray-50 flex">
-      {/* SIDEBAR */}
-      <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
-        <div className="p-8 border-b border-white/5">
+    <div className="admin-shell min-h-screen bg-[#f7f7f5] lg:flex">
+      <aside className="admin-sidebar hidden h-screen w-64 shrink-0 flex-col border-r border-gray-200 bg-white text-gray-900 lg:sticky lg:top-0 lg:flex">
+        <div className="border-b border-gray-100 p-7">
           <Link href="/" className="block">
-            <img src="/brand/logo-ma.webp" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
+            <img
+              src="/brand/logo-ma.webp"
+              alt="Mourato & Associados"
+              className="h-16 w-auto object-contain"
+            />
           </Link>
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Painel de Gestão</p>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            Painel de Gestão
+          </p>
         </div>
-
-        <nav className="flex-grow p-4 space-y-2 mt-6">
-          <Link href="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>🏠</span> Dashboard
+        <nav className="flex-grow space-y-1 p-4">
+          {[
+            ["/admin", "🏠", "Dashboard"],
+            ["/admin/produtos", "📦", "Produtos"],
+            ["/admin/lojistas", "🏪", "Lojistas"],
+            ["/admin/pedidos", "🛒", "Pedidos"],
+            ["/admin/radar", "🎯", "Radar"],
+          ].map(([href, icon, label]) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-100"
+            >
+              <span>{icon}</span> {label}
+            </Link>
+          ))}
+          <Link
+            href="/admin/dre"
+            className="flex items-center gap-3 rounded-xl bg-gray-950 px-4 py-3 text-sm font-bold text-white"
+          >
+            <span>💰</span> Financeiro
           </Link>
-          <Link href="/admin/produtos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>📦</span> Produtos
-          </Link>
-          <Link href="/admin/lojistas" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>🏪</span> Lojistas
-          </Link>
-          <Link href="/admin/pedidos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>🛒</span> Pedidos
-          </Link>
-          <Link href="/admin/radar" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>🎯</span> Radar
-          </Link>
-          <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-lg text-sm font-medium">
-            <span>📊</span> DRE
-          </Link>
-          <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+          <Link
+            href="/admin/configurar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-100"
+          >
             <span>⚙️</span> Configurar
           </Link>
         </nav>
-
-        <div className="p-4 border-t border-white/5">
+        <div className="border-t border-gray-100 p-4">
           <form action={handleLogout}>
-            <button type="submit" className="w-full text-left flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white text-xs uppercase tracking-widest transition-colors cursor-pointer">
+            <button className="w-full rounded-xl px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-100">
               🚪 Sair do Painel
             </button>
           </form>
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className="admin-main flex-grow p-3 md:p-5">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-luxury-gold">DRE Fornecedor Consolidada</span>
-            <h1 className="mt-1 text-2xl font-bold text-gray-800 tracking-tight">Resultado Contábil da Empresa</h1>
-            <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mt-1">
-              Demonstrativo financeiro geral unificando todos os parceiros lojistas
-            </p>
+      <main className="min-w-0 flex-grow p-3 sm:p-5 lg:p-7">
+        <div className="mx-auto max-w-[1500px]">
+          <div className="mb-4 flex items-center justify-between lg:hidden">
+            <Link href="/admin" className="text-sm font-black text-gray-800">
+              ← Painel
+            </Link>
+            <span className="text-xs font-black uppercase tracking-widest text-gray-500">
+              Financeiro
+            </span>
           </div>
-          <Link href="/admin" className="bg-white border border-gray-100 shadow-sm px-6 py-3 rounded-2xl text-center font-bold text-gray-700 text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors">
-            Voltar ao Dashboard
-          </Link>
-        </header>
-
-        {/* CARDS RESUMO DO DRE */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Receita Bruta Total</p>
-            <h3 className="text-xl font-bold text-gray-800 mt-1">{formatMoney(receitaBrutaTotal)}</h3>
-          </div>
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">CMV Consolidado</p>
-            <h3 className="text-xl font-bold text-gray-800 mt-1 text-red-600">{formatMoney(cmvGeral)}</h3>
-          </div>
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Total em Aberto</p>
-            <h3 className="text-xl font-bold text-gray-800 mt-1 text-amber-600">{formatMoney(totalEmAbertoLojistas)}</h3>
-          </div>
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Resultado Líquido</p>
-            <h3 className="text-xl font-bold text-emerald-600 mt-1">{formatMoney(resultadoLiquido)}</h3>
-          </div>
-        </section>
-
-        {/* DEMONSTRATIVO DRE COMPLETO */}
-        <section className="bg-white shadow-sm rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="text-base font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-3 mb-2">Estrutura do DRE Comercial</h2>
-          
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between font-bold border-b border-gray-100 pb-2">
-              <span className="text-gray-700">Receita Bruta Total</span>
-              <span className="text-gray-900">{formatMoney(receitaBrutaTotal)}</span>
-            </div>
-            
-            <div className="pl-4 space-y-2 text-xs text-gray-500 border-l border-gray-100">
-              <div className="flex justify-between">
-                <span>Vendas de Atacado (Lojistas)</span>
-                <span>{formatMoney(faturamentoAtacado)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Vendas Diretas Confirmadas (Site Público)</span>
-                <span>{formatMoney(faturamentoVendasSiteDireto)}</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between text-red-600 mt-2">
-              <span>(-) Custo dos Produtos Vendidos (CMV Consolidado)</span>
-              <span>- {formatMoney(cmvGeral)}</span>
-            </div>
-            
-            <div className="pl-4 space-y-2 text-xs text-gray-500 border-l border-gray-100">
-              <div className="flex justify-between">
-                <span>CMV Vendas de Atacado</span>
-                <span>- {formatMoney(cmvCompras)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>CMV Vendas Diretas do Site</span>
-                <span>- {formatMoney(cmvVendasSiteDireto)}</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between font-black border-t-2 border-double border-gray-300 pt-3 text-base">
-              <span className="text-gray-900">(=) Lucro Líquido Real</span>
-              <span className="text-emerald-600">{formatMoney(resultadoLiquido)}</span>
-            </div>
-          </div>
-        </section>
-
-        {/* BALANÇO FINANCEIRO DE DEVEDORES */}
-        <section className="mt-6 bg-white shadow-sm rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="text-base font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-3 mb-2">Balanço de Pagamentos dos Lojistas</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-            <div className="p-4 rounded-xl border border-gray-100 bg-gray-50">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Faturado Atacado</p>
-              <p className="text-lg font-black text-gray-800 mt-1">{formatMoney(faturamentoAtacado)}</p>
-            </div>
-            <div className="p-4 rounded-xl border border-gray-100 bg-green-50/50">
-              <p className="text-xs font-bold text-green-700 uppercase tracking-wider">Total Quitado pelos Lojistas</p>
-              <p className="text-lg font-black text-green-700 mt-1">{formatMoney(totalPagoLojistas)}</p>
-            </div>
-            <div className="p-4 rounded-xl border border-gray-100 bg-amber-50/50">
-              <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">Contas a Receber (Em Aberto)</p>
-              <p className="text-lg font-black text-amber-700 mt-1">{formatMoney(contasAReceber)}</p>
-            </div>
-          </div>
-        </section>
+          <FinanceiroClient
+            competencia={competencia}
+            resumo={resumo as any}
+            fechado={Boolean(fechamento)}
+            fechamentos={fechamentos as any[]}
+          />
+        </div>
       </main>
     </div>
   );

@@ -181,7 +181,7 @@ export default async function AdminPage() {
             <span>🎯</span> Radar
           </Link>
           <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>📊</span> DRE
+            <span>💰</span> Financeiro
           </Link>
           <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>⚙️</span> Configurar
@@ -371,7 +371,7 @@ export default async function AdminPage() {
         <section id="dre" className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-luxury-gold">DRE Fornecedor</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-luxury-gold">Financeiro</span>
               <h2 className="mt-2 text-2xl font-black text-gray-900">Resultado operacional</h2>
               <p className="mt-1 text-sm text-gray-500">Leitura contábil geral do fornecedor, lojistas e pedidos registrados.</p>
             </div>

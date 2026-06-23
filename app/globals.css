@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+.input-financeiro {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 0.75rem 0.875rem;
+  color: #111827;
+  outline: none;
+}
+
+.input-financeiro:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgb(212 175 55 / 12%);
+}
+
+/* Uniformiza o nome do módulo nos menus que apontam para a rota legada. */
+.admin-sidebar a[href="/admin/dre"] {
+  font-size: 0;
+}
+
+.admin-sidebar a[href="/admin/dre"] > span {
+  font-size: 14px;
+}
+
+.admin-sidebar a[href="/admin/dre"]::after {
+  content: "Financeiro";
+  font-size: 14px;
+}
+
 @theme {
   --font-serif: var(--font-playfair);
   --font-sans: var(--font-inter);
