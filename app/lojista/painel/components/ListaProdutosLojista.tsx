@@ -263,61 +263,61 @@ export default function ListaProdutosLojista({
         </div>
 
         {/* MOBILE CARDS VIEW (Fornecedor) */}
-        <div className="md:hidden space-y-4 p-1.5 bg-gray-50">
+        <div className="md:hidden space-y-5 p-2 bg-stone-50">
           {produtosFiltrados.map((produto) => {
             return (
-              <div key={produto.id} className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm space-y-3">
-                {/* 1. Header: Foto + Nome */}
-                <div className="flex gap-3 items-start">
-                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                    <OptimizedImage
-                      src={produto.imagem}
-                      alt={produto.nome}
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                      fallbackText="M&A"
-                    />
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[8px] font-black text-gray-500 uppercase">
-                        Cód. {produto.codigo ?? produto.id}
-                      </span>
-                      <span className="px-2 py-0.5 text-[8px] font-bold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 inline-block uppercase">
-                        {produto.categoria}
-                      </span>
-                    </div>
-                    <h3 className="text-xs font-bold text-gray-900 truncate mt-1">{produto.nome}</h3>
-                    <p className="text-[10px] text-gray-500 mt-0.5">{produto.marca} - {produto.volume}</p>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProduto(produto)}
-                      className="mt-1 text-[10px] font-black text-stone-600 hover:text-stone-900 uppercase tracking-wider block underline"
-                    >
-                      Ver detalhes
-                    </button>
-                  </div>
+              <div key={produto.id} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm space-y-4 max-w-sm mx-auto flex flex-col">
+                {/* 1. Imagem do Produto (Grande) */}
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-stone-100 bg-stone-50">
+                  <OptimizedImage
+                    src={produto.imagem}
+                    alt={produto.nome}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 350px"
+                    className="object-cover"
+                    fallbackText="M&A"
+                  />
                 </div>
 
-                {/* 2. Grid de Valores e Estoque */}
-                <div className="grid grid-cols-2 gap-2 bg-gray-50 rounded-xl p-3 text-[10px]">
+                {/* 2. Textos e Detalhes */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="rounded bg-stone-100 border border-stone-200 px-2 py-0.5 text-[8px] font-black text-stone-600 uppercase">
+                      Cód. {produto.codigo ?? produto.id}
+                    </span>
+                    <span className="px-2 py-0.5 text-[8px] font-bold rounded-full bg-zinc-950 text-white inline-block uppercase">
+                      {produto.categoria}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-stone-900 leading-tight mt-1">{produto.nome}</h3>
+                  <p className="text-[10px] text-stone-500 font-medium">{produto.marca} — {produto.volume}</p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProduto(produto)}
+                    className="text-[9px] font-black text-gold hover:text-stone-900 uppercase tracking-widest block underline pt-1"
+                  >
+                    Ver detalhes do produto
+                  </button>
+                </div>
+
+                {/* 3. Grid de Valores e Estoque */}
+                <div className="grid grid-cols-2 gap-2 bg-stone-50 border border-stone-150 rounded-xl p-3 text-[10px]">
                   <div>
-                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Preço Lojista</p>
-                    <p className="font-black text-gray-900 text-xs mt-0.5">{moeda(produto.precoAtacado)}</p>
+                    <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider">Preço Lojista</p>
+                    <p className="font-serif font-black text-stone-900 text-sm mt-0.5">{moeda(produto.precoAtacado)}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Estoque Fornecedor</p>
-                    <p className={`font-bold mt-0.5 text-xs ${produto.estoque > 0 ? "text-green-600" : "text-red-500"}`}>
+                    <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider">Estoque Fornecedor</p>
+                    <p className={`font-black mt-0.5 text-xs ${produto.estoque > 0 ? "text-green-600" : "text-red-500"}`}>
                       {produto.estoque || 0} un.
                     </p>
                   </div>
                 </div>
 
-                {/* 3. Mobile Add to Order */}
-                <div className="flex gap-2 pt-2 border-t border-gray-100 items-end">
-                  <div className="w-20">
-                    <label className="block text-[8px] font-black uppercase text-gray-400 tracking-wider mb-1">Qtd</label>
+                {/* 4. Ações: Qtd + Adicionar */}
+                <div className="flex gap-3 pt-2 border-t border-stone-100 items-end">
+                  <div className="w-20 shrink-0">
+                    <label className="block text-[8px] font-black uppercase text-stone-400 tracking-wider mb-1">Qtd</label>
                     <input
                       id={`qty-mobile-${produto.id}`}
                       type="number"
@@ -325,7 +325,7 @@ export default function ListaProdutosLojista({
                       max={produto.estoque}
                       defaultValue={1}
                       disabled={produto.estoque <= 0}
-                      className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-zinc-950 bg-white font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
+                      className="w-full rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-zinc-950 bg-white font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
                     />
                   </div>
                   <button
@@ -340,9 +340,9 @@ export default function ListaProdutosLojista({
                       onAddToCart(produto.id, qty);
                     }}
                     disabled={produto.estoque <= 0}
-                    className={`flex-grow rounded-lg py-2 text-[10px] font-black uppercase tracking-widest transition-colors text-center ${
+                    className={`flex-grow rounded-lg py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors text-center cursor-pointer ${
                       produto.estoque > 0
-                        ? "bg-white text-zinc-950 border border-zinc-200 hover:bg-stone-50 transition-colors cursor-pointer shadow-sm"
+                        ? "bg-zinc-950 text-white hover:bg-zinc-800 transition-colors shadow-sm"
                         : "bg-stone-50 text-stone-400 pointer-events-none"
                     }`}
                   >

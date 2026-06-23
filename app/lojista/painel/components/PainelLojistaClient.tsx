@@ -517,11 +517,11 @@ export default function PainelLojistaClient({
         <aside className="hidden lg:flex lg:w-72 xl:w-80 flex-col bg-white text-stone-900 sticky top-0 h-screen border-r border-stone-200">
           <div className="p-6 border-b border-stone-200">
             <div className="flex items-center gap-3">
-              <div className="relative h-12 w-20 flex-shrink-0 flex items-center">
+              <div className="relative h-16 w-24 flex-shrink-0 flex items-center">
                 <img
                   src="/brand/logo-ma.png"
                   alt="Mourato & Associados"
-                  className="h-10 w-auto object-contain brand-logo-relief"
+                  className="h-14 w-auto object-contain brand-logo-relief"
                 />
               </div>
               <div>
@@ -579,10 +579,10 @@ export default function PainelLojistaClient({
               <OptimizedImage
                 src="/brand/logo-ma.png"
                 alt="Mourato & Associados"
-                width={120}
-                height={44}
+                width={180}
+                height={60}
                 priority
-                className="relative h-11 w-auto object-contain"
+                className="relative h-16 w-auto object-contain"
               />
             </div>
             <div>

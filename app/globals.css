@@ -147,6 +147,7 @@ h1, h2, h3, h4, .font-serif {
 }
 
 .admin-brand-logo {
+  height: 7rem !important;
   background: linear-gradient(145deg, #050505, #1b1b1b);
   border: 1px solid rgba(212, 175, 55, 0.28);
   border-radius: 12px;

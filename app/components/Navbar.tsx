@@ -32,7 +32,7 @@ export default async function Navbar() {
               <img
                 src="/brand/logo-ma.png"
                 alt="Mourato & Associados"
-                className="h-10 sm:h-12 w-auto object-contain brand-logo-relief"
+                className="h-14 sm:h-18 w-auto object-contain brand-logo-relief"
               />
             </Link>
 
