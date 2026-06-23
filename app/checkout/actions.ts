@@ -54,7 +54,7 @@ export async function criarPreferenciaPagamento(
           address: {
             zip_code: clienteInfo.cep.replace(/\D/g, ""),
             street_name: clienteInfo.rua,
-            street_number: Number(clienteInfo.numero) || 0,
+            street_number: String(clienteInfo.numero || "0"),
           },
         },
         back_urls: {
