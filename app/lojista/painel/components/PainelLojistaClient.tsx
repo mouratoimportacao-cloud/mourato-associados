@@ -517,7 +517,13 @@ export default function PainelLojistaClient({
         <aside className="hidden lg:flex lg:w-72 xl:w-80 flex-col bg-white text-stone-900 sticky top-0 h-screen border-r border-stone-200">
           <div className="p-6 border-b border-stone-200">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-900 text-lg font-serif font-bold">M&A</div>
+              <div className="relative h-12 w-20 flex-shrink-0 flex items-center">
+                <img
+                  src="/brand/logo-ma.png"
+                  alt="Mourato & Associados"
+                  className="h-10 w-auto object-contain brand-logo-relief"
+                />
+              </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold">Painel do Lojista</p>
                 <h2 className="text-sm font-bold text-stone-900 truncate max-w-[190px]">{lojistaAtual.nome}</h2>
@@ -580,7 +586,7 @@ export default function PainelLojistaClient({
               />
             </div>
             <div>
-              <p className="text-[8px] text-stone-500 font-black uppercase tracking-[0.25em]">Mourato & Associados</p>
+              <p className="text-[8px] text-stone-500 font-black uppercase tracking-[0.25em]">Painel Lojista</p>
               <h1 className="text-xs font-bold text-stone-900 max-w-[150px] truncate">{lojistaAtual.nome}</h1>
             </div>
           </div>

@@ -75,6 +75,9 @@ export default async function LojistasAdminPage() {
       <main className="admin-main flex-grow p-3 md:p-5">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
           <div>
+            <Link href="/admin" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-700 flex items-center gap-1 lg:hidden mb-2">
+              ← Voltar ao Dashboard
+            </Link>
             <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Cadastro de Lojistas</h1>
             <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mt-1">
               Crie acessos comerciais e acompanhe os cadastros

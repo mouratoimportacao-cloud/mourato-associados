@@ -36,7 +36,7 @@ export default async function CatalogoRevendaPage({ params }: { params: Promise<
 
       <main className="flex-grow pt-28 pb-20 sm:pt-32">
         <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-          <header className="mb-10 text-center sm:mb-16">
+          <header className="mb-10 text-center sm:mb-16 hidden sm:block">
             <span className="mb-4 block text-[10px] font-bold uppercase tracking-[0.4em] text-gold">
               Catálogo Oficial
             </span>

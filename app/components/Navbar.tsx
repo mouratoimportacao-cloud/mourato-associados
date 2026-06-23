@@ -27,9 +27,13 @@ export default async function Navbar() {
           <div className="flex justify-between items-center w-full md:w-auto flex-shrink-0">
             <Link
               href="/"
-              className="text-lg sm:text-xl font-serif font-black brand-text-relief-gold transition-all duration-300 tracking-wider whitespace-nowrap"
+              className="block transition-all duration-300"
             >
-              MOURATO & ASSOCIADOS
+              <img
+                src="/brand/logo-ma.png"
+                alt="Mourato & Associados"
+                className="h-10 sm:h-12 w-auto object-contain brand-logo-relief"
+              />
             </Link>
 
             {/* Mobile Actions: Carrinho e Redes Sociais */}
