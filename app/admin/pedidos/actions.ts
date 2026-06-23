@@ -79,6 +79,9 @@ export async function atualizarStatusPedido(formData: FormData) {
       pagamento.includes("Compra do fornecedor") ||
       pedido.status === "pendente fornecedor";
 
+    const fluxoSite =
+      String(pedido.tipoFluxo || "") === "intencao_site";
+
     // ── REGRA DE CRÉDITO/ESTORNO DE ESTOQUE PESSOAL DO LOJISTA (MARCADOR NA OBSERVAÇÃO) ──
     const jaCreditado = String(pedido.observacao || "").includes("[ESTOQUE_LOJISTA_CREDITADO]");
     const statusAtivosCredito = [
@@ -92,6 +95,13 @@ export async function atualizarStatusPedido(formData: FormData) {
 
     const deveCreditar = fluxoFornecedor && statusAtivosCredito.includes(status) && !jaCreditado;
     const deveEstornar = fluxoFornecedor && (status === "cancelado" || status === "rejeitado" || status === "intencao de compra") && jaCreditado;
+
+    // ── REGRA DE DÉBITO/ESTORNO DE ESTOQUE GLOBAL DO ADM PARA VENDAS DIRETA (MARCADOR NA OBSERVAÇÃO) ──
+    const jaDebitadoAdm = String(pedido.observacao || "").includes("[ESTOQUE_ADM_DEBITADO]");
+    const statusAtivosSite = ["aguardando pagamento", "pago", "enviado", "entregue"];
+
+    const deveDebitarAdm = fluxoSite && statusAtivosSite.includes(status) && !jaDebitadoAdm;
+    const deveEstornarAdm = fluxoSite && (status === "cancelado" || status === "rejeitado" || status === "intencao de compra") && jaDebitadoAdm;
 
     // A. Crédito do estoque pessoal do lojista
     if (deveCreditar && pedido.produtoId && pedido.quantidade && pedido.usuarioId) {
@@ -157,6 +167,56 @@ export async function atualizarStatusPedido(formData: FormData) {
           saldoFornecedor: 0,
         },
       });
+    }
+
+    // D. Débito do estoque global do ADM para venda do site
+    if (deveDebitarAdm && pedido.produtoId && pedido.quantidade) {
+      const quantidade = Number(pedido.quantidade);
+      const produto = await prisma.produto.findUnique({
+        where: { id: pedido.produtoId },
+      });
+      if (produto) {
+        await prisma.produto.update({
+          where: { id: produto.id },
+          data: {
+            estoque: Math.max(0, Number(produto.estoque || 0) - quantidade),
+            estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - quantidade),
+          },
+        });
+      }
+
+      // Adiciona o marcador de forma persistente na observação do pedido
+      const novaObservacao = `${pedido.observacao || ""} [ESTOQUE_ADM_DEBITADO]`.trim();
+      await prisma.pedido.update({
+        where: { id: pedidoId },
+        data: { observacao: novaObservacao }
+      });
+      pedido.observacao = novaObservacao; // Atualiza em memória
+    }
+
+    // E. Estorno do estoque global do ADM para venda do site
+    if (deveEstornarAdm && pedido.produtoId && pedido.quantidade) {
+      const quantidade = Number(pedido.quantidade);
+      const produto = await prisma.produto.findUnique({
+        where: { id: pedido.produtoId },
+      });
+      if (produto) {
+        await prisma.produto.update({
+          where: { id: produto.id },
+          data: {
+            estoque: Number(produto.estoque || 0) + quantidade,
+            estoqueLojista: Number(produto.estoqueLojista || 0) + quantidade,
+          },
+        });
+      }
+
+      // Remove o marcador da observação do pedido
+      const novaObservacao = String(pedido.observacao || "").replace("[ESTOQUE_ADM_DEBITADO]", "").trim();
+      await prisma.pedido.update({
+        where: { id: pedidoId },
+        data: { observacao: novaObservacao }
+      });
+      pedido.observacao = novaObservacao; // Atualiza em memória
     }
 
     // ── FORNECEDOR: Devolver estoque ao fornecedor se o pedido for cancelado ──
@@ -304,13 +364,16 @@ export async function deletePedido(
   }
 
   try {
-    // Retornar estoque ao fornecedor se o pedido deletado for de fluxoFornecedor e estiver ativo (não cancelado)
+    // Retornar estoque ao fornecedor se o pedido deletado for de fluxoFornecedor ou fluxoSite e estiver ativo (não cancelado)
     if (pedido && pedido.status !== "cancelado" && pedido.produtoId && pedido.quantidade) {
       const fluxoFornecedor =
         String(pedido.tipoFluxo || "") === "compra_fornecedor" ||
         String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
         String(pedido.pagamento || "").includes("Compra do fornecedor") ||
         pedido.status === "pendente fornecedor";
+
+      const fluxoSite =
+        String(pedido.tipoFluxo || "") === "intencao_site";
 
       if (fluxoFornecedor) {
         const produto = await prisma.produto.findUnique({ where: { id: pedido.produtoId } });
@@ -337,6 +400,21 @@ export async function deletePedido(
             await prisma.usuario.update({
               where: { id: lojista.id },
               data: { estoquePessoal },
+            });
+          }
+        }
+      } else if (fluxoSite) {
+        // Se o estoque global do ADM já tinha sido debitado, estorna
+        const jaDebitadoAdm = String(pedido.observacao || "").includes("[ESTOQUE_ADM_DEBITADO]");
+        if (jaDebitadoAdm) {
+          const produto = await prisma.produto.findUnique({ where: { id: pedido.produtoId } });
+          if (produto) {
+            await prisma.produto.update({
+              where: { id: produto.id },
+              data: {
+                estoque: Number(produto.estoque || 0) + Number(pedido.quantidade),
+                estoqueLojista: Number(produto.estoqueLojista || 0) + Number(pedido.quantidade),
+              },
             });
           }
         }

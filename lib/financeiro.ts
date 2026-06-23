@@ -26,6 +26,15 @@ function dentroDoPeriodo(value: unknown, inicio: Date, fim: Date) {
 }
 
 function custoUnitario(produto?: ProdutoFinanceiro | null, pedido?: PedidoFinanceiro) {
+  if (
+    pedido &&
+    pedido.custoUnitario !== undefined &&
+    pedido.custoUnitario !== null &&
+    Number(pedido.custoUnitario) > 0
+  ) {
+    return Number(pedido.custoUnitario);
+  }
+
   const custoReal =
     Number(produto?.custoDolar || 0) * Number(produto?.cotacaoDolar || 0);
   const precoBase = Number(
