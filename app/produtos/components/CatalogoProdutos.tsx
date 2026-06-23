@@ -113,19 +113,61 @@ export default function CatalogoProdutos({
       // 1. Filtragem da Categoria do Menu/Navbar (Legado)
       if (categoria !== "todos") {
         if (categoria === "Promoções") {
-          if (!produto.promocaoAtiva) return false;
-        } else if (categoria === "Kits") {
+          const isPromo =
+            produto.promocaoAtiva ||
+            (produto.descontoPercentual && Number(produto.descontoPercentual) > 0);
+          if (!isPromo) return false;
+        } else if (categoria === "Kits" || categoria === "Kit") {
           const isKit =
+            produto.categoria === "Kit" ||
+            produto.categoria === "Kits" ||
+            produto.categoria_principal === "Kit" ||
+            produto.categoria_principal === "Kits" ||
             produto.nome.toLowerCase().includes("kit") ||
             produto.volume.toLowerCase().includes("kit") ||
             produto.categoria.toLowerCase().includes("kit") ||
-            (produto.categoria_principal || "").toLowerCase().includes("kit");
+            (produto.categoria_principal || "").toLowerCase().includes("kit") ||
+            getArrayValue(produto.tags).includes("Kit") ||
+            getArrayValue(produto.tags).includes("Kits");
           if (!isKit) return false;
         } else if (categoria === "Perfume Árabe") {
           const isArab = 
             produto.categoria === "Perfume Árabe" || 
-            getArrayValue(produto.tags).includes("Perfume Árabe");
+            produto.categoria === "Perfumes Árabes" ||
+            getArrayValue(produto.tags).includes("Perfume Árabe") ||
+            getArrayValue(produto.tags).includes("Perfumes Árabes");
           if (!isArab) return false;
+        } else if (categoria === "Perfume Masculino") {
+          const isMasculino =
+            getArrayValue(produto.tags).includes("Masculino") ||
+            produto.genero === "Masculino" ||
+            produto.categoria === "Perfume Masculino" ||
+            produto.categoria === "Masculino" ||
+            produto.nome.toLowerCase().includes("for man") ||
+            produto.nome.toLowerCase().includes("men") ||
+            produto.nome.toLowerCase().includes("homme");
+          if (!isMasculino) return false;
+        } else if (categoria === "Perfume Feminino") {
+          const isFeminino =
+            getArrayValue(produto.tags).includes("Feminino") ||
+            produto.genero === "Feminino" ||
+            produto.categoria === "Perfume Feminino" ||
+            produto.categoria === "Feminino" ||
+            produto.nome.toLowerCase().includes("for woman") ||
+            produto.nome.toLowerCase().includes("woman") ||
+            produto.nome.toLowerCase().includes("femme");
+          if (!isFeminino) return false;
+        } else if (categoria === "Cosmético" || categoria === "Cosméticos") {
+          const isCosmetico =
+            produto.categoria === "Cosmético" ||
+            produto.categoria === "Cosméticos" ||
+            produto.categoria_principal === "Cosmético" ||
+            produto.categoria_principal === "Cosméticos" ||
+            getArrayValue(produto.tags).includes("Cosmético") ||
+            getArrayValue(produto.tags).includes("Cosméticos") ||
+            produto.nome.toLowerCase().includes("cosmético") ||
+            produto.nome.toLowerCase().includes("cosmetico");
+          if (!isCosmetico) return false;
         } else {
           const matchesLegacyCat = 
             produto.categoria === categoria || 

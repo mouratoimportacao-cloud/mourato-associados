@@ -106,7 +106,10 @@ export default function ListaProdutosLojista({
         
         // Gênero
         if (filtros.genero !== "todos") {
-          if (produto.genero !== filtros.genero) return false;
+          const matchGender =
+            produto.genero === filtros.genero ||
+            getArrayValue(produto.tags).includes(filtros.genero);
+          if (!matchGender) return false;
         }
         
         // Concentração
