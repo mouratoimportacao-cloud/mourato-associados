@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: "Mourato & Associados",
     images: [
       {
-        url: "/brand/logo-ma.webp",
+        url: "/brand/logo-ma.png",
         width: 1200,
         height: 630,
         alt: "Mourato & Associados Logo",
@@ -25,12 +25,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Mourato & Associados | Perfumaria de Luxo",
     description: "Sua curadoria exclusiva de fragrâncias e beleza premium.",
-    images: ["/brand/logo-ma.webp"],
+    images: ["/brand/logo-ma.png"],
   },
   icons: {
-    icon: "/brand/logo-ma.webp",
-    shortcut: "/brand/logo-ma.webp",
-    apple: "/brand/logo-ma.webp",
+    icon: "/brand/logo-ma.png",
+    shortcut: "/brand/logo-ma.png",
+    apple: "/brand/logo-ma.png",
   },
 };
 

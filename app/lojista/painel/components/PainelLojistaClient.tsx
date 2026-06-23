@@ -571,7 +571,7 @@ export default function PainelLojistaClient({
           <div className="flex items-center gap-3">
             <div className="relative">
               <OptimizedImage
-                src="/brand/logo-ma.webp"
+                src="/brand/logo-ma.png"
                 alt="Mourato & Associados"
                 width={120}
                 height={44}

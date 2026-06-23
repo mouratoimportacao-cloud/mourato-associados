@@ -70,7 +70,7 @@ export default async function FinanceiroAdminPage({
         <div className="border-b border-gray-100 p-7">
           <Link href="/" className="block">
             <img
-              src="/brand/logo-ma.webp"
+              src="/brand/logo-ma.png"
               alt="Mourato & Associados"
               className="h-16 w-auto object-contain"
             />
