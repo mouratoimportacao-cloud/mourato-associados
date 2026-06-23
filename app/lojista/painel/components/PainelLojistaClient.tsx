@@ -193,6 +193,9 @@ export default function PainelLojistaClient({
       showToast("Produto adicionado ao pedido!");
     }
     saveCart(newCart);
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setActiveTab("carrinho");
+    }
   };
 
   const handleUpdateQuantity = (produtoId: number, delta: number) => {
@@ -821,6 +824,18 @@ export default function PainelLojistaClient({
           {/* ─────────────────────────────────────────────────────────────────── */}
           {activeTab === "carrinho" && (
             <div className="space-y-4">
+              {/* Botão de Voltar para Produtos no Celular */}
+              {!orderSent && cart.length > 0 && (
+                <div className="lg:hidden flex items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                  <button
+                    onClick={() => setActiveTab("produtos")}
+                    className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-stone-600 hover:text-stone-900 tracking-wider transition-colors cursor-pointer"
+                  >
+                    ← Continuar Comprando (Catálogo)
+                  </button>
+                </div>
+              )}
+
               <div className="flex justify-between items-center mb-1">
                 <h2 className="text-sm font-serif font-bold text-stone-900 uppercase tracking-wider">🛒 Carrinho de Estoque</h2>
                 <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">{cart.length} itens no rascunho</span>
