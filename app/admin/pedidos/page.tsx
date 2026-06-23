@@ -139,6 +139,7 @@ export default async function PedidosAdminPage() {
             <form action={limparTodosPedidosAction}>
               <ConfirmSubmitButton
                 message="ATENÇÃO: Isto irá deletar TODOS os pedidos do sistema e zerar os estoques dos lojistas permanentemente. Deseja continuar?"
+                requiredPassword="1307"
                 className="bg-red-50 border border-red-200 shadow-sm px-6 py-3 rounded-2xl text-center font-bold text-red-600 text-xs uppercase tracking-widest hover:bg-red-100 transition-colors"
               >
                 🚨 Zerar Base

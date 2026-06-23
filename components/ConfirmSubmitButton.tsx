@@ -8,6 +8,7 @@ interface Props {
   children?: React.ReactNode;
   className?: string;
   message?: string;
+  requiredPassword?: string;
 }
 
 export default function ConfirmSubmitButton({
@@ -16,6 +17,7 @@ export default function ConfirmSubmitButton({
   children = "Confirm",
   className = "",
   message,
+  requiredPassword,
 }: Props) {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (message) {
@@ -23,6 +25,25 @@ export default function ConfirmSubmitButton({
       if (!confirmed) {
         e.preventDefault();
         return;
+      }
+    }
+    if (requiredPassword) {
+      const password = window.prompt("Digite a senha de 4 dígitos para confirmar esta ação crítica:");
+      if (password !== requiredPassword) {
+        window.alert("Senha inválida! Ação cancelada.");
+        e.preventDefault();
+        return;
+      }
+      const form = e.currentTarget.form;
+      if (form) {
+        let input = form.querySelector('input[name="confirmPassword"]') as HTMLInputElement;
+        if (!input) {
+          input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "confirmPassword";
+          form.appendChild(input);
+        }
+        input.value = password;
       }
     }
     if (onClick) {

@@ -4,9 +4,14 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "../../../lib/prisma";
 import { getAdminSession } from "../../../lib/auth";
 
-export async function limparTodosPedidosAction() {
+export async function limparTodosPedidosAction(formData: FormData) {
   const session = await getAdminSession();
   if (!session) return { success: false, error: "Não autorizado" };
+
+  const confirmPassword = formData.get("confirmPassword");
+  if (confirmPassword !== "1307") {
+    return { success: false, error: "Senha de confirmação incorreta ou ausente." };
+  }
 
   try {
     const pedidos = await prisma.pedido.findMany();
