@@ -437,33 +437,34 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       const errors: string[] = [];
       const warnings: string[] = [];
 
-      // Col A (index 0) - Código e Nome
+      // Col A (index 0) - Código (com fallback para nome)
       const colARaw = row[0];
       let codigo: number | undefined = undefined;
-      let nomePlanilha = "";
+      let nameFromA = "";
 
       if (colARaw !== undefined && colARaw !== null) {
         const colAStr = String(colARaw).trim();
         const match = colAStr.match(/^(\d+)\s+(.+)$/);
         if (match) {
           codigo = parseInt(match[1]);
-          nomePlanilha = match[2].trim();
+          nameFromA = match[2].trim();
         } else {
           const parsed = parseInt(colAStr);
           if (!isNaN(parsed) && String(parsed) === colAStr) {
             codigo = parsed;
           } else {
-            nomePlanilha = colAStr;
+            nameFromA = colAStr;
           }
         }
       }
 
-      // Col B (index 1) - Produto (Nome) - fallback
+      // Col B (index 1) - Produto (Nome) - preferido sobre o nome extraído da Coluna A
       const colBRaw = row[1];
+      let nomePlanilha = "";
       if (colBRaw !== undefined && colBRaw !== null && String(colBRaw).trim() !== "") {
-        if (!nomePlanilha) {
-          nomePlanilha = String(colBRaw).trim();
-        }
+        nomePlanilha = String(colBRaw).trim();
+      } else {
+        nomePlanilha = nameFromA;
       }
 
       if (codigo === undefined && !nomePlanilha) {
@@ -472,7 +473,11 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
 
       let matchedDbProduct: any = null;
       if (codigo !== undefined) {
-        matchedDbProduct = dbProducts.find(p => p.codigo === codigo || p.id === codigo);
+        matchedDbProduct = dbProducts.find(p => {
+          const dbCod = p.codigo !== undefined && p.codigo !== null ? Number(p.codigo) : null;
+          const dbId = Number(p.id);
+          return dbCod === codigo || dbId === codigo;
+        });
       }
       if (!matchedDbProduct && nomePlanilha) {
         matchedDbProduct = dbProducts.find(p => p.nome.toLowerCase() === nomePlanilha.toLowerCase());
