@@ -50,6 +50,11 @@ export default async function PedidosAdminPage() {
   }
 
   const pedidos = await prisma.pedido.findMany({
+    where: {
+      NOT: {
+        tipoFluxo: "venda_qr"
+      }
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -74,15 +79,10 @@ export default async function PedidosAdminPage() {
   }
 
 
-  const statuses = ["intencao de compra", "pendente fornecedor", "aguardando lojista", "rejeitado", "aguardando confirmacao admin", "aguardando pagamento", "pago", "enviado", "entregue", "cancelado"];
-  const statusConcluidos = ["pago", "enviado", "entregue", "rejeitado", "cancelado"];
-  const statusNovos = ["pendente fornecedor", "aguardando lojista", "intencao de compra"];
-  const pedidosNovos = pedidos.filter((pedido: any) => statusNovos.includes(String(pedido.status || "")));
-  const pedidosConcluidos = pedidos.filter((pedido: any) => statusConcluidos.includes(String(pedido.status || "")));
-  const pedidosPendentesAgrupados = pedidos.filter((pedido: any) => {
-    const status = String(pedido.status || "");
-    return !statusNovos.includes(status) && !statusConcluidos.includes(status);
-  });
+  const statuses = ["cancelado", "entregue", "enviado", "pago", "aguardando pagamento", "rejeitado"];
+  const pedidosNovos = pedidos.filter((pedido: any) => pedido.status === "aguardando pagamento");
+  const pedidosPendentesAgrupados = pedidos.filter((pedido: any) => pedido.status === "enviado");
+  const pedidosConcluidos = pedidos.filter((pedido: any) => ["pago", "entregue", "cancelado", "rejeitado"].includes(pedido.status));
 
   return (
     <div className="admin-shell min-h-screen bg-gray-50 flex">
@@ -222,16 +222,16 @@ function PedidosGrupo({
           {pedidos.length} pedido(s)
         </span>
       </div>
-      <div className="admin-table-scroll">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="admin-table-scroll overflow-hidden">
+        <table className="w-full table-fixed divide-y divide-gray-200">
           <thead className="bg-white">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Pedido</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Lojista</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Produto</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Pagamento</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Total</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
+              <th style={{ width: "var(--admin-col-ped-id)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pedido</th>
+              <th style={{ width: "var(--admin-col-ped-loj)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Lojista</th>
+              <th style={{ width: "var(--admin-col-ped-prod)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Produto</th>
+              <th style={{ width: "var(--admin-col-ped-pgt)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pagamento</th>
+              <th style={{ width: "var(--admin-col-ped-tot)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total</th>
+              <th style={{ width: "var(--admin-col-ped-sts)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
@@ -239,32 +239,36 @@ function PedidosGrupo({
               const lojista = userMap.get(pedido.usuarioId);
               const isPublicIntent = pedido.status === "intencao de compra" || Number(pedido.usuarioId) === 0;
               const aguardandoDecisaoLojista =
-                pedido.tipoFluxo === "venda_qr" && pedido.status === "aguardando lojista";
+                pedido.tipoFluxo === "venda_qr" && pedido.status === "aguardando pagamento";
               return (
-                <tr key={pedido.id} className="hover:bg-gray-50 transition-colors align-top">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-mono text-sm font-bold text-gray-900">#{pedido.id}</div>
-                    <div className="text-xs text-gray-500">{new Date(pedido.createdAt).toLocaleDateString("pt-BR")}</div>
+                <tr key={pedido.id} className="hover:bg-gray-50 transition-colors align-middle">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <div className="font-mono text-xs font-bold text-gray-900">#{pedido.id}</div>
+                    <div className="text-[10px] text-gray-400 font-medium">{new Date(pedido.createdAt).toLocaleDateString("pt-BR")}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-bold text-gray-900">
+                  <td className="px-2 py-1.5 min-w-0">
+                    <div className="text-xs font-bold text-gray-900 truncate" title={isPublicIntent ? "Cliente do site" : lojista?.nome || `Lojista #${pedido.usuarioId}`}>
                       {isPublicIntent ? "Cliente do site" : lojista?.nome || `Lojista #${pedido.usuarioId}`}
                     </div>
-                    <div className="text-xs text-gray-500">{isPublicIntent ? "Intenção de compra pública" : lojista?.email || "Sem e-mail"}</div>
-                    <div className="text-xs text-gray-500">{lojista?.telefone || ""}</div>
-                  </td>
-                  <td className="px-6 py-4 min-w-[16rem] max-w-[28rem]">
-                    <div className="text-sm font-bold text-gray-900">{pedido.produtoNome || "Produto"}</div>
-                    <div className="text-xs text-gray-500">
-                      {pedido.quantidade || 0} un. x R$ {Number(pedido.precoUnitario || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    <div className="text-[10px] text-gray-500 font-medium truncate" title={isPublicIntent ? "Direto" : lojista?.email || ""}>
+                      {lojista?.telefone ? `${lojista.telefone} · ` : ""}{isPublicIntent ? "Direto" : lojista?.email || "Sem e-mail"}
                     </div>
-                    {pedido.descontoConcedido ? (
-                      <div className="mt-1 text-xs font-bold text-amber-700">
-                        Desconto: R$ {Number(pedido.descontoConcedido || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </div>
-                    ) : null}
+                  </td>
+                  <td className="px-2 py-1.5 min-w-0">
+                    <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5 flex-wrap min-w-0">
+                      <span className="truncate max-w-[10rem]" title={pedido.produtoNome}>{pedido.produtoNome || "Produto"}</span>
+                      <span className="text-[10px] text-gray-500 font-normal">
+                        ({pedido.quantidade || 0} un. x R$ {Number(pedido.precoUnitario || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })})
+                      </span>
+                      {pedido.descontoConcedido ? (
+                        <span className="px-1.5 py-0.2 text-[9px] font-black rounded bg-amber-50 text-amber-800 border border-amber-100">
+                          -R$ {Number(pedido.descontoConcedido || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </span>
+                      ) : null}
+                    </div>
                     {pedido.observacao && (
-                      <div className="text-xs text-gray-500 mt-1.5">
+                      <details className="text-[10px] text-gray-500 mt-1 cursor-pointer select-none">
+                        <summary className="font-bold text-amber-700 hover:text-amber-800 hover:underline">Dados de Entrega</summary>
                         {(() => {
                           const parsed = parseClienteInfo(pedido.observacao);
                           if (parsed && parsed.endereco) {
@@ -287,64 +291,58 @@ function PedidosGrupo({
                               </div>
                             );
                           }
-                          return <span>Obs: {pedido.observacao}</span>;
+                          return <span className="block p-1 bg-gray-50 border border-gray-100 rounded mt-1">Obs: {pedido.observacao}</span>;
                         })()}
-                      </div>
+                      </details>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{pedido.pagamento || "Pix / Nubank"}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                  <td className="px-3 py-1.5 whitespace-nowrap text-xs text-gray-600">{pedido.pagamento || "Pix / Nubank"}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-xs font-bold text-gray-900">
                     R$ {Number(pedido.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                                         <div className="flex flex-col gap-2">
-                        {aguardandoDecisaoLojista ? (
-                          <span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-amber-700">
-                            Decisão exclusiva do lojista
-                          </span>
-                        ) : (
-                          <form action={atualizarStatusPedido} className="admin-action-row flex items-end gap-2">
-                            <input type="hidden" name="pedidoId" value={pedido.id} />
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Status</span>
-                              <select name="status" defaultValue={pedido.status} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold uppercase tracking-widest bg-white text-gray-800">
-                                {statuses.map((status) => (
-                                  <option key={status} value={status}>{status}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Desconto (R$)</span>
-                              <input
-                                type="number"
-                                name="desconto"
-                                step="0.01"
-                                min="0"
-                                defaultValue={pedido.descontoConcedido || 0}
-                                placeholder="0.00"
-                                className="w-24 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold bg-white text-gray-800"
-                              />
-                            </div>
-                            <ConfirmSubmitButton
-                              message={`Confirmar alteração do pedido #${pedido.id} para o status e desconto selecionados?`}
-                              className="rounded-lg bg-luxury-black px-3 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-luxury-gold transition-colors"
-                            >
-                              📥 Salvar
-                            </ConfirmSubmitButton>
-                          </form>
-                        )}
-                         {!["pago","enviado","entregue","rejeitado","cancelado"].includes(pedido.status) && !aguardandoDecisaoLojista && (
-                          <form action={deletePedidoAction} className="inline">
-                            <input type="hidden" name="pedidoId" value={pedido.id} />
-                            <ConfirmSubmitButton
-                              message={`Confirmar exclusão do pedido #${pedido.id}?`}
-                              className="rounded-lg bg-red-600 px-3 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-red-700 transition-colors"
-                            >
-                              🗑️ Excluir
-                            </ConfirmSubmitButton>
-                          </form>
-                        )}
-                      </div>
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      {aguardandoDecisaoLojista ? (
+                        <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-700">
+                          Lojista pendente
+                        </span>
+                      ) : (
+                        <form action={atualizarStatusPedido} className="flex items-center gap-1">
+                          <input type="hidden" name="pedidoId" value={pedido.id} />
+                          <select name="status" defaultValue={pedido.status} className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-white text-gray-800 cursor-pointer">
+                            {statuses.map((status) => (
+                              <option key={status} value={status}>{status}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="number"
+                            name="desconto"
+                            step="0.01"
+                            min="0"
+                            defaultValue={pedido.descontoConcedido || 0}
+                            placeholder="Desconto"
+                            className="w-16 rounded border border-gray-200 px-1 py-0.5 text-[10px] font-bold bg-white text-gray-800"
+                          />
+                          <ConfirmSubmitButton
+                            message={`Confirmar alteração do pedido #${pedido.id}?`}
+                            className="rounded bg-luxury-black px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-luxury-gold transition-colors cursor-pointer"
+                          >
+                            Salvar
+                          </ConfirmSubmitButton>
+                        </form>
+                      )}
+                      {!["pago","enviado","entregue","rejeitado","cancelado"].includes(pedido.status) && !aguardandoDecisaoLojista && (
+                        <form action={deletePedidoAction} className="inline">
+                          <input type="hidden" name="pedidoId" value={pedido.id} />
+                          <ConfirmSubmitButton
+                            message={`Confirmar exclusão do pedido #${pedido.id}?`}
+                            className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-red-700 transition-colors cursor-pointer"
+                          >
+                            Excluir
+                          </ConfirmSubmitButton>
+                        </form>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

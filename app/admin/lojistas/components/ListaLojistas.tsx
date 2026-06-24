@@ -85,53 +85,56 @@ export default function ListaLojistas({ lojistas }: { lojistas: Lojista[] }) {
           const linkRevenda = lojista.codigoRevenda ? `https://mouratoassociados.com.br/r/${lojista.codigoRevenda}` : "";
 
           return (
-            <tr key={lojista.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-luxury-black text-luxury-white flex items-center justify-center text-sm font-bold uppercase">
+            <tr key={lojista.id} className="hover:bg-gray-50 transition-colors align-middle">
+              <td className="px-2 py-1.5 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="h-7 w-7 rounded-full bg-luxury-black text-luxury-white flex items-center justify-center text-xs font-bold uppercase flex-shrink-0">
                     {lojista.nome.substring(0, 1)}
                   </div>
-                  <div>
-                    <div className="text-sm font-bold text-gray-900">{lojista.nome}</div>
-                    <div className="text-xs text-gray-500">{lojista.documento || "Sem CPF/CNPJ"}</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-gray-900 truncate" title={lojista.nome}>{lojista.nome}</div>
+                    <div className="text-[10px] text-gray-500 font-medium">{lojista.documento || "Sem documento"}</div>
                     {linkRevenda && (
-                      <div className="mt-1 flex flex-col gap-1">
-                        <a href={linkRevenda} target="_blank" className="text-xs font-bold text-indigo-600 hover:text-indigo-800">
-                          Link/QR de revenda
-                        </a>
-                        <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=92x92&data=${encodeURIComponent(linkRevenda)}`}
-                          alt="QR Code de revenda"
-                          className="h-16 w-16 rounded border border-gray-100 bg-white p-1"
-                        />
-                      </div>
+                      <details className="text-[10px] text-gray-500 mt-0.5 cursor-pointer select-none">
+                        <summary className="font-bold text-indigo-600 hover:underline">Ver QR Code</summary>
+                        <div className="mt-1 flex flex-col gap-1">
+                          <a href={linkRevenda} target="_blank" className="text-[10px] font-bold text-indigo-600 underline">
+                            Link de revenda
+                          </a>
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=92x92&data=${encodeURIComponent(linkRevenda)}`}
+                            alt="QR Code de revenda"
+                            className="h-14 w-14 rounded border border-gray-100 bg-white p-1"
+                          />
+                        </div>
+                      </details>
                     )}
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{lojista.email}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+              <td className="px-2 py-1.5 text-xs text-gray-700 truncate" title={lojista.email}>{lojista.email}</td>
+              <td className="px-3 py-1.5 whitespace-nowrap text-xs text-gray-700">
                 <div>{lojista.telefone || "Sem telefone"}</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-[10px] text-gray-400">
                   {[lojista.cidade, lojista.estado].filter(Boolean).join(" / ") || "Sem cidade"}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2.5 py-1 text-xs font-bold rounded-full border uppercase tracking-widest ${
+              <td className="px-3 py-1.5 whitespace-nowrap">
+                <span className={`px-2 py-0.5 text-[9px] font-bold rounded border uppercase tracking-wider ${
                   aguardandoAprovacao
                     ? "bg-amber-50 text-amber-700 border-amber-100"
                     : "bg-green-50 text-green-700 border-green-100"
                 }`}>
-                  {aguardandoAprovacao ? "aguardando aprovação" : "aprovado"}
+                  {aguardandoAprovacao ? "Pendente" : "Aprovado"}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td className="px-3 py-1.5 whitespace-nowrap text-xs text-gray-500 font-medium">
                 {new Date(lojista.createdAt).toLocaleDateString("pt-BR")}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
+              <td className="px-3 py-1.5 whitespace-nowrap text-right text-xs font-medium space-x-1">
                 <Link
                   href={`/admin/lojistas/${lojista.id}`}
-                  className="text-gray-700 hover:text-black hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-all text-sm font-medium mr-2"
+                  className="text-gray-700 hover:text-black hover:bg-gray-100 px-2 py-0.5 rounded transition-all font-bold"
                 >
                   Consultar
                 </Link>
@@ -140,9 +143,9 @@ export default function ListaLojistas({ lojistas }: { lojistas: Lojista[] }) {
                     type="button"
                     disabled={isPending}
                     onClick={() => handleApprove(lojista.id)}
-                    className="text-green-600 hover:text-green-800 hover:bg-green-50 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 cursor-pointer text-sm font-medium mr-2"
+                    className="text-green-600 hover:text-green-800 hover:bg-green-50 px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer font-bold"
                   >
-                    Validar Cadastro
+                    Validar
                   </button>
                 )}
                 <button
@@ -184,15 +187,15 @@ export default function ListaLojistas({ lojistas }: { lojistas: Lojista[] }) {
         <p className="text-xs text-gray-500 mt-1">Quando o admin aprova, o cadastro sai daqui e continua abaixo em lojistas aprovados.</p>
       </div>
       <div className="admin-table-scroll max-h-[70vh] overflow-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+        <table className="w-full table-fixed divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Lojista</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">E-mail</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Contato</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Cadastro</th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Ações</th>
+              <th style={{ width: "var(--admin-col-loj-nome)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Lojista</th>
+              <th style={{ width: "var(--admin-col-loj-mail)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">E-mail</th>
+              <th style={{ width: "var(--admin-col-loj-tel)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Contato</th>
+              <th style={{ width: "var(--admin-col-loj-status)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+              <th style={{ width: "var(--admin-col-loj-date)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Cadastro</th>
+              <th style={{ width: "var(--admin-col-loj-actions)" }} className="px-2 py-1.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
           {renderRows(pendentes, "Nenhum cadastro aguardando aprovação.")}
@@ -205,15 +208,15 @@ export default function ListaLojistas({ lojistas }: { lojistas: Lojista[] }) {
         <p className="text-xs text-gray-500 mt-1">Cadastros ativos que podem acessar o painel lojista.</p>
       </div>
       <div className="admin-table-scroll max-h-[70vh] overflow-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+        <table className="w-full table-fixed divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Lojista</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">E-mail</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Contato</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Cadastro</th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Ações</th>
+              <th style={{ width: "var(--admin-col-loj-nome)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Lojista</th>
+              <th style={{ width: "var(--admin-col-loj-mail)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">E-mail</th>
+              <th style={{ width: "var(--admin-col-loj-tel)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Contato</th>
+              <th style={{ width: "var(--admin-col-loj-status)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+              <th style={{ width: "var(--admin-col-loj-date)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Cadastro</th>
+              <th style={{ width: "var(--admin-col-loj-actions)" }} className="px-2 py-1.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
           {renderRows(aprovados, "Nenhum lojista aprovado até agora.")}

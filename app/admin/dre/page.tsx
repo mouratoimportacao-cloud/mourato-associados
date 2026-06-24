@@ -119,7 +119,7 @@ export default async function FinanceiroAdminPage({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-grow p-3 sm:p-5 lg:p-7">
+      <main className="admin-main min-w-0 flex-grow p-3 sm:p-5 lg:p-7">
         <div className="mx-auto max-w-[1500px]">
           <div className="mb-4 flex items-center justify-between lg:hidden">
             <Link href="/admin" className="text-sm font-black text-gray-800">

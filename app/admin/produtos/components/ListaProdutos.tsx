@@ -149,15 +149,15 @@ export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutos
         <FiltrosProdutos theme="light" onChange={setFiltros} />
       </div>
       <div className="admin-table-scroll max-h-[70vh] overflow-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+        <table className="w-full table-fixed divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Produto</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Categoria</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Estoque</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Preços</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Custo Estoque</th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Ações</th>
+              <th style={{ width: "var(--admin-col-prod-nome)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Produto</th>
+              <th style={{ width: "var(--admin-col-prod-cat)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Categoria</th>
+              <th style={{ width: "var(--admin-col-prod-est)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Estoque</th>
+              <th style={{ width: "var(--admin-col-prod-prc)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Preços</th>
+              <th style={{ width: "var(--admin-col-prod-cst)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Custo</th>
+              <th style={{ width: "var(--admin-col-prod-act)" }} className="px-2 py-1.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
@@ -167,89 +167,88 @@ export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutos
 
               return (
               <tr key={produto.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="relative h-10 w-10 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                <td className="px-2 py-1.5 min-w-0">
+                  <div className="flex items-center min-w-0">
+                    <div className="relative h-8 w-8 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-gray-200">
                       <OptimizedImage
                         src={produto.imagem}
                         alt={produto.nome}
                         fill
-                        sizes="40px"
+                        sizes="32px"
                         className="object-cover"
                         fallbackText="N/A"
                       />
                     </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-bold text-gray-900">
-                        <span className="mr-2 rounded bg-gray-100 px-2 py-0.5 text-[10px] font-black text-gray-500">
-                          Cód. {produto.codigo ?? produto.id}
+                    <div className="ml-2">
+                      <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                        <span className="rounded bg-gray-100 px-1 py-0.2 text-[9px] font-black text-gray-500">
+                          #{produto.codigo ?? produto.id}
                         </span>
-                        {produto.nome}
+                        <span className="truncate max-w-[15rem]" title={produto.nome}>{produto.nome}</span>
                       </div>
-                      <div className="text-xs text-gray-500">{produto.marca} - {produto.volume}</div>
+                      <div className="text-[10px] text-gray-400 font-medium">{produto.marca} · {produto.volume}</div>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-                    {produto.categoria}
-                  </span>
-                  <div className="mt-2 flex flex-wrap gap-1">
+                <td className="px-3 py-1.5 whitespace-nowrap">
+                  <div className="flex items-center gap-1 flex-wrap max-w-[12rem]">
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
+                      {produto.categoria}
+                    </span>
                     {produto.vitrine && (
-                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                      <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-amber-50 text-amber-700 border border-amber-100">
                         Vitrine
                       </span>
                     )}
                     {produto.promocaoAtiva && produto.descontoPercentual ? (
-                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-50 text-red-700 border border-red-100">
-                        Promo {produto.descontoPercentual}%
+                      <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-red-50 text-red-700 border border-red-100">
+                        -{produto.descontoPercentual}%
                       </span>
                     ) : null}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex flex-col">
-                    <div className={`text-sm font-medium flex items-center gap-1.5 ${produto.estoque <= 0 ? 'text-red-600 font-bold' : produto.estoque < 5 ? 'text-amber-600' : 'text-gray-700'}`}>
-                      <span>Geral: {produto.estoque} un.</span>
-                      {produto.estoque <= 0 && (
-                        <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-red-100 text-red-700 border border-red-200">
-                          Esgotado
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-0.5">
-                      Lojista: {produto.estoqueLojista || 0} un.
-                    </div>
+                <td className="px-3 py-1.5 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className={`font-bold ${produto.estoque <= 0 ? 'text-red-600' : produto.estoque < 5 ? 'text-amber-600' : 'text-gray-700'}`}>
+                      G: {produto.estoque} un.
+                    </span>
+                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-500 font-medium">
+                      L: {produto.estoqueLojista || 0} un.
+                    </span>
+                    {produto.estoque <= 0 && (
+                      <span className="px-1 py-0.2 text-[8px] font-black uppercase rounded bg-red-100 text-red-700 border border-red-200">
+                        Falta
+                      </span>
+                    )}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-bold text-gray-900">
-                    Sugerido: {moeda(produto.preco)}
-                  </div>
-                  <div className="text-xs font-semibold text-indigo-700">
-                    Custo lojista: {moeda(produto.precoAtacado)}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-bold text-gray-900">
-                    {custoReal ? moeda(custoReal) : "Sem cotacao"}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Total: {totalEstoque ? moeda(totalEstoque) : "R$ 0,00"}
+                <td className="px-3 py-1.5 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="font-bold text-gray-900">S: {moeda(produto.preco)}</span>
+                    <span className="text-gray-300">|</span>
+                    <span className="font-semibold text-indigo-700">C: {moeda(produto.precoAtacado)}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                <td className="px-3 py-1.5 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="font-bold text-gray-900">U: {custoReal ? moeda(custoReal) : "-"}</span>
+                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-500 font-semibold">T: {totalEstoque ? moeda(totalEstoque) : "R$ 0,00"}</span>
+                  </div>
+                </td>
+                <td className="px-3 py-1.5 whitespace-nowrap text-right text-xs font-medium space-x-1">
                   <button
                     onClick={() => onEditProduct(produto)}
                     disabled={isPending}
-                    className="text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 cursor-pointer"
+                    className="text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer"
                   >
                     Editar
                   </button>
                   <button
                     onClick={() => handleDelete(produto.id)}
                     disabled={isPending}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 cursor-pointer"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer"
                   >
                     Excluir
                   </button>
