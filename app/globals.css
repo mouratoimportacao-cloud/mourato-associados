@@ -46,12 +46,12 @@
   --font-inter: Arial, Helvetica, sans-serif;
 
   /* LARGURAS DAS COLUNAS DAS TABELAS DO ADMIN (Estilo Excel - Altere aqui as proporções em % ou px) */
-  --admin-col-prod-nome: 32%;
-  --admin-col-prod-cat: 14%;
-  --admin-col-prod-est: 16%;
-  --admin-col-prod-prc: 16%;
+  --admin-col-prod-nome: 38%;
+  --admin-col-prod-cat: 16%;
+  --admin-col-prod-est: 10%;
+  --admin-col-prod-prc: 12%;
   --admin-col-prod-cst: 14%;
-  --admin-col-prod-act: 8%;
+  --admin-col-prod-act: 10%;
 
   --admin-col-ped-id: 8%;
   --admin-col-ped-loj: 20%;
@@ -211,17 +211,15 @@ h1, h2, h3, h4, .font-serif {
 
 @media (min-width: 1024px) {
   .admin-shell {
-    height: calc(100vh / 0.75) !important;
-    min-height: calc(100vh / 0.75) !important;
+    height: 100vh;
     overflow: hidden;
-    zoom: 0.75 !important;
   }
   .admin-sidebar {
-    height: calc(100vh / 0.75) !important;
+    height: 100vh;
     overflow-y: auto;
   }
   .admin-main {
-    height: calc(100vh / 0.75) !important;
+    height: 100vh;
     overflow-y: auto;
     padding: 0.75rem !important;
   }
