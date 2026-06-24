@@ -66,53 +66,41 @@ export default async function FinanceiroAdminPage({
 
   return (
     <div className="admin-shell min-h-screen bg-[#f7f7f5] lg:flex">
-      <aside className="admin-sidebar hidden h-screen w-64 shrink-0 flex-col border-r border-gray-200 bg-white text-gray-900 lg:sticky lg:top-0 lg:flex">
-        <div className="border-b border-gray-100 p-7">
+      <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
+        <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
-            <img
-              src="/brand/logo-ma.png"
-              alt="Mourato & Associados"
-              className="h-16 w-auto object-contain"
-            />
+            <img src="/brand/logo-ma.png" alt="Mourato & Associados" className="h-20 w-auto brand-logo-relief admin-brand-logo" />
           </Link>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-            Painel de Gestão
-          </p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Painel de Gestão</p>
         </div>
-        <nav className="flex-grow space-y-1 p-4">
-          {[
-            ["/admin", "🏠", "Dashboard"],
-            ["/admin/produtos", "📦", "Produtos"],
-            ["/admin/lojistas", "🏪", "Lojistas"],
-            ["/admin/pedidos", "🛒", "Pedidos"],
-            ["/admin/radar", "🎯", "Radar"],
-          ].map(([href, icon, label]) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-100"
-            >
-              <span>{icon}</span> {label}
-            </Link>
-          ))}
-          <Link
-            href="/admin/dre"
-            className="flex items-center gap-3 rounded-xl bg-gray-950 px-4 py-3 text-sm font-bold text-white"
-          >
+
+        <nav className="flex-grow p-4 space-y-2 mt-6">
+          <Link href="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>🏠</span> Dashboard
+          </Link>
+          <Link href="/admin/produtos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>📦</span> Produtos
+          </Link>
+          <Link href="/admin/lojistas" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>🏪</span> Lojistas
+          </Link>
+          <Link href="/admin/pedidos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>🛒</span> Pedidos
+          </Link>
+          <Link href="/admin/radar" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>🎯</span> Radar
+          </Link>
+          <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-lg text-sm font-medium">
             <span>💰</span> Financeiro
           </Link>
-          <Link
-            href="/admin/configurar"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-100"
-          >
+          <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>⚙️</span> Configurar
           </Link>
         </nav>
-        <div className="border-t border-gray-100 p-4">
+
+        <div className="p-4 border-t border-white/5">
           <form action={handleLogout}>
-            <button className="w-full rounded-xl px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-100">
+            <button type="submit" className="w-full text-left flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white text-xs uppercase tracking-widest transition-colors cursor-pointer">
               🚪 Sair do Painel
             </button>
           </form>

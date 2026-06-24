@@ -51,11 +51,6 @@ export default async function PedidosAdminPage() {
   }
 
   const pedidos = await prisma.pedido.findMany({
-    where: {
-      NOT: {
-        tipoFluxo: "venda_qr"
-      }
-    },
     orderBy: { createdAt: "desc" },
   });
 
