@@ -269,28 +269,7 @@ export default async function AdminPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
-                Atalhos Rápidos
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Link href="/admin/produtos" className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-4 group">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">➕</div>
-                  <div>
-                    <p className="font-bold text-gray-800 text-sm">Novo Produto</p>
-                    <p className="text-xs text-gray-400">Adicionar item ao catálogo</p>
-                  </div>
-                </Link>
-                <Link href="/admin/lojistas" className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-4 group">
-                  <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">🏪</div>
-                  <div>
-                    <p className="font-bold text-gray-800 text-sm">Lojistas</p>
-                    <p className="text-xs text-gray-400">Ver cadastros comerciais</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
+
 
             {/* ÚLTIMOS PEDIDOS */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
