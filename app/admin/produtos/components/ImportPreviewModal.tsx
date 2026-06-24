@@ -19,7 +19,7 @@ const targetFields = [
   { key: "cotacaoDolar", label: "Cotação USD (R$)", desc: "Cotação do dólar para conversão (padrão: 1.0)", required: false },
   { key: "precoCusto", label: "Custo BRL (R$)", desc: "Custo em Reais (obrigatório se não houver Custo USD)", required: false },
   { key: "precoLojista", label: "Preço Lojista (R$)", desc: "Preço de atacado (opcional, se vazio calcula automático)", required: false },
-  { key: "precoSugerido", label: "Preço Sugerido / Venda (R$)", desc: "Preço de venda ao consumidor (obrigatório)", required: true },
+  { key: "precoSugerido", label: "Preço Sugerido / Venda (R$)", desc: "Preço de venda ao consumidor (opcional para atualizações)", required: false },
   { key: "estoqueGeral", label: "Estoque Geral", desc: "Quantidade no estoque principal", required: false },
   { key: "estoqueLojista", label: "Estoque Lojista", desc: "Quantidade separada para lojistas", required: false },
   { key: "imagem", label: "Imagem (URL)", desc: "Link para foto do produto", required: false },

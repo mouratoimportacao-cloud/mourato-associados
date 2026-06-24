@@ -382,8 +382,24 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       Object.keys(FIELD_ALIASES).forEach(field => {
         const aliases = FIELD_ALIASES[field];
         const foundHeader = headers.find(h => {
-          const normH = h.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-          return aliases.some(alias => normH === alias);
+          const normH = h.normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/\(.*?\)/g, "") // removes parentheses like ($), (R$)
+            .replace(/[^a-z0-9\s]/g, "") // removes non-alphanumeric characters
+            .trim()
+            .replace(/\s+/g, " ");
+
+          return aliases.some(alias => {
+            const normAlias = alias.normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toLowerCase()
+              .replace(/\(.*?\)/g, "")
+              .replace(/[^a-z0-9\s]/g, "")
+              .trim()
+              .replace(/\s+/g, " ");
+            return normH === normAlias;
+          });
         });
         if (foundHeader) {
           mapping[field] = foundHeader;
