@@ -237,12 +237,17 @@ export async function registrarIntencaoCompraCarrinho(
       }
     });
 
-    revalidatePath("/admin");
-    revalidatePath("/admin/pedidos");
-    revalidatePath("/lojista/painel");
+    try {
+      revalidatePath("/admin");
+      revalidatePath("/admin/pedidos");
+      revalidatePath("/lojista/painel");
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+    }
 
     return {
       success: true,
+      checkoutRef,
       message: origemRevenda
         ? `Pedido #${checkoutRef} enviado! O revendedor responsável irá confirmar e finalizar seu atendimento.`
         : `Intenção de compra #${checkoutRef} registrada! Entraremos em contato para finalizar o seu atendimento.`,

@@ -281,89 +281,100 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
         </section>
 
         {/* CARDS FINANCEIROS DO LOJISTA */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3 mb-4">
+        <section className={`grid gap-3 mb-4 ${
+          saldoDevedor > 0 ? "grid-cols-2 sm:grid-cols-4 xl:grid-cols-7" : "grid-cols-2 sm:grid-cols-3"
+        }`}>
           <Resumo label="Itens em estoque pessoal" value={estoqueRows.reduce((acc, row) => acc + row.quantidade, 0)} />
           <Resumo label="Valor do estoque pessoal" value={formatMoney(valorEstoque)} />
-          <Resumo label="Valor em aberto" value={formatMoney(valorEmAberto)} destaque />
-          <Resumo label="Valor quitado" value={formatMoney(valorQuitado)} />
-          <Resumo label="Saldo devedor" value={formatMoney(saldoDevedor)} destaque={saldoDevedor > 0} />
-          <Resumo label="Limite aprovado" value={formatMoney(limiteAprovado)} />
-          <div className={`rounded-xl border p-3 shadow-sm ${
-            isExcedido ? "border-red-200 bg-red-50 text-red-700" : "border-gray-100 bg-white text-gray-800"
-          }`}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Crédito disponível</p>
-            <p className="mt-1 text-base font-black">
-              {isExcedido ? "Limite Excedido" : formatMoney(creditoDisponivel)}
-            </p>
-          </div>
+          {saldoDevedor > 0 && (
+            <>
+              <Resumo label="Valor em aberto" value={formatMoney(valorEmAberto)} destaque />
+              <Resumo label="Valor quitado" value={formatMoney(valorQuitado)} />
+              <Resumo label="Saldo devedor" value={formatMoney(saldoDevedor)} destaque={saldoDevedor > 0} />
+              <Resumo label="Limite aprovado" value={formatMoney(limiteAprovado)} />
+              <div className={`rounded-xl border p-3 shadow-sm ${
+                isExcedido ? "border-red-200 bg-red-50 text-red-700" : "border-gray-100 bg-white text-gray-800"
+              }`}>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Crédito disponível</p>
+                <p className="mt-1 text-base font-black">
+                  {isExcedido ? "Limite Excedido" : formatMoney(creditoDisponivel)}
+                </p>
+              </div>
+            </>
+          )}
+          {saldoDevedor === 0 && (
+            <Resumo label="Limite aprovado" value={formatMoney(limiteAprovado)} />
+          )}
         </section>
 
         {/* GERENCIAMENTO DE PAGAMENTOS PARCIAIS */}
-        <section className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
-          {/* REGISTRAR PAGAMENTO PARCIAL */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col justify-between">
-            <div>
-              <h2 className="text-base font-black text-gray-800 uppercase tracking-wider">Lançar Pagamento Parcial</h2>
-              <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">Reduz o saldo devedor amortizando faturas ativas</p>
-            </div>
-            
-            <form action={registrarPagamentoParcialLojistaAction} className="space-y-3 mt-4">
-              <input type="hidden" name="lojistaId" value={lojista.id} />
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Valor do Pagamento</label>
-                  <input
-                    type="number"
-                    name="valorPagamento"
-                    step="0.01"
-                    min="0.01"
-                    required
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-luxury-gold"
-                    placeholder="Ex: 500,00"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Observação / Descrição</label>
-                  <input
-                    type="text"
-                    name="observacao"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-luxury-gold"
-                    placeholder="Ex: Pix Nubank"
-                  />
-                </div>
+        {saldoDevedor > 0 && (
+          <section className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+            {/* REGISTRAR PAGAMENTO PARCIAL */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col justify-between">
+              <div>
+                <h2 className="text-base font-black text-gray-800 uppercase tracking-wider">Lançar Pagamento Parcial</h2>
+                <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">Reduz o saldo devedor amortizando faturas ativas</p>
               </div>
-
-              <button
-                type="submit"
-                className="w-full bg-green-700 hover:bg-green-800 text-white font-black text-[10px] uppercase tracking-widest py-3 rounded-lg transition-all cursor-pointer text-center"
-              >
-                Confirmar Recebimento
-              </button>
-            </form>
-          </div>
-
-          {/* LISTA HISTÓRICO DE PAGAMENTOS */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <h2 className="text-base font-black text-gray-800 uppercase tracking-wider">Histórico de Pagamentos</h2>
-            <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">Histórico de amortizações lançadas pelo administrador</p>
-            
-            <div className="mt-4 max-h-[16vh] overflow-y-auto space-y-2 pr-1 admin-table-scroll">
-              {historicoPagamentos.map((pag: any) => (
-                <div key={pag.id} className="flex justify-between items-center text-xs p-2.5 rounded-lg border border-gray-100 bg-gray-50/60">
+              
+              <form action={registrarPagamentoParcialLojistaAction} className="space-y-3 mt-4">
+                <input type="hidden" name="lojistaId" value={lojista.id} />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <p className="font-bold text-gray-800">{formatMoney(pag.valor)}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">{pag.observacao || "Pagamento registrado"}</p>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Valor do Pagamento</label>
+                    <input
+                      type="number"
+                      name="valorPagamento"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-luxury-gold"
+                      placeholder="Ex: 500,00"
+                    />
                   </div>
-                  <span className="text-[9px] font-mono text-gray-400">{formatDate(pag.data)}</span>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Observação / Descrição</label>
+                    <input
+                      type="text"
+                      name="observacao"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-luxury-gold"
+                      placeholder="Ex: Pix Nubank"
+                    />
+                  </div>
                 </div>
-              ))}
-              {historicoPagamentos.length === 0 && (
-                <p className="text-xs text-gray-400 italic text-center py-6">Nenhum pagamento manual lançado.</p>
-              )}
+
+                <button
+                  type="submit"
+                  className="w-full bg-green-700 hover:bg-green-800 text-white font-black text-[10px] uppercase tracking-widest py-3 rounded-lg transition-all cursor-pointer text-center"
+                >
+                  Confirmar Recebimento
+                </button>
+              </form>
             </div>
-          </div>
-        </section>
+
+            {/* LISTA HISTÓRICO DE PAGAMENTOS */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <h2 className="text-base font-black text-gray-800 uppercase tracking-wider">Histórico de Pagamentos</h2>
+              <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">Histórico de amortizações lançadas pelo administrador</p>
+              
+              <div className="mt-4 max-h-[16vh] overflow-y-auto space-y-2 pr-1 admin-table-scroll">
+                {historicoPagamentos.map((pag: any) => (
+                  <div key={pag.id} className="flex justify-between items-center text-xs p-2.5 rounded-lg border border-gray-100 bg-gray-50/60">
+                    <div>
+                      <p className="font-bold text-gray-800">{formatMoney(pag.valor)}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">{pag.observacao || "Pagamento registrado"}</p>
+                    </div>
+                    <span className="text-[9px] font-mono text-gray-400">{formatDate(pag.data)}</span>
+                  </div>
+                ))}
+                {historicoPagamentos.length === 0 && (
+                  <p className="text-xs text-gray-400 italic text-center py-6">Nenhum pagamento manual lançado.</p>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ESTOQUE E COMPRAS DE ESTOQUE */}
         <section className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -408,8 +419,8 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
 
           <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
-              <h2 className="font-black text-gray-800">Compras e pendências com fornecedor</h2>
-              <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Ao marcar como pago/entregue, o valor sai do aberto</p>
+              <h2 className="font-black text-gray-800">Vendas pelo QRCODE / Revenda</h2>
+              <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Vendas realizadas por este lojista aos seus clientes finais</p>
             </div>
             <div className="overflow-x-auto max-h-[46vh] admin-table-scroll">
               <table className="min-w-full divide-y divide-gray-200">
@@ -418,24 +429,12 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
                     <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Pedido</th>
                     <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Produto</th>
                     <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Total</th>
-                    <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
+                    <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Status / Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {comprasFornecedor.map((pedido: any) => {
+                  {vendasCliente.map((pedido: any) => {
                     const produto = pedido.produtoId ? produtoMap.get(pedido.produtoId) : null;
-                    const totalPagoPedido = pedido.totalPagoFornecedor !== null && pedido.totalPagoFornecedor !== undefined
-                      ? Number(pedido.totalPagoFornecedor || 0)
-                      : statusQuitados.includes(pedido.status)
-                        ? Number(pedido.total || 0)
-                        : 0;
-                    const saldoPedido = pedido.saldoFornecedor !== null && pedido.saldoFornecedor !== undefined
-                      ? Number(pedido.saldoFornecedor || 0)
-                      : pedido.status === "pendente fornecedor"
-                        ? Number(pedido.total || 0)
-                        : 0;
-                    const quantidadeRestante = Math.max(0, Number(pedido.quantidade || 0) - Number(pedido.quantidadePagaFornecedor || 0));
-
                     return (
                       <tr key={pedido.id}>
                         <td className="px-4 py-2">
@@ -445,62 +444,45 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
                         <td className="px-4 py-2">
                           <p className="text-sm font-bold text-gray-900">{pedido.produtoNome || produto?.nome || "Produto"}</p>
                           <p className="text-xs text-gray-500">{pedido.quantidade || 0} un. x {formatMoney(Number(pedido.precoUnitario || 0))}</p>
+                          {pedido.descontoConcedido ? (
+                            <span className="text-[10px] text-amber-600 font-bold block mt-0.5">Desconto: {formatMoney(Number(pedido.descontoConcedido))}</span>
+                          ) : null}
                         </td>
-                        <td className="px-4 py-2 text-sm">
-                          <p className="font-black text-gray-900">{formatMoney(Number(pedido.total || 0))}</p>
-                          <p className="text-xs text-green-700">
-                            Pago: {formatMoney(totalPagoPedido)}
-                          </p>
-                          <p className="text-xs text-amber-700">
-                            Saldo: {formatMoney(saldoPedido)}
-                          </p>
+                        <td className="px-4 py-2 text-sm font-bold text-gray-900">
+                          {formatMoney(Number(pedido.total || 0))}
                         </td>
                         <td className="px-4 py-2">
-                          <form action={atualizarStatusPedido} className="admin-action-row flex flex-col gap-1.5">
-                            <input type="hidden" name="pedidoId" value={pedido.id} />
-                            <select
-                              name="status"
-                              defaultValue={pedido.status}
-                              className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs font-bold uppercase tracking-widest bg-white"
-                            >
-                              {statusFornecedor.map((status) => (
-                                <option key={status} value={status}>
-                                  {status}
-                                </option>
-                              ))}
-                            </select>
-                            <ConfirmSubmitButton
-                              message={`Confirmar alteração do pedido #${pedido.id} para o status selecionado?`}
-                              className="rounded-lg bg-luxury-black px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-white hover:bg-luxury-gold transition duration-150 cursor-pointer"
-                            >
-                              Salvar
-                            </ConfirmSubmitButton>
-                          </form>
-                          <form action={registrarPagamentoFornecedor} className="admin-action-row mt-2 flex items-center gap-1">
-                            <input type="hidden" name="pedidoId" value={pedido.id} />
-                            <input
-                              name="quantidadePaga"
-                              type="number"
-                              min="1"
-                              max={quantidadeRestante}
-                              placeholder="Qtd paga"
-                              className="w-16 rounded-lg border border-gray-200 px-2 py-1 text-xs font-bold"
-                            />
-                            <ConfirmSubmitButton
-                              message={`Confirmar baixa deste pedido? Isso reduz o saldo do lojista com o fornecedor e baixa o estoque geral conforme a quantidade informada.`}
-                              className="rounded-lg bg-green-700 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-white hover:bg-green-800 transition duration-150 cursor-pointer"
-                            >
-                              Baixar
-                            </ConfirmSubmitButton>
-                          </form>
+                          <div className="flex flex-col gap-1.5">
+                            <span className={`w-fit rounded px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                              pedido.status === "entregue" || pedido.status === "pago"
+                                ? "bg-green-50 text-green-700 border border-green-200"
+                                : pedido.status === "cancelado" || pedido.status === "rejeitado"
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                            }`}>
+                              {pedido.status}
+                            </span>
+                            {pedido.status !== "cancelado" && pedido.status !== "rejeitado" && (
+                              <form action={atualizarStatusPedido} className="mt-1">
+                                <input type="hidden" name="pedidoId" value={pedido.id} />
+                                <input type="hidden" name="status" value="cancelado" />
+                                <ConfirmSubmitButton
+                                  message={`Deseja realmente cancelar a venda #${pedido.id}? O produto retornará ao estoque pessoal do lojista.`}
+                                  className="rounded-lg bg-red-600 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white hover:bg-red-700 transition duration-150 cursor-pointer"
+                                >
+                                  Cancelar Venda
+                                </ConfirmSubmitButton>
+                              </form>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
                   })}
-                  {comprasFornecedor.length === 0 && (
+                  {vendasCliente.length === 0 && (
                     <tr>
                       <td colSpan={4} className="px-6 py-12 text-center text-sm text-gray-500 italic">
-                        Nenhuma compra ao fornecedor registrada para este lojista.
+                        Nenhuma venda registrada via QR Code para este lojista.
                       </td>
                     </tr>
                   )}
@@ -527,9 +509,13 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
             <Resumo label="Custo das vendas (QR)" value={formatMoney(custoVendido)} />
             <Resumo label="Descontos dados" value={formatMoney(descontoConcedido)} />
             <Resumo label="Lucro bruto (QR)" value={formatMoney(lucroBruto)} destaque />
-            <Resumo label="Compras com fornecedor" value={formatMoney(comprasFornecedor.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0))} />
-            <Resumo label="Valor quitado fornecedor" value={formatMoney(valorQuitado)} />
-            <Resumo label="Valor em aberto fornecedor" value={formatMoney(valorEmAberto)} destaque={valorEmAberto > 0} />
+            {saldoDevedor > 0 && (
+              <>
+                <Resumo label="Compras com fornecedor" value={formatMoney(comprasFornecedor.reduce((acc: number, pedido: any) => acc + Number(pedido.total || 0), 0))} />
+                <Resumo label="Valor quitado fornecedor" value={formatMoney(valorQuitado)} />
+                <Resumo label="Valor em aberto fornecedor" value={formatMoney(valorEmAberto)} destaque={valorEmAberto > 0} />
+              </>
+            )}
             <Resumo label="Valor do estoque pessoal" value={formatMoney(valorEstoque)} />
             <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
               <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Margem bruta (QR)</p>
@@ -539,7 +525,9 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-5 border-t border-gray-100 pt-5">
+          <div className={`mt-5 grid gap-5 border-t border-gray-100 pt-5 ${
+            saldoDevedor > 0 ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
+          }`}>
             <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
               <h3 className="text-sm font-bold text-gray-900">Produtos mais vendidos</h3>
               <div className="mt-3 space-y-3">
@@ -562,31 +550,33 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
               </div>
             </div>
             
-            <div className="rounded-xl border border-gray-100 bg-luxury-black p-4 text-white flex flex-col justify-between">
-              <div>
-                <h3 className="text-sm font-bold">Balanço individual</h3>
-                <div className="mt-3 space-y-2 text-sm">
-                  <div className="flex justify-between border-b border-white/10 pb-2">
-                    <span className="text-gray-400">Estoque pessoal</span>
-                    <span className="font-bold">{formatMoney(valorEstoque)}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/10 pb-2">
-                    <span className="text-gray-400">Aberto com fornecedor</span>
-                    <span className="font-bold text-luxury-gold">{formatMoney(valorEmAberto)}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/10 pb-2">
-                    <span className="text-gray-400">Quitado com fornecedor</span>
-                    <span className="font-bold">{formatMoney(valorQuitado)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Margem bruta</span>
-                    <span className="font-bold">
-                      {totalVendido > 0 ? ((lucroBruto / totalVendido) * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : "0"}%
-                    </span>
+            {saldoDevedor > 0 && (
+              <div className="rounded-xl border border-gray-100 bg-luxury-black p-4 text-white flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-bold">Balanço individual</h3>
+                  <div className="mt-3 space-y-2 text-sm">
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-gray-400">Estoque pessoal</span>
+                      <span className="font-bold">{formatMoney(valorEstoque)}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-gray-400">Aberto com fornecedor</span>
+                      <span className="font-bold text-luxury-gold">{formatMoney(valorEmAberto)}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-gray-400">Quitado com fornecedor</span>
+                      <span className="font-bold">{formatMoney(valorQuitado)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Margem bruta</span>
+                      <span className="font-bold">
+                        {totalVendido > 0 ? ((lucroBruto / totalVendido) * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : "0"}%
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
       </main>

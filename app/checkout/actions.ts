@@ -26,7 +26,8 @@ interface ClienteInfo {
 
 export async function criarPreferenciaPagamento(
   items: ItemCheckout[],
-  clienteInfo: ClienteInfo
+  clienteInfo: ClienteInfo,
+  checkoutRef?: string
 ) {
   if (!process.env.MERCADO_PAGO_ACCESS_TOKEN) {
     return { success: false, url: null, error: "Mercado Pago não configurado" };
@@ -39,6 +40,7 @@ export async function criarPreferenciaPagamento(
 
     const result = await preference.create({
       body: {
+        external_reference: checkoutRef,
         items: items.map((item, i) => ({
           id: `item-${i}`,
           title: item.nome,

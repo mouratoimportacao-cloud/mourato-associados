@@ -175,14 +175,24 @@ export default function CarrinhoWidget() {
         return;
       }
 
-      // 2. Cria preferência no Mercado Pago
+      // Se for compra via canal de lojista, cada lojista cobra de sua forma distinta
+      // Não redirecionamos para o Mercado Pago do Admin!
+      if (params.codigo) {
+        setCheckoutSuccess({ message: res.message });
+        localStorage.removeItem("ma-cart");
+        setCartItems([]);
+        window.dispatchEvent(new CustomEvent("cart-updated"));
+        return;
+      }
+
+      // 2. Cria preferência no Mercado Pago para vendas diretas do site público
       const mpItems = cartItems.map((item) => ({
         nome: item.nome,
         quantidade: item.quantidade,
         preco: item.preco,
       }));
 
-      const mp = await criarPreferenciaPagamento(mpItems, clienteInfo);
+      const mp = await criarPreferenciaPagamento(mpItems, clienteInfo, res.checkoutRef);
 
       if (mp.success && mp.url) {
         // Limpa carrinho e redireciona para Mercado Pago

@@ -6,6 +6,7 @@ import { prisma } from "../../../lib/prisma";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { atualizarStatusPedido, deletePedidoAction } from "./actions";
 import { limparTodosPedidosAction } from "./clearActions";
+import { registrarPagamentoFornecedor } from "../lojistas/actions";
 
 export const metadata = {
   title: "Pedidos | Mourato & Associados",
@@ -70,7 +71,8 @@ export default async function PedidosAdminPage() {
   const unidadesVendidas = pedidos
     .filter((pedido: any) => !["cancelado", "rejeitado"].includes(pedido.status))
     .reduce((acc: number, pedido: any) => acc + Number(pedido.quantidade || 0), 0);
-  const pedidosPendentes = pedidos.filter((pedido: any) => pedido.status === "aguardando pagamento").length;
+  const statusNovos = ["aguardando pagamento", "pendente fornecedor", "aguardando confirmacao admin", "intencao de compra", "aguardando lojista"];
+  const pedidosPendentes = pedidos.filter((pedido: any) => statusNovos.includes(pedido.status)).length;
 
   async function handleLogout() {
     "use server";
@@ -79,8 +81,19 @@ export default async function PedidosAdminPage() {
   }
 
 
-  const statuses = ["cancelado", "entregue", "enviado", "pago", "aguardando pagamento", "rejeitado"];
-  const pedidosNovos = pedidos.filter((pedido: any) => pedido.status === "aguardando pagamento");
+  const statuses = [
+    "pendente fornecedor",
+    "aguardando confirmacao admin",
+    "intencao de compra",
+    "aguardando lojista",
+    "aguardando pagamento",
+    "pago",
+    "enviado",
+    "entregue",
+    "cancelado",
+    "rejeitado"
+  ];
+  const pedidosNovos = pedidos.filter((pedido: any) => statusNovos.includes(pedido.status));
   const pedidosPendentesAgrupados = pedidos.filter((pedido: any) => pedido.status === "enviado");
   const pedidosConcluidos = pedidos.filter((pedido: any) => ["pago", "entregue", "cancelado", "rejeitado"].includes(pedido.status));
 
@@ -111,7 +124,7 @@ export default async function PedidosAdminPage() {
             <span>🎯</span> Radar
           </Link>
           <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
-            <span>📊</span> DRE
+            <span>💰</span> Financeiro
           </Link>
           <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>⚙️</span> Configurar
@@ -298,36 +311,63 @@ function PedidosGrupo({
                   </td>
                   <td className="px-3 py-1.5 whitespace-nowrap text-xs text-gray-600">{pedido.pagamento || "Pix / Nubank"}</td>
                   <td className="px-3 py-1.5 whitespace-nowrap text-xs font-bold text-gray-900">
-                    R$ {Number(pedido.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    <div>R$ {Number(pedido.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                    {pedido.tipoFluxo === "compra_fornecedor" && (
+                      <div className="text-[9px] font-normal mt-0.5">
+                        <div className="text-green-700">Pago: R$ {Number(pedido.totalPagoFornecedor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                        <div className="text-amber-700">Saldo: R$ {Number(pedido.saldoFornecedor ?? pedido.total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                      </div>
+                    )}
                   </td>
                   <td className="px-3 py-1.5 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      {aguardandoDecisaoLojista ? (
-                        <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-700">
-                          Lojista pendente
-                        </span>
-                      ) : (
-                        <form action={atualizarStatusPedido} className="flex items-center gap-1">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        {aguardandoDecisaoLojista ? (
+                          <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-700">
+                            Lojista pendente
+                          </span>
+                        ) : (
+                          <form action={atualizarStatusPedido} className="flex items-center gap-1">
+                            <input type="hidden" name="pedidoId" value={pedido.id} />
+                            <select name="status" defaultValue={pedido.status} className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-white text-gray-800 cursor-pointer">
+                              {statuses.map((status) => (
+                                <option key={status} value={status}>{status}</option>
+                              ))}
+                            </select>
+                            <input
+                              type="number"
+                              name="desconto"
+                              step="0.01"
+                              min="0"
+                              defaultValue={pedido.descontoConcedido || 0}
+                              placeholder="Desconto"
+                              className="w-16 rounded border border-gray-200 px-1 py-0.5 text-[10px] font-bold bg-white text-gray-800"
+                            />
+                            <ConfirmSubmitButton
+                              message={`Confirmar alteração do pedido #${pedido.id}?`}
+                              className="rounded bg-luxury-black px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-luxury-gold transition-colors cursor-pointer"
+                            >
+                              Salvar
+                            </ConfirmSubmitButton>
+                          </form>
+                        )}
+                      </div>
+                      {pedido.tipoFluxo === "compra_fornecedor" && (
+                        <form action={registrarPagamentoFornecedor} className="flex items-center gap-1 border-t border-gray-100 pt-1">
                           <input type="hidden" name="pedidoId" value={pedido.id} />
-                          <select name="status" defaultValue={pedido.status} className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-white text-gray-800 cursor-pointer">
-                            {statuses.map((status) => (
-                              <option key={status} value={status}>{status}</option>
-                            ))}
-                          </select>
                           <input
+                            name="quantidadePaga"
                             type="number"
-                            name="desconto"
-                            step="0.01"
-                            min="0"
-                            defaultValue={pedido.descontoConcedido || 0}
-                            placeholder="Desconto"
-                            className="w-16 rounded border border-gray-200 px-1 py-0.5 text-[10px] font-bold bg-white text-gray-800"
+                            min="1"
+                            max={Math.max(0, Number(pedido.quantidade || 0) - Number(pedido.quantidadePagaFornecedor || 0))}
+                            placeholder="Qtd paga"
+                            className="w-16 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-bold bg-white text-gray-800"
                           />
                           <ConfirmSubmitButton
-                            message={`Confirmar alteração do pedido #${pedido.id}?`}
-                            className="rounded bg-luxury-black px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-luxury-gold transition-colors cursor-pointer"
+                            message={`Confirmar baixa deste pedido? Isso reduz o saldo do lojista com o fornecedor e credita o estoque pessoal dele conforme a quantidade informada.`}
+                            className="rounded bg-green-700 px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-green-800 transition duration-150 cursor-pointer"
                           >
-                            Salvar
+                            Baixar
                           </ConfirmSubmitButton>
                         </form>
                       )}

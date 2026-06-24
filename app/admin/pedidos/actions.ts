@@ -20,55 +20,51 @@ import { getAdminSession } from "../../../lib/auth";
 //   Lojista já confirmou via confirmarVendaLojista → estoquePessoal já foi baixado
 //   Admin apenas monitora; não altera estoque neste fluxo.
 // ─────────────────────────────────────────────────────────────────────────────
-export async function atualizarStatusPedido(formData: FormData) {
-  const pedidoId = Number(formData.get("pedidoId"));
-  const status = String(formData.get("status") || "");
-  const descontoInput = formData.get("desconto");
-  const descontoVal = descontoInput !== null && descontoInput !== undefined && descontoInput !== "" ? Number(descontoInput) : null;
+export async function atualizarStatusPedidoInterno(
+  pedidoId: number,
+  status: string,
+  descontoVal: number | null
+) {
+  let pedidoUsuarioId = 0;
+  await prisma.$transaction(async (prisma) => {
+    const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId } });
+    if (!pedido) return;
+    pedidoUsuarioId = Number(pedido.usuarioId || 0);
 
-  if (!pedidoId || !status) return;
+    if (descontoVal !== null && !isNaN(descontoVal)) {
+      const novoDesconto = Math.max(0, descontoVal);
+      const precoTabela = Number(pedido.precoTabela ?? pedido.precoUnitario ?? 0);
+      const quantidade = Number(pedido.quantidade ?? 1);
+      const custoUnitario = Number(pedido.custoUnitario ?? 0);
 
-  try {
-    let pedidoUsuarioId = 0;
-    await prisma.$transaction(async (prisma) => {
-      const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId } });
-      if (!pedido) return;
-      pedidoUsuarioId = Number(pedido.usuarioId || 0);
+      const novoTotal = Math.max(0, (precoTabela * quantidade) - novoDesconto);
+      const novoPrecoUnitario = quantidade > 0 ? (novoTotal / quantidade) : 0;
+      const novoLucroBruto = novoTotal - (quantidade * custoUnitario);
 
-      if (descontoVal !== null && !isNaN(descontoVal)) {
-        const novoDesconto = Math.max(0, descontoVal);
-        const precoTabela = Number(pedido.precoTabela ?? pedido.precoUnitario ?? 0);
-        const quantidade = Number(pedido.quantidade ?? 1);
-        const custoUnitario = Number(pedido.custoUnitario ?? 0);
+      await prisma.pedido.update({
+        where: { id: pedidoId },
+        data: {
+          descontoConcedido: novoDesconto,
+          total: novoTotal,
+          precoUnitario: novoPrecoUnitario,
+          lucroBruto: novoLucroBruto,
+        },
+      });
 
-        const novoTotal = Math.max(0, (precoTabela * quantidade) - novoDesconto);
-        const novoPrecoUnitario = quantidade > 0 ? (novoTotal / quantidade) : 0;
-        const novoLucroBruto = novoTotal - (quantidade * custoUnitario);
+      pedido.descontoConcedido = novoDesconto;
+      pedido.total = novoTotal;
+      pedido.precoUnitario = novoPrecoUnitario;
+      pedido.lucroBruto = novoLucroBruto;
+    }
 
-        await prisma.pedido.update({
-          where: { id: pedidoId },
-          data: {
-            descontoConcedido: novoDesconto,
-            total: novoTotal,
-            precoUnitario: novoPrecoUnitario,
-            lucroBruto: novoLucroBruto,
-          },
-        });
-
-        pedido.descontoConcedido = novoDesconto;
-        pedido.total = novoTotal;
-        pedido.precoUnitario = novoPrecoUnitario;
-        pedido.lucroBruto = novoLucroBruto;
-      }
-
-      if (
-        pedido.tipoFluxo === "venda_qr" &&
-        pedido.status === "aguardando lojista"
-      ) {
-        throw new Error(
-          "Pedidos do QR devem ser aprovados ou rejeitados exclusivamente pelo lojista."
-        );
-      }
+    if (
+      pedido.tipoFluxo === "venda_qr" &&
+      pedido.status === "aguardando lojista"
+    ) {
+      throw new Error(
+        "Pedidos do QR devem ser aprovados ou rejeitados exclusivamente pelo lojista."
+      );
+    }
 
     const statusEntrega = ["aguardando pagamento", "pago", "enviado", "entregue"];
     const pagamento = String(pedido.pagamento || "");
@@ -273,7 +269,6 @@ export async function atualizarStatusPedido(formData: FormData) {
     }
 
     // ── VENDA QR: ajuste de estoquePessoal ao cancelar/reativar ──
-    // (confirmarVendaLojista já baixou; ao cancelar precisamos devolver)
     const fluxoVendaQr =
       String(pedido.tipoFluxo || "") === "venda_qr" ||
       pagamento.includes("Venda via QR do lojista") ||
@@ -316,12 +311,13 @@ export async function atualizarStatusPedido(formData: FormData) {
     }
 
     // ── Atualiza status do pedido ──
-      await prisma.pedido.update({
-        where: { id: pedidoId },
-        data: { status },
-      });
+    await prisma.pedido.update({
+      where: { id: pedidoId },
+      data: { status },
     });
+  });
 
+  try {
     revalidatePath("/admin");
     revalidatePath("/admin/pedidos");
     if (pedidoUsuarioId) {
@@ -330,6 +326,21 @@ export async function atualizarStatusPedido(formData: FormData) {
     revalidatePath("/admin/produtos");
     revalidatePath("/lojista/painel");
     revalidatePath("/produtos");
+  } catch (e) {
+    console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+  }
+}
+
+export async function atualizarStatusPedido(formData: FormData) {
+  const pedidoId = Number(formData.get("pedidoId"));
+  const status = String(formData.get("status") || "");
+  const descontoInput = formData.get("desconto");
+  const descontoVal = descontoInput !== null && descontoInput !== undefined && descontoInput !== "" ? Number(descontoInput) : null;
+
+  if (!pedidoId || !status) return;
+
+  try {
+    await atualizarStatusPedidoInterno(pedidoId, status, descontoVal);
   } catch (error) {
     console.error("Erro ao atualizar pedido:", error);
   }
@@ -422,8 +433,12 @@ export async function deletePedido(
     }
 
     await prisma.pedido.delete({ where: { id: pedidoId } });
-    revalidatePath("/admin");
-    revalidatePath("/admin/pedidos");
+    try {
+      revalidatePath("/admin");
+      revalidatePath("/admin/pedidos");
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+    }
     return { success: true };
   } catch (error) {
     console.error("Erro ao excluir pedido:", error);

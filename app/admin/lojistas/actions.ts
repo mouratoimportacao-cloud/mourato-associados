@@ -312,13 +312,17 @@ export async function registrarPagamentoFornecedor(formData: FormData) {
       }
     });
 
-    revalidatePath("/admin");
-    revalidatePath("/admin/lojistas");
-    revalidatePath(`/admin/lojistas/${pedido.usuarioId}`);
-    revalidatePath("/admin/pedidos");
-    revalidatePath("/admin/produtos");
-    revalidatePath("/lojista/painel");
-    revalidatePath("/produtos");
+    try {
+      revalidatePath("/admin");
+      revalidatePath("/admin/lojistas");
+      revalidatePath(`/admin/lojistas/${pedido.usuarioId}`);
+      revalidatePath("/admin/pedidos");
+      revalidatePath("/admin/produtos");
+      revalidatePath("/lojista/painel");
+      revalidatePath("/produtos");
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+    }
 
   } catch (error) {
     console.error("Erro ao registrar pagamento do fornecedor:", error);
