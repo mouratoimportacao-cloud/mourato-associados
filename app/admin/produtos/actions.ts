@@ -280,10 +280,12 @@ const FIELD_ALIASES: Record<string, string[]> = {
   marca: ["marca", "fabricante", "brand", "producer"],
   categoria: ["categoria", "grupo", "seção", "category", "group", "classificacao"],
   volume: ["volume", "tamanho", "ml", "peso", "size", "vol"],
-  precoCusto: ["preco de custo", "preco custo", "custo", "valor de custo", "valor custo", "custo dolar", "custo usd", "custo u$", "cost", "compra"],
+  precoCusto: ["preco de custo", "preco custo", "custo brl", "custo r$", "valor de custo", "valor custo", "cost", "compra"],
+  custoDolar: ["custo usd", "custo u$", "custo dolar", "custo em dolar", "compra em dolar", "custo_dolar", "custo usd", "custo dollar", "custo u.s.d."],
+  cotacaoDolar: ["cotacao usd", "cotacao u$", "cotacao dolar", "cotacao do dolar", "cotacao_dolar", "cotacao", "cambio"],
   precoLojista: ["preco lojista", "lojista", "preco atacado", "atacado", "preco revenda", "revenda", "wholesales"],
-  precoSugerido: ["preco sugerido", "preco venda", "preco", "preco de venda", "sugerido", "venda", "price"],
-  estoqueGeral: ["estoque geral", "estoque", "quantidade", "qtd", "estoque total", "geral", "stock"],
+  precoSugerido: ["preco sugerido", "preco venda", "preco", "preco de venda", "sugerido", "venda", "price", "preco_venda"],
+  estoqueGeral: ["quantidade estoque", "quantidade no estoque", "estoque geral", "estoque", "quantidade", "qtd", "estoque total", "geral", "stock", "quantidade_estoque"],
   estoqueLojista: ["estoque lojista", "estoque atacado", "qtd lojista", "quantidade lojista"],
   imagem: ["imagem", "url", "foto", "image", "pic", "link"],
   descricao: ["descricao", "detalhes", "observacao", "description", "obs"],
@@ -309,7 +311,11 @@ const ARABIC_TERMS = ["yara", "lattafa", "oud", "musk", "sharf", "mahib", "sahib
 function parseBrazilianNumber(val: any): number | null {
   if (val === undefined || val === null || val === "") return null;
   if (typeof val === "number") return val;
-  const str = String(val).trim();
+  let str = String(val).trim();
+  if (!str) return null;
+  
+  // Remove currency symbols and non-numeric garbage (keep digits, comma, dot, minus)
+  str = str.replace(/[^0-9,\.\-]/g, "");
   if (!str) return null;
   
   let normalized = str;
@@ -438,13 +444,25 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         errors.push("O campo 'Nome' é obrigatório e está vazio ou ausente.");
       }
 
+      // Detect matchedDbProduct early so we can refer to its values
+      let matchedDbProduct: any = null;
+      if (nome) {
+        if (codigo !== undefined) {
+          matchedDbProduct = dbProducts.find(p => p.codigo === codigo || p.id === codigo);
+        }
+        if (!matchedDbProduct) {
+          matchedDbProduct = dbProducts.find(p => p.nome.toLowerCase() === nome.toLowerCase());
+        }
+      }
+
       const brandRaw = getVal("marca");
       let marca = brandRaw !== undefined ? String(brandRaw).trim() : "";
       if (!marca && nome) {
         marca = extractBrandFromName(nome, knownBrands);
         warnings.push(`Marca ausente. Extraída automaticamente do nome: "${marca}".`);
       } else if (!marca) {
-        warnings.push("Marca ausente.");
+        marca = matchedDbProduct ? matchedDbProduct.marca : "";
+        if (!marca) warnings.push("Marca ausente.");
       }
 
       const volumeRaw = getVal("volume");
@@ -458,13 +476,16 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
           warnings.push("Volume ausente.");
         }
       } else if (!volume) {
-        warnings.push("Volume ausente.");
+        volume = matchedDbProduct ? matchedDbProduct.volume : "";
+        if (!volume) warnings.push("Volume ausente.");
       }
 
       const categoriaRaw = getVal("categoria");
       let categoria = categoriaRaw !== undefined ? String(categoriaRaw).trim() : "";
       if (!categoria) {
-        if (nome && isArabicProduct(nome, marca)) {
+        if (matchedDbProduct) {
+          categoria = matchedDbProduct.categoria;
+        } else if (nome && isArabicProduct(nome, marca)) {
           categoria = "Perfume Árabe";
           warnings.push(`Categoria ausente. Definida como "Perfume Árabe" por conter termos/marcas árabes.`);
         } else {
@@ -480,7 +501,9 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       const categoriaPrincipalRaw = getVal("categoria_principal");
       let categoria_principal = categoriaPrincipalRaw !== undefined ? String(categoriaPrincipalRaw).trim() : "";
       if (!categoria_principal) {
-        if (categoria.includes("Perfume") || categoria === "Oud") {
+        if (matchedDbProduct) {
+          categoria_principal = matchedDbProduct.categoria_principal;
+        } else if (categoria.includes("Perfume") || categoria === "Oud") {
           categoria_principal = "Perfume";
         } else if (categoria === "Cosmético" || categoria === "Skincare") {
           categoria_principal = "Cosmético";
@@ -494,6 +517,10 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       }
 
       const tags = getArrayFromCell("tags");
+      if (matchedDbProduct && tags.length === 0 && matchedDbProduct.tags) {
+        const existingTags = Array.isArray(matchedDbProduct.tags) ? matchedDbProduct.tags : String(matchedDbProduct.tags).split(",").map((t: string) => t.trim());
+        tags.push(...existingTags);
+      }
       if ((categoria === "Perfume Árabe" || isArabicProduct(nome, marca)) && !tags.includes("Perfume Árabe")) {
         tags.push("Perfume Árabe");
       }
@@ -509,68 +536,107 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         finalCategoria = "Perfume Árabe";
       }
 
-      const concentracao = getStringFromCell("concentracao");
-      const origem = getStringFromCell("origem");
-      const tipo_perfume = getStringFromCell("tipo_perfume");
-      const genero = getStringFromCell("genero");
-      const familia_olfativa = getArrayFromCell("familia_olfativa");
-      const notas_topo = getStringFromCell("notas_topo");
-      const notas_coracao = getStringFromCell("notas_coracao");
-      const notas_fundo = getStringFromCell("notas_fundo");
-      const fixacao_estimada = getStringFromCell("fixacao_estimada");
-      const projecao = getStringFromCell("projecao");
-      const ocasiao_uso = getArrayFromCell("ocasiao_uso");
-      const similaridade_inspiracao = getStringFromCell("similaridade_inspiracao");
-      const descricao_olfativa = getStringFromCell("descricao_olfativa");
+      const concentracao = getStringFromCell("concentracao") || (matchedDbProduct ? matchedDbProduct.concentracao : null);
+      const origem = getStringFromCell("origem") || (matchedDbProduct ? matchedDbProduct.origem : null);
+      const tipo_perfume = getStringFromCell("tipo_perfume") || (matchedDbProduct ? matchedDbProduct.tipo_perfume : null);
+      const genero = getStringFromCell("genero") || (matchedDbProduct ? matchedDbProduct.genero : null);
+      const familia_olfativa = getArrayFromCell("familia_olfativa").length > 0 ? getArrayFromCell("familia_olfativa") : (matchedDbProduct && matchedDbProduct.familia_olfativa ? (Array.isArray(matchedDbProduct.familia_olfativa) ? matchedDbProduct.familia_olfativa : String(matchedDbProduct.familia_olfativa).split(",")) : []);
+      const notas_topo = getStringFromCell("notas_topo") || (matchedDbProduct ? matchedDbProduct.notas_topo : null);
+      const notas_coracao = getStringFromCell("notas_coracao") || (matchedDbProduct ? matchedDbProduct.notas_coracao : null);
+      const notas_fundo = getStringFromCell("notas_fundo") || (matchedDbProduct ? matchedDbProduct.notas_fundo : null);
+      const fixacao_estimada = getStringFromCell("fixacao_estimada") || (matchedDbProduct ? matchedDbProduct.fixacao_estimada : null);
+      const projecao = getStringFromCell("projecao") || (matchedDbProduct ? matchedDbProduct.projecao : null);
+      const ocasiao_uso = getArrayFromCell("ocasiao_uso").length > 0 ? getArrayFromCell("ocasiao_uso") : (matchedDbProduct && matchedDbProduct.ocasiao_uso ? (Array.isArray(matchedDbProduct.ocasiao_uso) ? matchedDbProduct.ocasiao_uso : String(matchedDbProduct.ocasiao_uso).split(",")) : []);
+      const similaridade_inspiracao = getStringFromCell("similaridade_inspiracao") || (matchedDbProduct ? matchedDbProduct.similaridade_inspiracao : null);
+      const descricao_olfativa = getStringFromCell("descricao_olfativa") || (matchedDbProduct ? matchedDbProduct.descricao_olfativa : null);
 
+      // COST & EXCHANGE RATE PARSING
       const precoCustoRaw = getVal("precoCusto");
       const precoCusto = parseBrazilianNumber(precoCustoRaw);
-      if (precoCusto === null) {
-        errors.push(`Preço de custo inválido ou ausente: "${precoCustoRaw || ''}".`);
-      } else if (precoCusto < 0) {
-        errors.push(`Preço de custo não pode ser negativo: ${precoCusto}.`);
+
+      const custoDolarRaw = getVal("custoDolar");
+      const custoDolar = parseBrazilianNumber(custoDolarRaw);
+
+      const cotacaoDolarRaw = getVal("cotacaoDolar");
+      const cotacaoDolar = parseBrazilianNumber(cotacaoDolarRaw) || 1.0;
+
+      let finalCustoDolar = custoDolar;
+      let finalCotacaoDolar = cotacaoDolar;
+
+      if (finalCustoDolar === null) {
+        if (precoCusto !== null) {
+          finalCustoDolar = precoCusto;
+          finalCotacaoDolar = 1.0;
+        } else if (matchedDbProduct) {
+          finalCustoDolar = matchedDbProduct.custoDolar;
+          finalCotacaoDolar = matchedDbProduct.cotacaoDolar || 1.0;
+        } else {
+          errors.push("Preço de custo (USD ou BRL) inválido ou ausente.");
+        }
+      } else if (finalCustoDolar < 0) {
+        errors.push(`Custo em Dólar não pode ser negativo: ${finalCustoDolar}.`);
       }
 
+      if (finalCotacaoDolar <= 0) {
+        errors.push("A cotação do dólar deve ser maior que zero.");
+      }
+
+      // SELLING PRICE PARSING
+      const precoSugeridoRaw = getVal("precoSugerido");
+      let precoSugerido = parseBrazilianNumber(precoSugeridoRaw);
+      if (precoSugerido === null) {
+        if (matchedDbProduct) {
+          precoSugerido = matchedDbProduct.preco;
+        } else {
+          errors.push(`Preço de venda inválido ou ausente: "${precoSugeridoRaw || ''}".`);
+        }
+      } else if (precoSugerido < 0) {
+        errors.push(`Preço de venda não pode ser negativo: ${precoSugerido}.`);
+      }
+
+      // WHOLESALE PRICE (LOJISTA) PARSING
       const precoLojistaRaw = getVal("precoLojista");
-      const precoLojista = parseBrazilianNumber(precoLojistaRaw);
+      let precoLojista = parseBrazilianNumber(precoLojistaRaw);
       if (precoLojista === null) {
-        errors.push(`Preço lojista inválido ou ausente: "${precoLojistaRaw || ''}".`);
+        if (matchedDbProduct && matchedDbProduct.precoAtacado) {
+          precoLojista = matchedDbProduct.precoAtacado;
+        } else if (precoSugerido !== null) {
+          // Default to 70% of the sale price (rounded)
+          precoLojista = Math.round(precoSugerido * 0.7 * 100) / 100;
+          warnings.push(`Preço lojista ausente. Definido automaticamente como 70% do Preço de Venda: R$ ${precoLojista.toFixed(2)}.`);
+        } else {
+          precoLojista = 0;
+        }
       } else if (precoLojista < 0) {
         errors.push(`Preço lojista não pode ser negativo: ${precoLojista}.`);
       }
 
-      const precoSugeridoRaw = getVal("precoSugerido");
-      const precoSugerido = parseBrazilianNumber(precoSugeridoRaw);
-      if (precoSugerido === null) {
-        errors.push(`Preço sugerido inválido ou ausente: "${precoSugeridoRaw || ''}".`);
-      } else if (precoSugerido < 0) {
-        errors.push(`Preço sugerido não pode ser negativo: ${precoSugerido}.`);
-      }
-
+      // GENERAL STOCK PARSING
       const estoqueGeralRaw = getVal("estoqueGeral");
-      let estoqueGeral = estoqueGeralRaw !== undefined && String(estoqueGeralRaw).trim() !== "" ? parseInt(String(estoqueGeralRaw)) : 0;
+      let estoqueGeral = estoqueGeralRaw !== undefined && String(estoqueGeralRaw).trim() !== "" ? parseInt(String(estoqueGeralRaw)) : (matchedDbProduct ? matchedDbProduct.estoque : 0);
       if (isNaN(estoqueGeral)) {
-        estoqueGeral = 0;
-        warnings.push("Estoque geral inválido. Definido como 0.");
+        estoqueGeral = matchedDbProduct ? matchedDbProduct.estoque : 0;
+        warnings.push("Estoque geral inválido. Mantido valor original ou 0.");
       } else if (estoqueGeral < 0) {
         errors.push(`Estoque geral não pode ser negativo: ${estoqueGeral}.`);
       }
 
+      // LOJISTA STOCK PARSING
       const estoqueLojistaRaw = getVal("estoqueLojista");
-      let estoqueLojista = estoqueLojistaRaw !== undefined && String(estoqueLojistaRaw).trim() !== "" ? parseInt(String(estoqueLojistaRaw)) : 0;
+      let estoqueLojista = estoqueLojistaRaw !== undefined && String(estoqueLojistaRaw).trim() !== "" ? parseInt(String(estoqueLojistaRaw)) : (matchedDbProduct ? matchedDbProduct.estoqueLojista : 0);
       if (isNaN(estoqueLojista)) {
-        estoqueLojista = 0;
-        warnings.push("Estoque lojista inválido. Definido como 0.");
+        estoqueLojista = matchedDbProduct ? matchedDbProduct.estoqueLojista : 0;
+        warnings.push("Estoque lojista inválido. Mantido valor original ou 0.");
       } else if (estoqueLojista < 0) {
         errors.push(`Estoque lojista não pode ser negativo: ${estoqueLojista}.`);
       }
 
       const imagemNormalizada = normalizeImportedImage(getVal("imagem"));
-      const imagem = imagemNormalizada.src;
+      const imagem = imagemNormalizada.src || (matchedDbProduct ? matchedDbProduct.imagem : null);
       if (imagemNormalizada.warning) warnings.push(imagemNormalizada.warning);
 
       const descricaoRaw = getVal("descricao");
-      const descricao = descricaoRaw !== undefined ? String(descricaoRaw).trim() : "";
+      const descricao = descricaoRaw !== undefined ? String(descricaoRaw).trim() : (matchedDbProduct ? matchedDbProduct.descricao : "");
       if (!descricao) {
         warnings.push("Descrição ausente.");
       }
@@ -580,16 +646,6 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
       }
       if (warnings.length > 0) {
         warningCount += warnings.length;
-      }
-
-      let matchedDbProduct = null;
-      if (errors.length === 0 && nome) {
-        if (codigo !== undefined) {
-          matchedDbProduct = dbProducts.find(p => p.codigo === codigo || p.id === codigo);
-        }
-        if (!matchedDbProduct) {
-          matchedDbProduct = dbProducts.find(p => p.nome.toLowerCase() === nome.toLowerCase());
-        }
       }
 
       const status = errors.length > 0 ? "error" : (matchedDbProduct ? "update" : "new");
@@ -602,7 +658,9 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
         marca,
         categoria: finalCategoria,
         volume,
-        precoCusto: precoCusto || 0,
+        precoCusto: (finalCustoDolar || 0) * (finalCotacaoDolar || 1), // backward compatibility
+        custoDolar: finalCustoDolar || 0,
+        cotacaoDolar: finalCotacaoDolar || 1.0,
         precoLojista: precoLojista || 0,
         precoSugerido: precoSugerido || 0,
         estoqueGeral,
@@ -628,8 +686,10 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
 
       const diff: any = {};
       if (matchedDbProduct) {
-        const dbCost = matchedDbProduct.custoDolar || 0;
-        if (dbCost !== precoCusto) diff.precoCusto = { old: dbCost, new: precoCusto };
+        const dbCostDolar = matchedDbProduct.custoDolar || 0;
+        const dbCotacaoDolar = matchedDbProduct.cotacaoDolar || 1.0;
+        if (dbCostDolar !== finalCustoDolar) diff.custoDolar = { old: dbCostDolar, new: finalCustoDolar };
+        if (dbCotacaoDolar !== finalCotacaoDolar) diff.cotacaoDolar = { old: dbCotacaoDolar, new: finalCotacaoDolar };
         if (matchedDbProduct.precoAtacado !== precoLojista) diff.precoLojista = { old: matchedDbProduct.precoAtacado, new: precoLojista };
         if (matchedDbProduct.preco !== precoSugerido) diff.precoSugerido = { old: matchedDbProduct.preco, new: precoSugerido };
         if (matchedDbProduct.estoque !== estoqueGeral) diff.estoqueGeral = { old: matchedDbProduct.estoque, new: estoqueGeral };
@@ -711,6 +771,8 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         precoSugerido,
         estoqueGeral,
         estoqueLojista,
+        custoDolar,
+        cotacaoDolar,
         imagem,
         descricao,
         categoria_principal,
@@ -738,8 +800,8 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         volume,
         preco: precoSugerido,
         precoAtacado: precoLojista,
-        custoDolar: precoCusto,
-        cotacaoDolar: 1.0,
+        custoDolar: custoDolar,
+        cotacaoDolar: cotacaoDolar,
         estoque: estoqueGeral,
         estoqueLojista,
         descricao,

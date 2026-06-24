@@ -15,9 +15,11 @@ const targetFields = [
   { key: "marca", label: "Marca", desc: "Fabricante (se vazio, tenta extrair do nome)", required: false },
   { key: "categoria", label: "Categoria", desc: "Perfume, Oud, Cosmético, etc. (se vazio, usa Perfume)", required: false },
   { key: "volume", label: "Volume", desc: "Ex: 100ml, 75ml (se vazio, tenta extrair do nome)", required: false },
-  { key: "precoCusto", label: "Preço de Custo (R$)", desc: "Valor pago na importação (obrigatório)", required: true },
-  { key: "precoLojista", label: "Preço Lojista (R$)", desc: "Preço de atacado (obrigatório)", required: true },
-  { key: "precoSugerido", label: "Preço Sugerido (R$)", desc: "Preço sugerido ao consumidor (obrigatório)", required: true },
+  { key: "custoDolar", label: "Custo USD ($)", desc: "Custo unitário em Dólar (obrigatório se não houver Custo BRL)", required: false },
+  { key: "cotacaoDolar", label: "Cotação USD (R$)", desc: "Cotação do dólar para conversão (padrão: 1.0)", required: false },
+  { key: "precoCusto", label: "Custo BRL (R$)", desc: "Custo em Reais (obrigatório se não houver Custo USD)", required: false },
+  { key: "precoLojista", label: "Preço Lojista (R$)", desc: "Preço de atacado (opcional, se vazio calcula automático)", required: false },
+  { key: "precoSugerido", label: "Preço Sugerido / Venda (R$)", desc: "Preço de venda ao consumidor (obrigatório)", required: true },
   { key: "estoqueGeral", label: "Estoque Geral", desc: "Quantidade no estoque principal", required: false },
   { key: "estoqueLojista", label: "Estoque Lojista", desc: "Quantidade separada para lojistas", required: false },
   { key: "imagem", label: "Imagem (URL)", desc: "Link para foto do produto", required: false },
@@ -316,7 +318,9 @@ export default function ImportPreviewModal({ base64Data, onClose, onSuccess }: I
                               <>
                                 <th className="px-4 py-3 text-right">Preço Sugerido</th>
                                 <th className="px-4 py-3 text-right">Preço Lojista</th>
-                                <th className="px-4 py-3 text-right">Preço Custo</th>
+                                <th className="px-4 py-3 text-right">Custo USD</th>
+                                <th className="px-4 py-3 text-right">Cotação</th>
+                                <th className="px-4 py-3 text-right">Custo Real</th>
                                 <th className="px-4 py-3 text-center">Estoque</th>
                               </>
                             )}
@@ -352,7 +356,13 @@ export default function ImportPreviewModal({ base64Data, onClose, onSuccess }: I
                                 <>
                                   <td className="px-4 py-3.5 text-right font-bold text-white">{formatCurrency(row.mappedData.precoSugerido)}</td>
                                   <td className="px-4 py-3.5 text-right font-medium text-indigo-400">{formatCurrency(row.mappedData.precoLojista)}</td>
-                                  <td className="px-4 py-3.5 text-right text-zinc-400">{formatCurrency(row.mappedData.precoCusto)}</td>
+                                  <td className="px-4 py-3.5 text-right text-zinc-400">
+                                    {row.mappedData.custoDolar ? `U$ ${row.mappedData.custoDolar.toFixed(2)}` : "-"}
+                                  </td>
+                                  <td className="px-4 py-3.5 text-right text-zinc-400">
+                                    {row.mappedData.cotacaoDolar ? `${row.mappedData.cotacaoDolar.toFixed(2)}` : "-"}
+                                  </td>
+                                  <td className="px-4 py-3.5 text-right text-zinc-300 font-semibold">{formatCurrency(row.mappedData.precoCusto)}</td>
                                   <td className="px-4 py-3.5 text-center">
                                     <div className="font-bold">{row.mappedData.estoqueGeral} un</div>
                                     <div className="text-[10px] text-zinc-500">Lojista: {row.mappedData.estoqueLojista}</div>
@@ -372,17 +382,20 @@ export default function ImportPreviewModal({ base64Data, onClose, onSuccess }: I
                                           key === "precoSugerido" ? "Preço Sugerido" :
                                           key === "precoLojista" ? "Preço Lojista" :
                                           key === "precoCusto" ? "Preço Custo" :
+                                          key === "custoDolar" ? "Custo USD" :
+                                          key === "cotacaoDolar" ? "Cotação" :
                                           key === "estoqueGeral" ? "Estoque Geral" : "Estoque Lojista";
-                                        const isMoney = key.startsWith("preco");
+                                        const isMoney = key.startsWith("preco") || key === "custoDolar";
+                                        const isDolar = key === "custoDolar";
                                         return (
                                           <div key={key} className="flex items-center gap-2 text-[11px]">
                                             <span className="font-semibold text-zinc-400">{label}:</span>
                                             <span className="text-red-400 line-through">
-                                              {isMoney ? formatCurrency(value.old) : `${value.old ?? 0} un`}
+                                              {isMoney ? (isDolar ? `U$ ${value.old?.toFixed(2)}` : formatCurrency(value.old)) : `${value.old ?? 0} un`}
                                             </span>
                                             <span className="text-zinc-500">➔</span>
                                             <span className="text-emerald-400 font-bold">
-                                              {isMoney ? formatCurrency(value.new) : `${value.new} un`}
+                                              {isMoney ? (isDolar ? `U$ ${value.new?.toFixed(2)}` : formatCurrency(value.new)) : `${value.new} un`}
                                             </span>
                                           </div>
                                         );
