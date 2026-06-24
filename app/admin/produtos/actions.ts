@@ -361,377 +361,253 @@ function isArabicProduct(name: string, brand: string): boolean {
   return ARABIC_TERMS.some(term => searchStr.includes(term));
 }
 
+function compareNames(dbName: string, sheetName: string): { ok: boolean; warning?: string } {
+  const normDb = dbName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const normSheet = sheetName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (normDb === normSheet) {
+    return { ok: true };
+  }
+
+  const wordsDb = normDb.split(/\s+/).filter(Boolean);
+  const wordsSheet = normSheet.split(/\s+/).filter(Boolean);
+
+  if (wordsDb.length === 0 || wordsSheet.length === 0) {
+    return { ok: false };
+  }
+
+  let matches = 0;
+  for (const word of wordsSheet) {
+    if (wordsDb.includes(word)) {
+      matches++;
+    }
+  }
+
+  const pctSheet = matches / wordsSheet.length;
+  const pctDb = matches / wordsDb.length;
+  const highestPct = Math.max(pctSheet, pctDb);
+
+  if (highestPct >= 0.6) {
+    return {
+      ok: true,
+      warning: `Nome com grafia ligeiramente diferente (Banco: "${dbName}", Planilha: "${sheetName}").`
+    };
+  }
+
+  return { ok: false };
+}
+
 export async function analisarPlanilhaAction(base64Data: string, customMapping?: Record<string, string>) {
   try {
     const buffer = Buffer.from(base64Data, "base64");
     const workbook = XLSX.read(buffer, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(sheet) as any[];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
 
-    if (rows.length === 0) {
-      return { success: false, error: "A planilha está vazia." };
+    if (rows.length < 2) {
+      return { success: false, error: "A planilha está vazia ou não contém dados suficientes." };
     }
 
-    const headers = Array.from(
-      new Set(rows.flatMap(row => Object.keys(row)))
-    );
-
-    const mapping: Record<string, string> = customMapping || {};
-    if (!customMapping) {
-      Object.keys(FIELD_ALIASES).forEach(field => {
-        const aliases = FIELD_ALIASES[field];
-        const foundHeader = headers.find(h => {
-          const normH = h.normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .toLowerCase()
-            .replace(/\(.*?\)/g, "") // removes parentheses like ($), (R$)
-            .replace(/[^a-z0-9\s]/g, "") // removes non-alphanumeric characters
-            .trim()
-            .replace(/\s+/g, " ");
-
-          return aliases.some(alias => {
-            const normAlias = alias.normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .toLowerCase()
-              .replace(/\(.*?\)/g, "")
-              .replace(/[^a-z0-9\s]/g, "")
-              .trim()
-              .replace(/\s+/g, " ");
-            return normH === normAlias;
-          });
-        });
-        if (foundHeader) {
-          mapping[field] = foundHeader;
-        } else {
-          mapping[field] = "";
-        }
-      });
-    }
+    const headers = (rows[0] || []).map(h => String(h || ""));
+    const dataRows = rows.slice(1).filter(row => row && row.length > 0 && row.some(cell => cell !== undefined && cell !== null && String(cell).trim() !== ""));
 
     const dbProducts = await prisma.produto.findMany() as any[];
-    const knownBrands = Array.from(new Set([
-      "Marc Joseph", "Milestone", "Boulevard", "Al Faras", "Adyan", "Lattafa", "M&A Fragrâncias", "Ajyad", "Hamidi", "Karseell",
-      ...dbProducts.map(p => p.marca)
-    ].filter(Boolean)));
 
     const processedRows: any[] = [];
-    let newCount = 0;
     let updateCount = 0;
     let errorCount = 0;
     let warningCount = 0;
 
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowIndex = i + 2;
       const errors: string[] = [];
       const warnings: string[] = [];
 
-      const getVal = (field: string) => {
-        const colName = mapping[field];
-        return colName ? row[colName] : undefined;
-      };
-
-      const getArrayFromCell = (field: string) => {
-        const val = getVal(field);
-        if (val === undefined || val === null) return [];
-        if (Array.isArray(val)) return val.map(v => String(v).trim()).filter(Boolean);
-        const str = String(val).trim();
-        if (!str) return [];
-        return str.split(/[,\;+]/).map(item => item.trim()).filter(Boolean);
-      };
-
-      const getStringFromCell = (field: string) => {
-        const val = getVal(field);
-        return val !== undefined && val !== null ? String(val).trim() : null;
-      };
-
-      const codigoRaw = getVal("codigo");
+      // Col A (index 0) - Código e Nome
+      const colARaw = row[0];
       let codigo: number | undefined = undefined;
-      if (codigoRaw !== undefined) {
-        const parsed = parseInt(String(codigoRaw));
-        if (!isNaN(parsed)) {
-          codigo = parsed;
+      let nomePlanilha = "";
+
+      if (colARaw !== undefined && colARaw !== null) {
+        const colAStr = String(colARaw).trim();
+        const match = colAStr.match(/^(\d+)\s+(.+)$/);
+        if (match) {
+          codigo = parseInt(match[1]);
+          nomePlanilha = match[2].trim();
+        } else {
+          const parsed = parseInt(colAStr);
+          if (!isNaN(parsed) && String(parsed) === colAStr) {
+            codigo = parsed;
+          } else {
+            nomePlanilha = colAStr;
+          }
         }
       }
 
-      const nomeRaw = getVal("nome");
-      const nome = nomeRaw !== undefined ? String(nomeRaw).trim() : "";
-      if (!nome) {
-        errors.push("O campo 'Nome' é obrigatório e está vazio ou ausente.");
+      // Col B (index 1) - Produto (Nome) - fallback
+      const colBRaw = row[1];
+      if (colBRaw !== undefined && colBRaw !== null && String(colBRaw).trim() !== "") {
+        if (!nomePlanilha) {
+          nomePlanilha = String(colBRaw).trim();
+        }
       }
 
-      // Detect matchedDbProduct early so we can refer to its values
+      if (codigo === undefined && !nomePlanilha) {
+        continue;
+      }
+
       let matchedDbProduct: any = null;
-      if (nome) {
-        if (codigo !== undefined) {
-          matchedDbProduct = dbProducts.find(p => p.codigo === codigo || p.id === codigo);
-        }
-        if (!matchedDbProduct) {
-          matchedDbProduct = dbProducts.find(p => p.nome.toLowerCase() === nome.toLowerCase());
-        }
+      if (codigo !== undefined) {
+        matchedDbProduct = dbProducts.find(p => p.codigo === codigo || p.id === codigo);
+      }
+      if (!matchedDbProduct && nomePlanilha) {
+        matchedDbProduct = dbProducts.find(p => p.nome.toLowerCase() === nomePlanilha.toLowerCase());
       }
 
-      const brandRaw = getVal("marca");
-      let marca = brandRaw !== undefined ? String(brandRaw).trim() : "";
-      if (!marca && nome) {
-        marca = extractBrandFromName(nome, knownBrands);
-        warnings.push(`Marca ausente. Extraída automaticamente do nome: "${marca}".`);
-      } else if (!marca) {
-        marca = matchedDbProduct ? matchedDbProduct.marca : "";
-        if (!marca) warnings.push("Marca ausente.");
+      if (!matchedDbProduct) {
+        errors.push(`Produto não cadastrado no banco (Código: ${codigo ?? "N/A"}, Nome: "${nomePlanilha || "N/A"}"). Novos produtos devem ser cadastrados à mão.`);
+        errorCount++;
+        processedRows.push({
+          index: rowIndex,
+          status: "error",
+          errors,
+          warnings,
+          originalRow: row,
+          mappedData: { nome: nomePlanilha || "Sem nome" }
+        });
+        continue;
       }
 
-      const volumeRaw = getVal("volume");
-      let volume = volumeRaw !== undefined ? String(volumeRaw).trim() : "";
-      if (!volume && nome) {
-        const extractedVolume = extractVolumeFromName(nome);
-        if (extractedVolume) {
-          volume = extractedVolume;
-          warnings.push(`Volume ausente. Extraído automaticamente do nome: "${volume}".`);
-        } else {
-          warnings.push("Volume ausente.");
-        }
-      } else if (!volume) {
-        volume = matchedDbProduct ? matchedDbProduct.volume : "";
-        if (!volume) warnings.push("Volume ausente.");
-      }
-
-      const categoriaRaw = getVal("categoria");
-      let categoria = categoriaRaw !== undefined ? String(categoriaRaw).trim() : "";
-      if (!categoria) {
-        if (matchedDbProduct) {
-          categoria = matchedDbProduct.categoria;
-        } else if (nome && isArabicProduct(nome, marca)) {
-          categoria = "Perfume Árabe";
-          warnings.push(`Categoria ausente. Definida como "Perfume Árabe" por conter termos/marcas árabes.`);
-        } else {
-          categoria = "Perfume";
-          warnings.push('Categoria ausente. Definida como "Perfume" (padrão).');
-        }
-      } else if ((categoria === "Perfume" || categoria === "") && nome && isArabicProduct(nome, marca)) {
-        categoria = "Perfume Árabe";
-        warnings.push('Categoria alterada para "Perfume Árabe" por conter termos/marcas árabes.');
-      }
-
-      // Categoria principal e Tags
-      const categoriaPrincipalRaw = getVal("categoria_principal");
-      let categoria_principal = categoriaPrincipalRaw !== undefined ? String(categoriaPrincipalRaw).trim() : "";
-      if (!categoria_principal) {
-        if (matchedDbProduct) {
-          categoria_principal = matchedDbProduct.categoria_principal;
-        } else if (categoria.includes("Perfume") || categoria === "Oud") {
-          categoria_principal = "Perfume";
-        } else if (categoria === "Cosmético" || categoria === "Skincare") {
-          categoria_principal = "Cosmético";
-        } else if (categoria === "Acessório") {
-          categoria_principal = "Acessório";
-        } else if (categoria === "Kit") {
-          categoria_principal = "Kit";
-        } else {
-          categoria_principal = "Perfume";
+      if (nomePlanilha) {
+        const comparison = compareNames(matchedDbProduct.nome, nomePlanilha);
+        if (!comparison.ok) {
+          errors.push(`Código #${codigo ?? matchedDbProduct.codigo} diverge do banco (Banco: "${matchedDbProduct.nome}", Planilha: "${nomePlanilha}").`);
+          errorCount++;
+          processedRows.push({
+            index: rowIndex,
+            status: "error",
+            errors,
+            warnings,
+            originalRow: row,
+            mappedData: { nome: nomePlanilha }
+          });
+          continue;
+        } else if (comparison.warning) {
+          warnings.push(comparison.warning);
+          warningCount++;
         }
       }
 
-      const tags = getArrayFromCell("tags");
-      if (matchedDbProduct && tags.length === 0 && matchedDbProduct.tags) {
-        const existingTags = Array.isArray(matchedDbProduct.tags) ? matchedDbProduct.tags : String(matchedDbProduct.tags).split(",").map((t: string) => t.trim());
-        tags.push(...existingTags);
-      }
-      if ((categoria === "Perfume Árabe" || isArabicProduct(nome, marca)) && !tags.includes("Perfume Árabe")) {
-        tags.push("Perfume Árabe");
-      }
-      if (categoria === "Perfume Feminino" && !tags.includes("Feminino")) {
-        tags.push("Feminino");
-      }
-      if (categoria === "Perfume Masculino" && !tags.includes("Masculino")) {
-        tags.push("Masculino");
-      }
-
-      let finalCategoria = categoria_principal;
-      if (categoria_principal === "Perfume" && tags.includes("Perfume Árabe")) {
-        finalCategoria = "Perfume Árabe";
-      }
-
-      const concentracao = getStringFromCell("concentracao") || (matchedDbProduct ? matchedDbProduct.concentracao : null);
-      const origem = getStringFromCell("origem") || (matchedDbProduct ? matchedDbProduct.origem : null);
-      const tipo_perfume = getStringFromCell("tipo_perfume") || (matchedDbProduct ? matchedDbProduct.tipo_perfume : null);
-      const genero = getStringFromCell("genero") || (matchedDbProduct ? matchedDbProduct.genero : null);
-      const familia_olfativa = getArrayFromCell("familia_olfativa").length > 0 ? getArrayFromCell("familia_olfativa") : (matchedDbProduct && matchedDbProduct.familia_olfativa ? (Array.isArray(matchedDbProduct.familia_olfativa) ? matchedDbProduct.familia_olfativa : String(matchedDbProduct.familia_olfativa).split(",")) : []);
-      const notas_topo = getStringFromCell("notas_topo") || (matchedDbProduct ? matchedDbProduct.notas_topo : null);
-      const notas_coracao = getStringFromCell("notas_coracao") || (matchedDbProduct ? matchedDbProduct.notas_coracao : null);
-      const notas_fundo = getStringFromCell("notas_fundo") || (matchedDbProduct ? matchedDbProduct.notas_fundo : null);
-      const fixacao_estimada = getStringFromCell("fixacao_estimada") || (matchedDbProduct ? matchedDbProduct.fixacao_estimada : null);
-      const projecao = getStringFromCell("projecao") || (matchedDbProduct ? matchedDbProduct.projecao : null);
-      const ocasiao_uso = getArrayFromCell("ocasiao_uso").length > 0 ? getArrayFromCell("ocasiao_uso") : (matchedDbProduct && matchedDbProduct.ocasiao_uso ? (Array.isArray(matchedDbProduct.ocasiao_uso) ? matchedDbProduct.ocasiao_uso : String(matchedDbProduct.ocasiao_uso).split(",")) : []);
-      const similaridade_inspiracao = getStringFromCell("similaridade_inspiracao") || (matchedDbProduct ? matchedDbProduct.similaridade_inspiracao : null);
-      const descricao_olfativa = getStringFromCell("descricao_olfativa") || (matchedDbProduct ? matchedDbProduct.descricao_olfativa : null);
-
-      // COST & EXCHANGE RATE PARSING
-      const precoCustoRaw = getVal("precoCusto");
-      const precoCusto = parseBrazilianNumber(precoCustoRaw);
-
-      const custoDolarRaw = getVal("custoDolar");
+      // Col C (index 2) - Custo USD
+      const custoDolarRaw = row[2];
       const custoDolar = parseBrazilianNumber(custoDolarRaw);
 
-      const cotacaoDolarRaw = getVal("cotacaoDolar");
-      const cotacaoDolar = parseBrazilianNumber(cotacaoDolarRaw) || 1.0;
+      // Col D (index 3) - Cotação USD
+      const cotacaoDolarRaw = row[3];
+      const cotacaoDolar = parseBrazilianNumber(cotacaoDolarRaw);
 
-      let finalCustoDolar = custoDolar;
-      let finalCotacaoDolar = cotacaoDolar;
+      // Col E (index 4) - Preço de Venda
+      const precoSugeridoRaw = row[4];
+      const precoSugerido = parseBrazilianNumber(precoSugeridoRaw);
 
-      if (finalCustoDolar === null) {
-        if (precoCusto !== null) {
-          finalCustoDolar = precoCusto;
-          finalCotacaoDolar = 1.0;
-        } else if (matchedDbProduct) {
-          finalCustoDolar = matchedDbProduct.custoDolar;
-          finalCotacaoDolar = matchedDbProduct.cotacaoDolar || 1.0;
-        } else {
-          errors.push("Preço de custo (USD ou BRL) inválido ou ausente.");
-        }
-      } else if (finalCustoDolar < 0) {
-        errors.push(`Custo em Dólar não pode ser negativo: ${finalCustoDolar}.`);
+      // Col F (index 5) - Quantidade Estoque
+      const estoqueGeralRaw = row[5];
+      let estoqueGeral = estoqueGeralRaw !== undefined && estoqueGeralRaw !== null && String(estoqueGeralRaw).trim() !== "" ? parseInt(String(estoqueGeralRaw)) : null;
+
+      const finalCustoDolar = custoDolar !== null ? custoDolar : matchedDbProduct.custoDolar;
+      const finalCotacaoDolar = cotacaoDolar !== null ? cotacaoDolar : (matchedDbProduct.cotacaoDolar || 1.0);
+      const finalPrecoSugerido = precoSugerido !== null ? precoSugerido : matchedDbProduct.preco;
+      const finalEstoqueGeral = estoqueGeral !== null && !isNaN(estoqueGeral) ? estoqueGeral : matchedDbProduct.estoque;
+
+      if (finalCustoDolar === null || finalCustoDolar === undefined) {
+        errors.push("Preço de custo USD inválido ou não informado.");
       }
-
       if (finalCotacaoDolar <= 0) {
-        errors.push("A cotação do dólar deve ser maior que zero.");
+        errors.push("Cotação do dólar deve ser maior que zero.");
       }
-
-      // SELLING PRICE PARSING
-      const precoSugeridoRaw = getVal("precoSugerido");
-      let precoSugerido = parseBrazilianNumber(precoSugeridoRaw);
-      if (precoSugerido === null) {
-        if (matchedDbProduct) {
-          precoSugerido = matchedDbProduct.preco;
-        } else {
-          errors.push(`Preço de venda inválido ou ausente: "${precoSugeridoRaw || ''}".`);
-        }
-      } else if (precoSugerido < 0) {
-        errors.push(`Preço de venda não pode ser negativo: ${precoSugerido}.`);
+      if (finalPrecoSugerido === null || finalPrecoSugerido === undefined) {
+        errors.push("Preço de venda inválido ou não informado.");
       }
-
-      // WHOLESALE PRICE (LOJISTA) PARSING
-      const precoLojistaRaw = getVal("precoLojista");
-      let precoLojista = parseBrazilianNumber(precoLojistaRaw);
-      if (precoLojista === null) {
-        if (matchedDbProduct && matchedDbProduct.precoAtacado) {
-          precoLojista = matchedDbProduct.precoAtacado;
-        } else if (precoSugerido !== null) {
-          // Default to 70% of the sale price (rounded)
-          precoLojista = Math.round(precoSugerido * 0.7 * 100) / 100;
-          warnings.push(`Preço lojista ausente. Definido automaticamente como 70% do Preço de Venda: R$ ${precoLojista.toFixed(2)}.`);
-        } else {
-          precoLojista = 0;
-        }
-      } else if (precoLojista < 0) {
-        errors.push(`Preço lojista não pode ser negativo: ${precoLojista}.`);
-      }
-
-      // GENERAL STOCK PARSING
-      const estoqueGeralRaw = getVal("estoqueGeral");
-      let estoqueGeral = estoqueGeralRaw !== undefined && String(estoqueGeralRaw).trim() !== "" ? parseInt(String(estoqueGeralRaw)) : (matchedDbProduct ? matchedDbProduct.estoque : 0);
-      if (isNaN(estoqueGeral)) {
-        estoqueGeral = matchedDbProduct ? matchedDbProduct.estoque : 0;
-        warnings.push("Estoque geral inválido. Mantido valor original ou 0.");
-      } else if (estoqueGeral < 0) {
-        errors.push(`Estoque geral não pode ser negativo: ${estoqueGeral}.`);
-      }
-
-      // LOJISTA STOCK PARSING
-      const estoqueLojistaRaw = getVal("estoqueLojista");
-      let estoqueLojista = estoqueLojistaRaw !== undefined && String(estoqueLojistaRaw).trim() !== "" ? parseInt(String(estoqueLojistaRaw)) : (matchedDbProduct ? matchedDbProduct.estoqueLojista : 0);
-      if (isNaN(estoqueLojista)) {
-        estoqueLojista = matchedDbProduct ? matchedDbProduct.estoqueLojista : 0;
-        warnings.push("Estoque lojista inválido. Mantido valor original ou 0.");
-      } else if (estoqueLojista < 0) {
-        errors.push(`Estoque lojista não pode ser negativo: ${estoqueLojista}.`);
-      }
-
-      const imagemNormalizada = normalizeImportedImage(getVal("imagem"));
-      const imagem = imagemNormalizada.src || (matchedDbProduct ? matchedDbProduct.imagem : null);
-      if (imagemNormalizada.warning) warnings.push(imagemNormalizada.warning);
-
-      const descricaoRaw = getVal("descricao");
-      const descricao = descricaoRaw !== undefined ? String(descricaoRaw).trim() : (matchedDbProduct ? matchedDbProduct.descricao : "");
-      if (!descricao) {
-        warnings.push("Descrição ausente.");
+      if (finalEstoqueGeral < 0) {
+        errors.push("Estoque geral não pode ser negativo.");
       }
 
       if (errors.length > 0) {
         errorCount++;
-      }
-      if (warnings.length > 0) {
-        warningCount += warnings.length;
+        processedRows.push({
+          index: rowIndex,
+          status: "error",
+          errors,
+          warnings,
+          originalRow: row,
+          mappedData: { nome: matchedDbProduct.nome }
+        });
+        continue;
       }
 
-      const status = errors.length > 0 ? "error" : (matchedDbProduct ? "update" : "new");
-      if (status === "new") newCount++;
-      if (status === "update") updateCount++;
+      updateCount++;
 
       const mappedDataObj = {
-        codigo,
-        nome,
-        marca,
-        categoria: finalCategoria,
-        volume,
-        precoCusto: (finalCustoDolar || 0) * (finalCotacaoDolar || 1), // backward compatibility
-        custoDolar: finalCustoDolar || 0,
-        cotacaoDolar: finalCotacaoDolar || 1.0,
-        precoLojista: precoLojista || 0,
-        precoSugerido: precoSugerido || 0,
-        estoqueGeral,
-        estoqueLojista,
-        imagem,
-        descricao,
-        categoria_principal,
-        tags,
-        concentracao,
-        origem,
-        tipo_perfume,
-        genero,
-        familia_olfativa,
-        notas_topo,
-        notas_coracao,
-        notas_fundo,
-        fixacao_estimada,
-        projecao,
-        ocasiao_uso,
-        similaridade_inspiracao,
-        descricao_olfativa
+        id: matchedDbProduct.id,
+        codigo: matchedDbProduct.codigo ?? codigo,
+        nome: matchedDbProduct.nome,
+        marca: matchedDbProduct.marca,
+        categoria: matchedDbProduct.categoria,
+        volume: matchedDbProduct.volume,
+        custoDolar: finalCustoDolar,
+        cotacaoDolar: finalCotacaoDolar,
+        precoCusto: (finalCustoDolar || 0) * (finalCotacaoDolar || 1),
+        precoLojista: matchedDbProduct.precoAtacado,
+        precoSugerido: finalPrecoSugerido,
+        estoqueGeral: finalEstoqueGeral,
+        estoqueLojista: matchedDbProduct.estoqueLojista
       };
 
       const diff: any = {};
-      if (matchedDbProduct) {
-        const dbCostDolar = matchedDbProduct.custoDolar || 0;
-        const dbCotacaoDolar = matchedDbProduct.cotacaoDolar || 1.0;
-        if (dbCostDolar !== finalCustoDolar) diff.custoDolar = { old: dbCostDolar, new: finalCustoDolar };
-        if (dbCotacaoDolar !== finalCotacaoDolar) diff.cotacaoDolar = { old: dbCotacaoDolar, new: finalCotacaoDolar };
-        if (matchedDbProduct.precoAtacado !== precoLojista) diff.precoLojista = { old: matchedDbProduct.precoAtacado, new: precoLojista };
-        if (matchedDbProduct.preco !== precoSugerido) diff.precoSugerido = { old: matchedDbProduct.preco, new: precoSugerido };
-        if (matchedDbProduct.estoque !== estoqueGeral) diff.estoqueGeral = { old: matchedDbProduct.estoque, new: estoqueGeral };
-        if (matchedDbProduct.estoqueLojista !== estoqueLojista) diff.estoqueLojista = { old: matchedDbProduct.estoqueLojista, new: estoqueLojista };
-      }
+      const dbCostDolar = matchedDbProduct.custoDolar || 0;
+      const dbCotacaoDolar = matchedDbProduct.cotacaoDolar || 1.0;
+      const dbPreco = matchedDbProduct.preco || 0;
+      const dbEstoque = matchedDbProduct.estoque || 0;
+
+      if (dbCostDolar !== finalCustoDolar) diff.custoDolar = { old: dbCostDolar, new: finalCustoDolar };
+      if (dbCotacaoDolar !== finalCotacaoDolar) diff.cotacaoDolar = { old: dbCotacaoDolar, new: finalCotacaoDolar };
+      if (dbPreco !== finalPrecoSugerido) diff.precoSugerido = { old: dbPreco, new: finalPrecoSugerido };
+      if (dbEstoque !== finalEstoqueGeral) diff.estoqueGeral = { old: dbEstoque, new: finalEstoqueGeral };
 
       processedRows.push({
-        index: i + 1,
-        status,
+        index: rowIndex,
+        status: "update",
         errors,
         warnings,
         originalRow: row,
         mappedData: mappedDataObj,
         diff,
-        dbId: matchedDbProduct?.id
+        dbId: matchedDbProduct.id
       });
     }
 
     return {
       success: true,
       headers,
-      mapping,
+      mapping: {},
       processedRows,
       stats: {
-        total: rows.length,
-        new: newCount,
+        total: dataRows.length,
+        new: 0,
         update: updateCount,
         error: errorCount,
         warning: warningCount
@@ -743,25 +619,17 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
   }
 }
 
-export async function executarImportacaoAction(base64Data: string, mapping: Record<string, string>) {
+export async function executarImportacaoAction(base64Data: string, mapping?: Record<string, string>) {
   try {
-    const analysis = await analisarPlanilhaAction(base64Data, mapping);
+    const analysis = await analisarPlanilhaAction(base64Data);
     if (!analysis.success || !analysis.processedRows) {
       return { success: false, error: analysis.error || "Falha na análise dos dados antes da importação." };
     }
 
     const { processedRows } = analysis;
-    const dbProducts = await prisma.produto.findMany() as any[];
-
-    let createdCount = 0;
     let updatedCount = 0;
     let ignoredCount = 0;
     const importedLogs: any[] = [];
-
-    let nextCodigo = dbProducts.reduce((max: number, p: any) => {
-      const c = Number(p.codigo ?? p.id ?? 0);
-      return Math.max(max, c);
-    }, 0) + 1;
 
     for (const item of processedRows) {
       if (item.status === "error") {
@@ -775,123 +643,34 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
         continue;
       }
 
-      const { mappedData, status, dbId } = item;
+      const { mappedData, dbId } = item;
       const {
-        codigo,
         nome,
-        marca,
-        categoria,
-        volume,
-        precoCusto,
-        precoLojista,
-        precoSugerido,
-        estoqueGeral,
-        estoqueLojista,
         custoDolar,
         cotacaoDolar,
-        imagem,
-        descricao,
-        categoria_principal,
-        tags,
-        concentracao,
-        origem,
-        tipo_perfume,
-        genero,
-        familia_olfativa,
-        notas_topo,
-        notas_coracao,
-        notas_fundo,
-        fixacao_estimada,
-        projecao,
-        ocasiao_uso,
-        similaridade_inspiracao,
-        descricao_olfativa
+        precoSugerido,
+        estoqueGeral
       } = mappedData;
 
-      const imagemMaterializada = await materializeImportedImage(imagem);
-      const savePayload = {
-        nome,
-        marca,
-        categoria,
-        volume,
-        preco: precoSugerido,
-        precoAtacado: precoLojista,
-        custoDolar: custoDolar,
-        cotacaoDolar: cotacaoDolar,
-        estoque: estoqueGeral,
-        estoqueLojista,
-        descricao,
-        imagem: imagemMaterializada,
-        categoria_principal,
-        tags,
-        concentracao,
-        origem,
-        tipo_perfume,
-        genero,
-        familia_olfativa,
-        notas_topo,
-        notas_coracao,
-        notas_fundo,
-        fixacao_estimada,
-        projecao,
-        ocasiao_uso,
-        similaridade_inspiracao,
-        descricao_olfativa
-      };
+      await prisma.produto.update({
+        where: { id: dbId },
+        data: {
+          preco: precoSugerido,
+          custoDolar: custoDolar,
+          cotacaoDolar: cotacaoDolar,
+          estoque: estoqueGeral
+        }
+      });
 
-      if (status === "update" && dbId) {
-        await prisma.produto.update({
-          where: { id: dbId },
-          data: savePayload
-        });
-        updatedCount++;
-        importedLogs.push({
-          row: item.index,
-          id: dbId,
-          name: nome,
-          status: "updated",
-          diff: item.diff
-        });
-      } else {
-        const assignedCodigo = codigo !== undefined ? codigo : nextCodigo++;
-        await prisma.produto.create({
-          data: {
-            ...savePayload,
-            codigo: assignedCodigo,
-            vitrine: false,
-            promocaoAtiva: false,
-            descontoPercentual: null
-          }
-        });
-        createdCount++;
-        importedLogs.push({
-          row: item.index,
-          codigo: assignedCodigo,
-          name: nome,
-          status: "created"
-        });
-      }
+      updatedCount++;
+      importedLogs.push({
+        row: item.index,
+        id: dbId,
+        name: nome,
+        status: "updated",
+        diff: item.diff
+      });
     }
-
-    const reportData = {
-      timestamp: new Date().toISOString(),
-      summary: {
-        totalRows: processedRows.length,
-        created: createdCount,
-        updated: updatedCount,
-        ignored: ignoredCount
-      },
-      mapping,
-      logs: importedLogs
-    };
-
-    const reportsDir = join(process.cwd(), ".data", "import-reports");
-    if (!existsSync(reportsDir)) {
-      mkdirSync(reportsDir, { recursive: true });
-    }
-    const reportFilename = `report-${Date.now()}.json`;
-    const reportPath = join(reportsDir, reportFilename);
-    writeFileSync(reportPath, JSON.stringify(reportData, null, 2), "utf8");
 
     revalidatePath("/admin/produtos");
     revalidatePath("/produtos");
@@ -899,8 +678,12 @@ export async function executarImportacaoAction(base64Data: string, mapping: Reco
 
     return {
       success: true,
-      summary: reportData.summary,
-      reportFilename,
+      summary: {
+        created: 0,
+        updated: updatedCount,
+        ignored: ignoredCount
+      },
+      reportFilename: `report-update-${Date.now()}.json`,
       logs: importedLogs
     };
   } catch (err: any) {
