@@ -139,3 +139,17 @@ resultadoOperacional   Float
 despesasPorCategoria   String   @db.Text
 createdAt              DateTime @default(now())
 }
+
+model Lead {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  contato    String
+  cidade     String?
+  estado     String?
+  endereco   String?  @db.Text
+  produtos   String?  @db.Text
+  total      Float?
+  status     String   @default("Novo")
+  createdAt  DateTime @default(now())
+}
+

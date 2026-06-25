@@ -332,8 +332,29 @@ export default function CarrinhoWidget() {
         {/* Content */}
         <div className="flex-grow overflow-y-auto p-6 space-y-6">
           {checkoutSuccess ? (
-            /* Sucesso de Compra */
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <li key={item.id} className="flex items-center justify-between text-sm text-gray-300">
+                      <span>{item.nome || item.title || "Produto"} x {item.quantidade || item.quantity}</span>
+                      <span className="font-medium text-white">R$ {((item.preco || item.price || 0) * (item.quantidade || item.quantity)).toFixed(2)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex items-center justify-between text-lg font-bold text-gold mb-4">
+                  <span>Total</span>
+                  <span>R$ {cartItems.reduce((sum: number, i: any) => sum + ((i.preco || i.price || 0) * (i.quantidade || i.quantity)), 0).toFixed(2)}</span>
+                </div>
+                <p className="text-sm text-gray-400 mb-6">{checkoutSuccess.message}</p>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="btn-luxury w-full mt-6 cursor-pointer"
+                >
+                  Voltar ao Catálogo
+                </button>
+              </div>
+            </div>
+          ) :
+            /* Original success UI removed - replaced by confirmation card */
+
               <div className="h-16 w-16 bg-green-950/50 border border-green-500/30 rounded-full flex items-center justify-center text-green-500">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

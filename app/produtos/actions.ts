@@ -167,6 +167,8 @@ export async function registrarIntencaoCompraCarrinho(
 
     const checkoutRef = Math.random().toString(36).substring(2, 8).toUpperCase();
     const itemsToCreate: any[] = [];
+    const listaProdutos: string[] = [];
+    let valorTotalGeral = 0;
 
     const obsCliente = clienteInfo
       ? ` | Cliente: ${clienteInfo.nome} - Tel: ${clienteInfo.contato} - Endereço: ${clienteInfo.rua}, ${clienteInfo.numero}${clienteInfo.complemento ? ` (${clienteInfo.complemento})` : ""} - Bairro: ${clienteInfo.bairro} - ${clienteInfo.cidade}/${clienteInfo.estado} - CEP: ${clienteInfo.cep}`
@@ -209,6 +211,9 @@ export async function registrarIntencaoCompraCarrinho(
       const descontoConcedido = Math.max(0, precoTabela - valorAtual) * item.quantidade;
       const lucroBruto = (valorAtual - custoUnitario) * item.quantidade;
 
+      listaProdutos.push(`${produto.nome} (Qtd: ${item.quantidade})`);
+      valorTotalGeral += total;
+
       itemsToCreate.push({
         usuarioId: lojistaId || 0,
         produtoId: produto.id,
@@ -234,6 +239,21 @@ export async function registrarIntencaoCompraCarrinho(
     await prisma.$transaction(async (tx) => {
       for (const orderData of itemsToCreate) {
         await tx.pedido.create({ data: orderData });
+      }
+
+      if (!origemRevenda && clienteInfo) {
+        await tx.lead.create({
+          data: {
+            nome: clienteInfo.nome,
+            contato: clienteInfo.contato,
+            cidade: clienteInfo.cidade,
+            estado: clienteInfo.estado,
+            endereco: `${clienteInfo.rua}, ${clienteInfo.numero}${clienteInfo.complemento ? ` - ${clienteInfo.complemento}` : ""} - Bairro: ${clienteInfo.bairro} - CEP: ${clienteInfo.cep}`,
+            produtos: listaProdutos.join(", "),
+            total: valorTotalGeral,
+            status: "Novo",
+          },
+        });
       }
     });
 

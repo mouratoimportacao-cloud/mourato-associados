@@ -161,7 +161,8 @@ type TableName =
   | "Despesa"
   | "FechamentoMensal"
   | "LancamentoFinanceiro"
-  | "FechamentoFinanceiro";
+  | "FechamentoFinanceiro"
+  | "Lead";
 type MemoryRow = Record<string, any>;
 
 const columns = {
@@ -272,7 +273,8 @@ const columns = {
     "createdAt",
   ],
   Despesa: ["id", "data", "categoria", "valor", "observacao", "createdAt"],
-  FechamentoMensal: ["id", "mesAno", "receitaAtacado", "receitaSite", "receitaTotal", "cmv", "valorEstoque", "totalDespesas", "saldoBancario", "resultado", "dadosDespesas", "createdAt"]
+  FechamentoMensal: ["id", "mesAno", "receitaAtacado", "receitaSite", "receitaTotal", "cmv", "valorEstoque", "totalDespesas", "saldoBancario", "resultado", "dadosDespesas", "createdAt"],
+  Lead: ["id", "nome", "contato", "cidade", "estado", "endereco", "produtos", "total", "status", "createdAt"]
 } as const;
 
 const globalStore = globalThis as unknown as {
@@ -343,6 +345,7 @@ function emptyStore() {
       FechamentoMensal: [],
       LancamentoFinanceiro: [],
       FechamentoFinanceiro: [],
+      Lead: [],
     } as Record<TableName, MemoryRow[]>,
     seq: {
       Produto: initialProducts.length,
@@ -352,6 +355,7 @@ function emptyStore() {
       FechamentoMensal: 0,
       LancamentoFinanceiro: 0,
       FechamentoFinanceiro: 0,
+      Lead: 0,
     } as Record<TableName, number>,
   };
 }
@@ -487,6 +491,7 @@ function loadLocalStore() {
         FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
         LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
         FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
+        Lead: parsed.rows?.Lead ?? [],
       },
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
@@ -496,6 +501,7 @@ function loadLocalStore() {
         FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
         LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
         FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
+        Lead: parsed.seq?.Lead ?? 0,
       },
     };
   } catch {
@@ -544,6 +550,7 @@ async function loadPostgresStore() {
         FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
         LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
         FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
+        Lead: parsed.rows?.Lead ?? [],
       },
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
@@ -553,6 +560,7 @@ async function loadPostgresStore() {
         FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
         LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
         FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
+        Lead: parsed.seq?.Lead ?? 0,
       },
     };
   } catch (error) {
@@ -944,6 +952,12 @@ export const prisma = {
     update: (args: UpdateArgs<Partial<FechamentoFinanceiroData>>) =>
       update("FechamentoFinanceiro", args),
     delete: (args: DeleteArgs) => remove("FechamentoFinanceiro", args),
+  },
+  lead: {
+    ...model("Lead"),
+    create: (args: WriteArgs<any>) => insert("Lead", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("Lead", args),
+    delete: (args: DeleteArgs) => remove("Lead", args),
   },
   $transaction: <T>(callback: (tx: any) => Promise<T>) =>
     runTransaction(callback),

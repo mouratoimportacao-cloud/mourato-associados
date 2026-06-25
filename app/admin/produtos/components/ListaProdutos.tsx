@@ -45,9 +45,10 @@ interface Produto {
 interface ListaProdutosProps {
   produtos: Produto[];
   onEditProduct: (produto: Produto) => void;
+  pendentePorProduto?: Record<number, { qtd: number; saldo: number; lojistas: string[] }>;
 }
 
-export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutosProps) {
+export default function ListaProdutos({ produtos, onEditProduct, pendentePorProduto }: ListaProdutosProps) {
   const [isPending, startTransition] = useTransition();
   const [filtros, setFiltros] = useState<any>({
     origem: "todos",
@@ -208,18 +209,34 @@ export default function ListaProdutos({ produtos, onEditProduct }: ListaProdutos
                   </div>
                 </td>
                 <td className="px-3 py-1.5 whitespace-nowrap">
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={`font-bold ${produto.estoque <= 0 ? 'text-red-600' : produto.estoque < 5 ? 'text-amber-600' : 'text-gray-700'}`}>
-                      G: {produto.estoque} un.
-                    </span>
-                    <span className="text-gray-300">|</span>
-                    <span className="text-gray-500 font-medium">
-                      L: {produto.estoqueLojista || 0} un.
-                    </span>
-                    {produto.estoque <= 0 && (
-                      <span className="px-1 py-0.2 text-[8px] font-black uppercase rounded bg-red-100 text-red-700 border border-red-200">
-                        Falta
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <span className={`font-bold ${produto.estoque <= 0 ? 'text-red-600' : produto.estoque < 5 ? 'text-amber-600' : 'text-gray-700'}`}>
+                        G: {produto.estoque} un.
                       </span>
+                      <span className="text-gray-300">|</span>
+                      <span className="text-gray-500 font-medium">
+                        L: {produto.estoqueLojista || 0} un.
+                      </span>
+                      {produto.estoque <= 0 && (
+                        <span className="px-1 py-0.2 text-[8px] font-black uppercase rounded bg-red-100 text-red-700 border border-red-200">
+                          Falta
+                        </span>
+                      )}
+                    </div>
+                    {pendentePorProduto?.[produto.id] && (
+                      <div
+                        className="flex items-center gap-1 mt-0.5"
+                        title={`Pedido(s) pendente(s) de: ${pendentePorProduto[produto.id].lojistas.join(", ") || "Lojista"}`}
+                      >
+                        <span className="animate-pulse inline-block h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                        <span className="text-[9px] font-black uppercase text-amber-700 tracking-wide">
+                          {pendentePorProduto[produto.id].qtd} un. pendentes
+                        </span>
+                        <span className="text-[9px] text-amber-600 font-medium">
+                          · R$ {Number(pendentePorProduto[produto.id].saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </td>

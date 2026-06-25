@@ -40,11 +40,11 @@ export default async function Navbar() {
             <div className="flex md:hidden items-center gap-3">
               <CarrinhoButton />
               <Link
-                href="/lojista"
-                className="text-[9px] font-black border border-gold/40 text-gold hover:bg-gold hover:text-black transition-all px-2.5 py-1.5 rounded uppercase tracking-wider whitespace-nowrap"
-              >
-                Lojista
-              </Link>
+              href="/login"
+              className="text-[9px] font-black border border-gold/40 text-gold hover:bg-gold hover:text-black transition-all px-2.5 py-1.5 rounded uppercase tracking-wider whitespace-nowrap"
+            >
+              Login
+            </Link>
             </div>
           </div>
 
@@ -56,7 +56,7 @@ export default async function Navbar() {
           </div>
 
           {/* Ações e Redes Sociais no Desktop */}
-          <div className="hidden md:flex items-center justify-end gap-3 flex-shrink-0">
+          <div className="flex items-center justify-end gap-3 flex-shrink-0">
             <Link
               href="/lojista"
               className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-gold transition-colors font-bold mr-1"
@@ -84,10 +84,10 @@ export default async function Navbar() {
             </div>
 
             <Link
-              href="/admin"
+              href="/login"
               className="text-[9px] border border-gold/30 text-gold px-2.5 py-1.5 uppercase tracking-wider hover:bg-gold hover:text-black transition-all font-bold rounded"
             >
-              Restrito
+              Login
             </Link>
 
             <CarrinhoButton />

@@ -66,15 +66,16 @@ export default async function PedidosAdminPage() {
   const unidadesVendidas = pedidos
     .filter((pedido: any) => !["cancelado", "rejeitado"].includes(pedido.status))
     .reduce((acc: number, pedido: any) => acc + Number(pedido.quantidade || 0), 0);
-  const statusNovos = ["aguardando pagamento", "pendente fornecedor", "aguardando confirmacao admin", "intencao de compra", "aguardando lojista"];
-  const pedidosPendentes = pedidos.filter((pedido: any) => statusNovos.includes(pedido.status)).length;
+  // ── Agrupamentos de pedidos ───────────────────────────────────────────────
+  // Novos: precisam de ação imediata do Admin
+  const statusConcluidos = ["entregue", "cancelado", "rejeitado"];
+  const pedidosPendentesCount = pedidos.filter((pedido: any) => !statusConcluidos.includes(pedido.status)).length;
 
   async function handleLogout() {
     "use server";
     await logoutAdmin();
     redirect("/admin/login");
   }
-
 
   const statuses = [
     "pendente fornecedor",
@@ -88,9 +89,26 @@ export default async function PedidosAdminPage() {
     "cancelado",
     "rejeitado"
   ];
-  const pedidosNovos = pedidos.filter((pedido: any) => statusNovos.includes(pedido.status));
-  const pedidosPendentesAgrupados = pedidos.filter((pedido: any) => pedido.status === "enviado");
-  const pedidosConcluidos = pedidos.filter((pedido: any) => ["pago", "entregue", "cancelado", "rejeitado"].includes(pedido.status));
+
+  // Novos: ação imediata (B2B pendente, QR aguardando, intenção de compra)
+  const pedidosNovos = pedidos.filter((pedido: any) => !statusConcluidos.includes(pedido.status));
+
+  // Pendentes públicos: ainda não concluídos (exclui lojistas)
+  const pedidosPendentesAgrupados = pedidos.filter((pedido: any) =>
+    pedido.usuarioId === 0 && !statusConcluidos.includes(pedido.status)
+  );
+
+  // Lojista (QR): vendas concluídas via QR Code pelo lojista
+  const pedidosLojista = pedidos.filter((pedido: any) =>
+    String(pedido.tipoFluxo || "") === "venda_qr" &&
+    ["entregue", "cancelado", "rejeitado"].includes(pedido.status)
+  );
+
+  // Concluídos: B2B / site finalizados (não-QR)
+  const pedidosConcluidos = pedidos.filter((pedido: any) =>
+    ["entregue", "cancelado", "rejeitado"].includes(pedido.status) &&
+    String(pedido.tipoFluxo || "") !== "venda_qr"
+  );
 
   return (
     <div className="admin-shell min-h-screen bg-gray-50 flex">
@@ -114,6 +132,9 @@ export default async function PedidosAdminPage() {
           </Link>
           <Link href="/admin/pedidos" className="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-lg text-sm font-medium">
             <span>🛒</span> Pedidos
+          </Link>
+          <Link href="/admin/leads" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>👥</span> Leads
           </Link>
           <Link href="/admin/radar" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>🎯</span> Radar
@@ -162,7 +183,7 @@ export default async function PedidosAdminPage() {
         <section className="admin-card-grid grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
           {[
             ["Pedidos", totalPedidos],
-            ["Aguardando", pedidosPendentes],
+            ["Aguardando ação", pedidosPendentesCount],
             ["Unidades baixadas", unidadesVendidas],
             ["Total vendido", `R$ ${totalVendido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`],
           ].map(([label, value]) => (
@@ -175,28 +196,40 @@ export default async function PedidosAdminPage() {
 
         <div className="space-y-4">
           <PedidosGrupo
-            titulo="Novos"
-            descricao="Pedidos recém-abertos pelo lojista, QR Code ou site. Resolva estes primeiro."
+            titulo="🔔 Novos"
+            descricao="Pedidos em andamento: pendente, pendente de entrega, enviado, concluído."
             pedidos={pedidosNovos}
             userMap={userMap}
             statuses={statuses}
-            vazio="Nenhum pedido novo no momento."
+            vazio="Nenhum pedido aguardando ação."
+            corHeader="bg-amber-50 border-amber-100"
           />
           <PedidosGrupo
-            titulo="Pendentes"
-            descricao="Pedidos em andamento que ainda não foram concluídos."
+            titulo="⏳ Pendentes"
+            descricao="Pedidos públicos pendentes: pendente, aguardando pagamento, aguardando entrega."
             pedidos={pedidosPendentesAgrupados}
             userMap={userMap}
             statuses={statuses}
-            vazio="Nenhum pedido pendente no momento."
+            vazio="Nenhum pedido em andamento."
+            corHeader="bg-blue-50 border-blue-100"
           />
           <PedidosGrupo
-            titulo="Concluídos"
-            descricao="Pedidos pagos, entregues, enviados ou cancelados."
+            titulo="🏪 Lojista (QR)"
+            descricao="Vendas concluídas via QR Code pelos lojistas."
+            pedidos={pedidosLojista}
+            userMap={userMap}
+            statuses={statuses}
+            vazio="Nenhuma venda QR concluída."
+            corHeader="bg-indigo-50 border-indigo-100"
+          />
+          <PedidosGrupo
+            titulo="✅ Concluídos"
+            descricao="Pedidos B2B e site — pagos, entregues ou cancelados."
             pedidos={pedidosConcluidos}
             userMap={userMap}
             statuses={statuses}
             vazio="Nenhum pedido concluído até agora."
+            corHeader="bg-gray-50 border-gray-200"
           />
         </div>
       </main>
@@ -211,6 +244,7 @@ function PedidosGrupo({
   userMap,
   statuses,
   vazio,
+  corHeader = "bg-gray-50 border-gray-100",
 }: {
   titulo: string;
   descricao: string;
@@ -218,13 +252,14 @@ function PedidosGrupo({
   userMap: Map<any, any>;
   statuses: string[];
   vazio: string;
+  corHeader?: string;
 }) {
   return (
     <section className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 border-b border-gray-100 bg-gray-50 px-5 py-4">
+      <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 border-b px-5 py-4 ${corHeader}`}>
         <div>
           <h2 className="text-lg font-black text-gray-900">{titulo}</h2>
-          <p className="text-xs font-medium uppercase tracking-widest text-gray-400">{descricao}</p>
+          <p className="text-xs font-medium uppercase tracking-widest text-gray-500">{descricao}</p>
         </div>
         <span className="w-fit rounded-full bg-luxury-black px-3 py-1 text-xs font-black uppercase tracking-widest text-white">
           {pedidos.length} pedido(s)

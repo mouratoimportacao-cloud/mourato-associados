@@ -24,7 +24,13 @@ interface Produto {
   descricao: string | null;
 }
 
-export default function GerenciadorProdutos({ produtos }: { produtos: any[] }) {
+export default function GerenciadorProdutos({
+  produtos,
+  pendentePorProduto,
+}: {
+  produtos: any[];
+  pendentePorProduto?: Record<number, { qtd: number; saldo: number; lojistas: string[] }>;
+}) {
   const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [importBase64, setImportBase64] = useState<string | null>(null);
@@ -93,7 +99,7 @@ export default function GerenciadorProdutos({ produtos }: { produtos: any[] }) {
       </div>
 
       <div>
-        <ListaProdutos produtos={produtos} onEditProduct={handleEdit} />
+        <ListaProdutos produtos={produtos} onEditProduct={handleEdit} pendentePorProduto={pendentePorProduto} />
       </div>
 
       {isFormOpen && (

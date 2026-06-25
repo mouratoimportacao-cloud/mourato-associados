@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getAdminSession, logoutAdmin } from "../../../lib/auth";
 import { redirect } from "next/navigation";
 
+
 export const metadata = {
   title: "Gerenciar Produtos | Mourato & Associados",
 };
@@ -22,6 +23,62 @@ export default async function ProdutosAdmin() {
       id: "asc",
     },
   });
+
+  // Pedidos pendentes do fornecedor — busca simples e filtra em JS
+  // (evita OR / { not: null } que não são suportados no client customizado)
+  const todosPedidosAtivos = await prisma.pedido.findMany({
+    select: {
+      usuarioId: true,
+      produtoId: true,
+      quantidade: true,
+      saldoFornecedor: true,
+      status: true,
+      tipoFluxo: true,
+      pagamento: true,
+    },
+  });
+
+  // Filtra em JS: somente pedidos B2B pendentes com produtoId válido
+  const pedidosPendentesRaw = todosPedidosAtivos.filter((p: any) => {
+    if (!p.produtoId) return false;
+    const isB2B =
+      String(p.tipoFluxo || "") === "compra_fornecedor" ||
+      String(p.pagamento || "").includes("Pedido ao fornecedor") ||
+      String(p.pagamento || "").includes("Compra do fornecedor");
+    const isPendente =
+      p.status === "pendente fornecedor" ||
+      (isB2B && p.status === "aguardando pagamento");
+    return isB2B && isPendente;
+  });
+
+  // Busca os nomes dos lojistas envolvidos
+  const lojistaIds = [...new Set(pedidosPendentesRaw.map((p: any) => p.usuarioId))] as number[];
+  const lojistasMap: Record<number, string> = {};
+  if (lojistaIds.length > 0) {
+    const lojistas = await prisma.usuario.findMany({
+      where: { id: { in: lojistaIds } },
+      select: { id: true, nome: true },
+    });
+    for (const l of lojistas) {
+      lojistasMap[l.id] = l.nome;
+    }
+  }
+
+  // Agrupar por produtoId: { qtd pendente, saldo total, lojistas }
+  const pendentePorProduto: Record<number, { qtd: number; saldo: number; lojistas: string[] }> = {};
+  for (const p of pedidosPendentesRaw) {
+    const pid = Number(p.produtoId);
+    if (!pid) continue;
+    if (!pendentePorProduto[pid]) {
+      pendentePorProduto[pid] = { qtd: 0, saldo: 0, lojistas: [] };
+    }
+    pendentePorProduto[pid].qtd += Number(p.quantidade || 0);
+    pendentePorProduto[pid].saldo += Number(p.saldoFornecedor || 0);
+    const nomeL = lojistasMap[Number(p.usuarioId)];
+    if (nomeL && !pendentePorProduto[pid].lojistas.includes(nomeL)) {
+      pendentePorProduto[pid].lojistas.push(nomeL);
+    }
+  }
 
   async function handleLogout() {
     "use server";
@@ -52,6 +109,9 @@ export default async function ProdutosAdmin() {
           </Link>
           <Link href="/admin/pedidos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>🛒</span> Pedidos
+          </Link>
+          <Link href="/admin/leads" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>👥</span> Leads
           </Link>
           <Link href="/admin/radar" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>🎯</span> Radar
@@ -97,7 +157,7 @@ export default async function ProdutosAdmin() {
         </header>
 
         <section className="mt-8">
-          <GerenciadorProdutos produtos={produtos} />
+          <GerenciadorProdutos produtos={produtos} pendentePorProduto={pendentePorProduto} />
         </section>
       </main>
     </div>

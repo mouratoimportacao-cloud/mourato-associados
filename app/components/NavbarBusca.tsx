@@ -17,12 +17,22 @@ export default function NavbarBusca() {
   };
 
   // Trata envio do formulário (Enter ou clique no ícone)
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isCatalogPage = pathname === "/produtos" || pathname.startsWith("/r/");
-    if (!isCatalogPage) {
-      router.push(`/produtos?busca=${encodeURIComponent(busca)}`);
+    if (!busca.trim()) return;
+    // Tenta encontrar o produto pelo nome e redirecionar diretamente
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(busca)}`);
+      if (res.ok) {
+        const { slug } = await res.json();
+        router.push(`/produto/${slug}`);
+        return;
+      }
+    } catch (err) {
+      // falha silenciosa – continua para busca geral
     }
+    // Caso não encontre ou em erro, redireciona para a página de catálogo com o termo
+    router.push(`/produtos?busca=${encodeURIComponent(busca)}`);
   };
 
   return (
@@ -35,7 +45,8 @@ export default function NavbarBusca() {
         value={busca}
         onChange={handleChange}
         placeholder="Buscar perfume, marca, fragrância..."
-        className="w-full h-10 rounded-full border border-zinc-800 bg-neutral-900 px-5 pr-12 text-xs text-white placeholder-zinc-500 shadow-inner outline-none transition duration-300 focus:border-gold focus:ring-1 focus:ring-gold/30"
+        style={{ fontSize: "16px" }}
+        className="w-full h-10 rounded-full border border-zinc-800 bg-neutral-900 px-5 pr-12 text-base md:text-xs text-white placeholder-zinc-500 shadow-inner outline-none transition duration-300 focus:border-gold focus:ring-1 focus:ring-gold/30"
       />
       <button
         type="submit"

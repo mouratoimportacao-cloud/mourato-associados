@@ -45,6 +45,10 @@ async function ensureAdminExists() {
 }
 
 export async function getAdminSession(): Promise<SessionPayload | null> {
+  const globalStore = globalThis as any;
+  if (globalStore.mockAdminSession) return globalStore.mockAdminSession;
+  if (globalStore.mockSession && globalStore.mockSession.tipo === "admin") return globalStore.mockSession;
+
   const cookieStore = await cookies();
   const token = cookieStore.get("admin_session")?.value;
   if (!token) return null;
@@ -61,6 +65,10 @@ export async function getAdminSession(): Promise<SessionPayload | null> {
 }
 
 export async function getLojistaSession(): Promise<SessionPayload | null> {
+  const globalStore = globalThis as any;
+  if (globalStore.mockSession && globalStore.mockSession.tipo === "lojista") return globalStore.mockSession;
+  if (globalStore.mockSession && !globalStore.mockSession.tipo) return globalStore.mockSession;
+
   const cookieStore = await cookies();
   const token = cookieStore.get("lojista_session")?.value;
   if (!token) return null;

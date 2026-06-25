@@ -168,6 +168,9 @@ export default async function LojistaDetalhePage({ params }: PageProps) {
           <Link href="/admin/pedidos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>🛒</span> Pedidos
           </Link>
+          <Link href="/admin/leads" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>👥</span> Leads
+          </Link>
           <Link href="/admin/radar" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>🎯</span> Radar
           </Link>

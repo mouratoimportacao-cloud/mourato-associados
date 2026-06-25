@@ -56,6 +56,16 @@ export async function criarPedidoLojista(formData: FormData): Promise<{ success:
         },
       });
 
+      const estoquePessoal = {
+        ...(lojista.estoquePessoal || {}),
+      } as Record<string, number>;
+      const chave = String(produtoId);
+      estoquePessoal[chave] = Number(estoquePessoal[chave] || 0) + quantidade;
+      await tx.usuario.update({
+        where: { id: lojista.id },
+        data: { estoquePessoal },
+      });
+
       const podeAgrupar =
         pedidoExistente &&
         Number(pedidoExistente.totalPagoFornecedor || 0) === 0 &&
@@ -64,6 +74,11 @@ export async function criarPedidoLojista(formData: FormData): Promise<{ success:
       if (podeAgrupar && pedidoExistente) {
         const novaQuantidade = Number(pedidoExistente.quantidade || 0) + quantidade;
         const novoTotal = Number(pedidoExistente.total || 0) + precoUnitario * quantidade;
+        const obsOriginal = pedidoExistente.observacao || "";
+        const obsComAdicao = observacao ? `${obsOriginal} | ${observacao}` : obsOriginal;
+        const novaObs = obsComAdicao.includes("[ESTOQUE_LOJISTA_CREDITADO]")
+          ? obsComAdicao
+          : `${obsComAdicao} [ESTOQUE_LOJISTA_CREDITADO]`.trim();
 
         await tx.pedido.update({
           where: { id: pedidoExistente.id },
@@ -71,13 +86,16 @@ export async function criarPedidoLojista(formData: FormData): Promise<{ success:
             quantidade: novaQuantidade,
             total: novoTotal,
             saldoFornecedor: calcularSaldoFornecedor(novoTotal, 0),
-            observacao: observacao
-              ? `${pedidoExistente.observacao || ""} | ${observacao}`
-              : pedidoExistente.observacao,
+            observacao: novaObs,
           },
         });
       } else {
         const total = precoUnitario * quantidade;
+        const obsFinal = observacao || `Lojista solicitou ${quantidade} unidade(s) ao fornecedor. Aguardando validação.`;
+        const novaObs = obsFinal.includes("[ESTOQUE_LOJISTA_CREDITADO]")
+          ? obsFinal
+          : `${obsFinal} [ESTOQUE_LOJISTA_CREDITADO]`.trim();
+
         await tx.pedido.create({
           data: {
             usuarioId: session.id,
@@ -94,9 +112,7 @@ export async function criarPedidoLojista(formData: FormData): Promise<{ success:
             totalPagoFornecedor: 0,
             saldoFornecedor: total,
             pagamento,
-            observacao:
-              observacao ||
-              `Lojista solicitou ${quantidade} unidade(s) ao fornecedor. Aguardando validação.`,
+            observacao: novaObs,
             total,
             status: "pendente fornecedor",
           },
@@ -104,10 +120,15 @@ export async function criarPedidoLojista(formData: FormData): Promise<{ success:
       }
     });
 
-    revalidatePath("/lojista/painel");
-    revalidatePath("/admin");
-    revalidatePath("/admin/pedidos");
-    revalidatePath(`/r/${lojista.codigoRevenda || ""}`);
+    try {
+      revalidatePath("/lojista/painel");
+      revalidatePath("/admin");
+      revalidatePath("/admin/pedidos");
+      revalidatePath("/admin/produtos");
+      revalidatePath(`/r/${lojista.codigoRevenda || ""}`);
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+    }
     return { success: true };
   } catch (error) {
     console.error("Erro ao criar pedido do lojista:", error);
@@ -206,9 +227,14 @@ export async function confirmarVendaLojista(
       });
     });
 
-    revalidatePath("/lojista/painel");
-    revalidatePath("/admin");
-    revalidatePath("/admin/pedidos");
+    try {
+      revalidatePath("/lojista/painel");
+      revalidatePath("/admin");
+      revalidatePath("/admin/pedidos");
+      revalidatePath("/admin/produtos");
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+    }
 
     return { success: true };
   } catch (error) {
@@ -246,9 +272,14 @@ export async function rejeitarVendaLojista(
       });
     });
 
-    revalidatePath("/lojista/painel");
-    revalidatePath("/admin");
-    revalidatePath("/admin/pedidos");
+    try {
+      revalidatePath("/lojista/painel");
+      revalidatePath("/admin");
+      revalidatePath("/admin/pedidos");
+      revalidatePath("/admin/produtos");
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+    }
     return { success: true };
   } catch (error) {
     console.error("Erro ao rejeitar venda do lojista:", error);
@@ -298,6 +329,8 @@ export async function criarPedidosLojistaCarrinho(
       for (const item of itens) {
         const produto = (await tx.produto.findUnique({ where: { id: item.produtoId } }))!;
         const precoAtacado = Number(produto.precoAtacado || 0);
+
+        // A. Debita estoque global
         await tx.produto.update({
           where: { id: produto.id },
           data: {
@@ -306,6 +339,21 @@ export async function criarPedidosLojistaCarrinho(
           },
         });
 
+        // B. Credita estoque pessoal do lojista imediatamente
+        const lojistaAtualizado = (await tx.usuario.findUnique({
+          where: { id: session.id },
+        }))!;
+        const estoquePessoal = {
+          ...(lojistaAtualizado.estoquePessoal || {}),
+        } as Record<string, number>;
+        const chave = String(produto.id);
+        estoquePessoal[chave] = Number(estoquePessoal[chave] || 0) + item.quantidade;
+        await tx.usuario.update({
+          where: { id: lojistaAtualizado.id },
+          data: { estoquePessoal },
+        });
+
+        // C. Cria ou agrupa pedido com marcador [ESTOQUE_LOJISTA_CREDITADO]
         const pedidoExistente = await tx.pedido.findFirst({
           where: {
             usuarioId: session.id,
@@ -323,13 +371,19 @@ export async function criarPedidosLojistaCarrinho(
           const novaQuantidade = Number(pedidoExistente.quantidade || 0) + item.quantidade;
           const novoTotal =
             Number(pedidoExistente.total || 0) + precoAtacado * item.quantidade;
+          const obsOriginal = pedidoExistente.observacao || "";
+          const obsComAdicao = `${obsOriginal} | Adicionado mais ${item.quantidade} un. via carrinho agrupado.`;
+          const novaObs = obsComAdicao.includes("[ESTOQUE_LOJISTA_CREDITADO]")
+            ? obsComAdicao
+            : `${obsComAdicao} [ESTOQUE_LOJISTA_CREDITADO]`.trim();
+
           await tx.pedido.update({
             where: { id: pedidoExistente.id },
             data: {
               quantidade: novaQuantidade,
               total: novoTotal,
               saldoFornecedor: calcularSaldoFornecedor(novoTotal, 0),
-              observacao: `${pedidoExistente.observacao || ""} | Adicionado mais ${item.quantidade} un. via carrinho agrupado.`,
+              observacao: novaObs,
             },
           });
         } else {
@@ -350,7 +404,7 @@ export async function criarPedidosLojistaCarrinho(
               totalPagoFornecedor: 0,
               saldoFornecedor: total,
               pagamento: "Pedido ao fornecedor",
-              observacao: `Lojista solicitou ${item.quantidade} unidade(s) ao fornecedor no pedido agrupado.`,
+              observacao: `Lojista solicitou ${item.quantidade} unidade(s) ao fornecedor no pedido agrupado. [ESTOQUE_LOJISTA_CREDITADO]`,
               total,
               status: "pendente fornecedor",
             },
@@ -359,9 +413,14 @@ export async function criarPedidosLojistaCarrinho(
       }
     });
 
-    revalidatePath("/lojista/painel");
-    revalidatePath("/admin");
-    revalidatePath("/admin/pedidos");
+    try {
+      revalidatePath("/lojista/painel");
+      revalidatePath("/admin");
+      revalidatePath("/admin/pedidos");
+      revalidatePath("/admin/produtos");
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado no ambiente CLI/Teste.");
+    }
 
     return { success: true };
   } catch (error) {

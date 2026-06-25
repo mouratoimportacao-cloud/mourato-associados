@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import VitrineCarrossel from "./VitrineCarrossel";
 import CatalogoProdutos from "./CatalogoProdutos";
+import { useSearchParams } from "next/navigation";
 
 type Produto = {
   id: number;
@@ -21,15 +22,16 @@ type Produto = {
 };
 
 export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: Produto[]; lojistaId?: number | null }) {
+  const searchParams = useSearchParams();
   const produtosVitrine = useMemo(
     () => produtos.filter((produto) => Boolean(produto.vitrine)),
     [produtos]
   );
+  const busca = searchParams.get('busca')?.trim() ?? '';
 
   return (
     <div className="space-y-12">
-      {/* Vitrine de Destaques */}
-      {produtosVitrine.length > 0 && (
+      {!busca && produtosVitrine.length > 0 && (
         <section className="relative overflow-hidden rounded-[2rem] border-2 border-gold/30 bg-neutral-950 p-6 md:p-8 lg:p-10 shadow-[0_0_35px_rgba(212,175,55,0.07)]">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
           
