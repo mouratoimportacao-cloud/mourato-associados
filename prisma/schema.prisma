@@ -153,3 +153,95 @@ model Lead {
   createdAt  DateTime @default(now())
 }
 
+// Novos modelos para multi‑lojista
+model SupplierStock {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  quantity  Int
+  cost      Decimal
+  updatedAt DateTime @updatedAt
+}
+
+model RetailerStock {
+  id          Int      @id @default(autoincrement())
+  retailerId  Int
+  productId   Int
+  quantity    Int
+  cost        Decimal
+  updatedAt   DateTime @updatedAt
+}
+
+enum PurchaseStatus {
+  AGUARDANDO_PAGAMENTO
+  PAGO
+  ENVIADO
+  ENTREGUE
+  CANCELADO
+}
+
+model RetailerPurchase {
+  id               Int               @id @default(autoincrement())
+  retailerId       Int
+  supplierId       Int
+  status           PurchaseStatus
+  totalAmount      Decimal
+  paidAmount       Decimal
+  openAmount       Decimal
+  stockTransferred Boolean   @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  items            RetailerPurchaseItem[]
+}
+
+model RetailerPurchaseItem {
+  id         Int     @id @default(autoincrement())
+  purchaseId Int
+  productId  Int
+  quantity   Int
+  unitCost   Decimal
+  totalCost  Decimal
+}
+
+enum OwnerType { ADMIN FORNECEDOR LOJISTA }
+
+enum EntryType { RECEITA DESPESA RECEBIMENTO PAGAMENTO CONTA_A_RECEBER CONTA_A_PAGAR ESTORNO }
+
+enum EntrySource { PUBLIC_SALE QR_SALE RETAILER_PURCHASE RETAILER_PAYMENT REFUND ADJUSTMENT }
+
+enum EntryStatus { PAGO EM_ABERTO CANCELADO }
+
+enum PaymentStatus { PAGO EM_ABERTO CANCELADO }
+
+model FinancialEntry {
+  id          Int        @id @default(autoincrement())
+  ownerType   OwnerType
+  ownerId     Int
+  retailerId  Int?
+  type        EntryType
+  source      EntrySource
+  amount      Decimal
+  status      EntryStatus
+  referenceId Int?
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model PublicOrder {
+  id            Int          @id @default(autoincrement())
+  productId     Int
+  quantity      Int
+  unitPrice     Decimal
+  total         Decimal
+  paymentStatus PaymentStatus
+  ownerType     OwnerType @default(FORNECEDOR)
+}
+
+model QrOrder {
+  id           Int          @id @default(autoincrement())
+  retailerId   Int
+  productId    Int
+  quantity     Int
+  unitPrice    Decimal
+  total        Decimal
+  paymentStatus PaymentStatus
+}

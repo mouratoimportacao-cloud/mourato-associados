@@ -1,4 +1,5 @@
 // Simple in-memory cache (query -> {slug, expires})
+import { NextResponse } from "next/server";
 const searchCache = new Map<string, { slug: string; expires: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
