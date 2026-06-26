@@ -6,7 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL") // Deprecated in Prisma 7, moved to client config
 }
 
 model Usuario {
@@ -190,7 +190,7 @@ model RetailerPurchase {
   stockTransferred Boolean   @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  items            RetailerPurchaseItem[]
+  items            RetailerPurchaseItem[] @relation("RetailerPurchaseItems")
 }
 
 model RetailerPurchaseItem {
@@ -200,17 +200,45 @@ model RetailerPurchaseItem {
   quantity   Int
   unitCost   Decimal
   totalCost  Decimal
+  purchase   RetailerPurchase @relation("RetailerPurchaseItems", fields: [purchaseId], references: [id])
 }
 
-enum OwnerType { ADMIN FORNECEDOR LOJISTA }
+enum OwnerType {
+  ADMIN
+  FORNECEDOR
+  LOJISTA
+}
 
-enum EntryType { RECEITA DESPESA RECEBIMENTO PAGAMENTO CONTA_A_RECEBER CONTA_A_PAGAR ESTORNO }
+enum EntryType {
+  RECEITA
+  DESPESA
+  RECEBIMENTO
+  PAGAMENTO
+  CONTA_A_RECEBER
+  CONTA_A_PAGAR
+  ESTORNO
+}
 
-enum EntrySource { PUBLIC_SALE QR_SALE RETAILER_PURCHASE RETAILER_PAYMENT REFUND ADJUSTMENT }
+enum EntrySource {
+  PUBLIC_SALE
+  QR_SALE
+  RETAILER_PURCHASE
+  RETAILER_PAYMENT
+  REFUND
+  ADJUSTMENT
+}
 
-enum EntryStatus { PAGO EM_ABERTO CANCELADO }
+enum EntryStatus {
+  PAGO
+  EM_ABERTO
+  CANCELADO
+}
 
-enum PaymentStatus { PAGO EM_ABERTO CANCELADO }
+enum PaymentStatus {
+  PAGO
+  EM_ABERTO
+  CANCELADO
+}
 
 model FinancialEntry {
   id          Int        @id @default(autoincrement())

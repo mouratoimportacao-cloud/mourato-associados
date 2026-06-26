@@ -1,5 +1,5 @@
 "use server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { transferStock } from "../../../../lib/services/stockService";
 import { registerRetailerPayment } from "../../../../lib/services/financialService";
@@ -8,9 +8,10 @@ import { registerRetailerPayment } from "../../../../lib/services/financialServi
  * Update retailer purchase status and optionally register payment.
  * Expected JSON body: { status: string, amountPaid?: number }
  */
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const purchaseId = Number(params.id);
+    const { id } = await params;
+    const purchaseId = Number(id);
     const { status, amountPaid } = await request.json();
     if (!purchaseId || !status) {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
