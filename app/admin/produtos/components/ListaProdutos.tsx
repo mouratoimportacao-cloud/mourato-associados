@@ -170,6 +170,23 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
               <tr key={produto.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-2 py-1.5 min-w-0">
                   <div className="flex items-center min-w-0">
+                    <button
+                      type="button"
+                      title={produto.vitrine ? "Remover do carrossel" : "Adicionar ao carrossel"}
+                      onClick={() => startTransition(() => toggleVitrine(produto.id, !produto.vitrine))}
+                      disabled={isPending}
+                      className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 mr-2 ${
+                        produto.vitrine
+                          ? "bg-amber-500 border-amber-600 text-white"
+                          : "bg-white border-gray-300 hover:border-amber-400"
+                      }`}
+                    >
+                      {produto.vitrine && (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
                     <div className="relative h-8 w-8 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-gray-200">
                       <OptimizedImage
                         src={produto.imagem}
@@ -182,23 +199,6 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                     </div>
                     <div className="ml-2">
                       <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          title={produto.vitrine ? "Remover do carrossel" : "Adicionar ao carrossel"}
-                          onClick={() => startTransition(() => toggleVitrine(produto.id, !produto.vitrine))}
-                          disabled={isPending}
-                          className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 ${
-                            produto.vitrine
-                              ? "bg-amber-500 border-amber-600 text-white"
-                              : "bg-white border-gray-300 hover:border-amber-400"
-                          }`}
-                        >
-                          {produto.vitrine && (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </button>
                         <span className="rounded bg-gray-100 px-1 py-0.2 text-[9px] font-black text-gray-500">
                           #{produto.codigo ?? produto.id}
                         </span>
