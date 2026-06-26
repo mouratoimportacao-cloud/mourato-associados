@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Navbar from "../components/Navbar";
+import BuscaExternaWidget from "../admin/components/BuscaExternaWidget";
 import Footer from "../components/Footer";
 import { prisma } from "../../lib/prisma";
 import CatalogoPrincipal from "./components/CatalogoPrincipal";
@@ -32,6 +33,7 @@ export default async function ProdutosPage() {
           </header>
 
           <Suspense fallback={<div className="py-20 text-center text-zinc-500 font-serif italic text-lg">Carregando curadoria...</div>}>
+            <BuscaExternaWidget />
             <CatalogoPrincipal produtos={produtosPublicos as any[]} />
           </Suspense>
         </div>
