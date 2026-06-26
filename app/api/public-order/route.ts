@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { createFinancialEntry } from "../../../lib/services/financialService";
-import { Prisma } from "@prisma/client";
+
 import { OwnerType, EntryType, EntrySource, EntryStatus } from "@prisma/client";
 
 /**
@@ -22,8 +22,8 @@ export async function POST(request: Request) {
     await prisma.produto.update({
       where: { id: productId },
       data: {
-        estoque: { decrement: quantity } as Prisma.IntFieldUpdateOperationsInput,
-        estoqueLojista: { decrement: quantity } as Prisma.IntFieldUpdateOperationsInput,
+        estoque: { decrement: quantity } as any,
+        estoqueLojista: { decrement: quantity } as any,
       },
     });
 
