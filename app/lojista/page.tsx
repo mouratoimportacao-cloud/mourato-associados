@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { loginLojista } from "../../lib/auth";
+import { loginAdmin } from "../../lib/auth";
 
 export default function LojistaLoginPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function LojistaLoginPage() {
 
     const formData = new FormData(event.currentTarget);
     startTransition(async () => {
-      const result = await loginLojista(formData);
+      const result = await loginAdmin(formData);
 
       if (result.success) {
         router.push("/lojista/painel");
