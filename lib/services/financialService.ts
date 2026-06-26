@@ -1,18 +1,18 @@
 import { prisma } from "../prisma";
 import { Decimal } from "@prisma/client";
-import { OwnerType, EntryType, EntrySource, EntryStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 /**
  * Helper to create a financial entry.
  */
 export async function createFinancialEntry(params: {
-  ownerType: OwnerType;
+  ownerType: Prisma.OwnerType;
   ownerId: number;
   retailerId?: number;
-  type: EntryType;
-  source: EntrySource;
+  type: Prisma.EntryType;
+  source: Prisma.EntrySource;
   amount: number;
-  status: EntryStatus;
+  status: Prisma.EntryStatus;
   referenceId?: number;
   description?: string;
 }) {

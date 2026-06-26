@@ -1,11 +1,11 @@
 import { prisma } from "../../lib/prisma";
-import { OwnerType, EntryType, EntrySource, EntryStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 /**
  * Generate a DRE (Demonstrativo de Resultado do Exercício) for a given owner.
  * Aggregates revenues, expenses, receivables, payables, and stock value.
  */
-export async function generateDRE(params: { ownerType: OwnerType; ownerId?: number }) {
+export async function generateDRE(params: { ownerType: Prisma.OwnerType; ownerId?: number }) {
   const { ownerType, ownerId } = params;
 
   // Base filter for financial entries
@@ -29,10 +29,10 @@ export async function generateDRE(params: { ownerType: OwnerType; ownerId?: numb
 
   // Stock valuation – sum of quantity * cost for supplier or retailer
   let stockValue = 0;
-  if (ownerType === "FORNECEDOR" || ownerType === "ADMIN") {
+  if (ownerType === Prisma.OwnerType.FORNECEDOR || ownerType === Prisma.OwnerType.ADMIN) {
     const stocks = await prisma.supplierStock.findMany();
     stockValue = stocks.reduce((sum, s) => sum + s.quantity * Number(s.cost), 0);
-  } else if (ownerType === "LOJISTA") {
+  } else if (ownerType === Prisma.OwnerType.LOJISTA) {
     if (ownerId === undefined) throw new Error("ownerId required for lojista DRE");
     const stocks = await prisma.retailerStock.findMany({ where: { retailerId: ownerId } });
     stockValue = stocks.reduce((sum, s) => sum + s.quantity * Number(s.cost), 0);

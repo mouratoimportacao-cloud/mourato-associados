@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { createFinancialEntry } from "../../../lib/services/financialService";
 
-import { OwnerType, EntryType, EntrySource, EntryStatus } from "@prisma/client";
+// Removed unused Prisma import
 
 /**
  * Register a public site sale.
@@ -41,12 +41,12 @@ export async function POST(request: Request) {
 
     // Create financial entry (receita for fornecedor)
     await createFinancialEntry({
-      ownerType: OwnerType.FORNECEDOR,
-      ownerId: 0, // fornecedor admin assumed id 0 or not relevant
-      type: EntryType.RECEITA,
-      source: EntrySource.PUBLIC_SALE,
+      ownerType: "FORNECEDOR",
+      ownerId: 0, // fornecedor admin assumed id 0
+      type: "RECEITA",
+      source: "PUBLIC_SALE",
       amount: total,
-      status: EntryStatus.PAGO,
+      status: "PAGO",
       referenceId: order.id,
       description: "Venda pública",
     });

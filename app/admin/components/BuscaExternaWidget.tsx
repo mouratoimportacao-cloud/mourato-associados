@@ -1,12 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function BuscaExternaWidget() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    const term = searchTerm.trim();
+    if (!term) {
+      alert("Por favor, digite o nome do produto para buscar.");
+      return;
+    }
+    const isMobile = typeof navigator !== "undefined" && /Mobi|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      // Redirect to internal product search page
+      router.push(`/produtos?search=${encodeURIComponent(term)}`);
+    } else {
+      // For desktop keep external links (no action here)
+    }
   };
 
   return (
@@ -20,6 +34,8 @@ export default function BuscaExternaWidget() {
       </div>
 
       <form onSubmit={handleSearch} className="space-y-6">
+        {/* Submit button for mobile redirect */}
+        <button type="submit" className="hidden md:block" aria-label="Buscar produto">🔍</button>
         <div className="flex flex-col gap-4">
           <div className="relative">
             <input
@@ -40,35 +56,43 @@ export default function BuscaExternaWidget() {
             )}
           </div>
 
+          <button
+            type="submit"
+            className="w-full bg-luxury-gold text-white font-bold py-4 rounded-xl hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
+          >
+            🔍 Buscar Produto
+          </button>
+
           <div className="flex flex-col sm:flex-row gap-4 mt-2">
+            {/* Hidden links retained for desktop; they won't be used on mobile due to form submit handling */}
             <a
-              href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(searchTerm.trim())}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                if (!searchTerm.trim()) {
-                  e.preventDefault();
-                  alert("Por favor, digite o nome do produto para buscar.");
-                }
-              }}
-              className="bg-luxury-black border border-luxury-black shadow-sm px-6 py-4 rounded-xl font-bold text-white text-xs uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer flex-1 text-center"
-            >
-              🔍 Comparar no Google Shopping
-            </a>
+                href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(searchTerm.trim())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!searchTerm.trim()) {
+                    e.preventDefault();
+                    alert("Por favor, digite o nome do produto para buscar.");
+                  }
+                }}
+                className="bg-luxury-black border border-luxury-black shadow-sm px-6 py-4 rounded-xl font-bold text-white text-xs uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer flex-1 text-center"
+              >
+                🔍 Comparar no Google Shopping
+              </a>
             <a
-              href={`https://lista.mercadolivre.com.br/${encodeURIComponent(searchTerm.trim())}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                if (!searchTerm.trim()) {
-                  e.preventDefault();
-                  alert("Por favor, digite o nome do produto para buscar.");
-                }
-              }}
-              className="bg-white border border-gray-200 shadow-sm px-6 py-4 rounded-xl font-bold text-gray-700 text-xs uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 cursor-pointer flex-1 text-center"
-            >
-              📦 Consultar no Mercado Livre
-            </a>
+                href={`https://lista.mercadolivre.com.br/${encodeURIComponent(searchTerm.trim())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!searchTerm.trim()) {
+                    e.preventDefault();
+                    alert("Por favor, digite o nome do produto para buscar.");
+                  }
+                }}
+                className="bg-white border border-gray-200 shadow-sm px-6 py-4 rounded-xl font-bold text-gray-700 text-xs uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 cursor-pointer flex-1 text-center"
+              >
+                📦 Consultar no Mercado Livre
+              </a>
           </div>
         </div>
       </form>

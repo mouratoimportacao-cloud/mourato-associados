@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { createFinancialEntry } from "../../../lib/services/financialService";
-import { OwnerType, EntryType, EntrySource, EntryStatus } from "@prisma/client";
+// Enums used as string literals; no import needed
 
 /**
  * Register a QR code sale by a retailer.
@@ -45,12 +45,12 @@ export async function POST(request: Request) {
 
     // Financial entry for retailer revenue
     await createFinancialEntry({
-      ownerType: OwnerType.LOJISTA,
+      ownerType: "LOJISTA",
       ownerId: retailerId,
-      type: EntryType.RECEITA,
-      source: EntrySource.QR_SALE,
+      type: "RECEITA",
+      source: "QR_SALE",
       amount: total,
-      status: EntryStatus.PAGO,
+      status: "PAGO",
       referenceId: order.id,
       description: "Venda QR",
     });
