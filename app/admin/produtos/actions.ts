@@ -696,3 +696,21 @@ export async function executarImportacaoAction(base64Data: string, mapping?: Rec
     return { success: false, error: err.message || "Erro desconhecido na importação." };
   }
 }
+
+
+export async function toggleVitrine(id: number, vitrine: boolean) {
+  try {
+    await prisma.produto.update({
+      where: { id },
+      data: { vitrine },
+    });
+
+    revalidatePath("/admin/produtos");
+    revalidatePath("/produtos");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao alterar vitrine:", error);
+    return { success: false, error: "Erro ao alterar vitrine" };
+  }
+}
