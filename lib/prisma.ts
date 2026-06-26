@@ -148,6 +148,28 @@ type FechamentoMensalData = {
   receitaTotal: number;
   cmv: number;
   valorEstoque: number;
+  qrOrder: {
+    ...model("QrOrder"),
+    create: (args: WriteArgs<any>) => insert("QrOrder", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("QrOrder", args),
+    delete: (args: DeleteArgs) => remove("QrOrder", args),
+  },
+  retailerPurchase: {
+    ...model("RetailerPurchase"),
+    create: (args: WriteArgs<any>) => insert("RetailerPurchase", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("RetailerPurchase", args),
+    delete: (args: DeleteArgs) => remove("RetailerPurchase", args),
+  },
+  retailerPurchaseItem: {
+    ...model("RetailerPurchaseItem"),
+    create: (args: WriteArgs<any>) => insert("RetailerPurchaseItem", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("RetailerPurchaseItem", args),
+    delete: (args: DeleteArgs) => remove("RetailerPurchaseItem", args),
+  },
+  $transaction: <T>(callback: (tx: any) => Promise<T>) =>
+    runTransaction(callback),
+  $disconnect: () => Promise.resolve(),
+};
 
 export const prisma = new PrismaClient();
 
@@ -291,3 +313,13 @@ type FechamentoMensalData = {
   receitaTotal: number;
   cmv: number;
   valorEstoque: number;
+  qrOrder: {
+    ...model("QrOrder"),
+    create: (args: WriteArgs<any>) => insert("QrOrder", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("QrOrder", args),
+    delete: (args: DeleteArgs) => remove("QrOrder", args),
+  },
+  $transaction: <T>(callback: (tx: any) => Promise<T>) =>
+    runTransaction(callback),
+  $disconnect: () => Promise.resolve(),
+};
