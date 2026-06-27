@@ -22,7 +22,6 @@ interface CountArgs {
 
 interface WriteArgs<T> {
   data: T;
-  include?: any;
 }
 
 interface UpdateArgs<T> {
@@ -162,14 +161,7 @@ type TableName =
   | "Despesa"
   | "FechamentoMensal"
   | "LancamentoFinanceiro"
-  | "FechamentoFinanceiro"
-  | "Lead"
-  | "PublicOrder"
-  | "QrOrder"
-  | "RetailerPurchase"
-  | "FinancialEntry"
-  | "SupplierStock"
-  | "RetailerStock";
+  | "FechamentoFinanceiro";
 type MemoryRow = Record<string, any>;
 
 const columns = {
@@ -280,14 +272,7 @@ const columns = {
     "createdAt",
   ],
   Despesa: ["id", "data", "categoria", "valor", "observacao", "createdAt"],
-  FechamentoMensal: ["id", "mesAno", "receitaAtacado", "receitaSite", "receitaTotal", "cmv", "valorEstoque", "totalDespesas", "saldoBancario", "resultado", "dadosDespesas", "createdAt"],
-  Lead: ["id", "nome", "contato", "cidade", "estado", "endereco", "produtos", "total", "status", "createdAt"],
-  PublicOrder: ["id","produtoId","produtoNome","quantidade","precoUnitario","total","nomeCliente","contato","endereco","status","observacao","createdAt"],
-  QrOrder: ["id","retailerId","produtoId","produtoNome","quantidade","precoUnitario","total","nomeCliente","contato","status","observacao","createdAt"],
-  RetailerPurchase: ["id","retailerId","total","status","items","observacao","createdAt"],
-  FinancialEntry: ["id","ownerType","ownerId","type","amount","description","relatedId","createdAt"],
-  SupplierStock: ["id","productId","quantity","costPerUnit","createdAt"],
-  RetailerStock: ["id","retailerId","productId","quantity","costPerUnit","createdAt"],
+  FechamentoMensal: ["id", "mesAno", "receitaAtacado", "receitaSite", "receitaTotal", "cmv", "valorEstoque", "totalDespesas", "saldoBancario", "resultado", "dadosDespesas", "createdAt"]
 } as const;
 
 const globalStore = globalThis as unknown as {
@@ -358,13 +343,6 @@ function emptyStore() {
       FechamentoMensal: [],
       LancamentoFinanceiro: [],
       FechamentoFinanceiro: [],
-      Lead: [],
-      PublicOrder: [],
-      QrOrder: [],
-      RetailerPurchase: [],
-      FinancialEntry: [],
-      SupplierStock: [],
-      RetailerStock: [],
     } as Record<TableName, MemoryRow[]>,
     seq: {
       Produto: initialProducts.length,
@@ -374,13 +352,6 @@ function emptyStore() {
       FechamentoMensal: 0,
       LancamentoFinanceiro: 0,
       FechamentoFinanceiro: 0,
-      Lead: 0,
-      PublicOrder: 0,
-      QrOrder: 0,
-      RetailerPurchase: 0,
-      FinancialEntry: 0,
-      SupplierStock: 0,
-      RetailerStock: 0,
     } as Record<TableName, number>,
   };
 }
@@ -516,13 +487,6 @@ function loadLocalStore() {
         FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
         LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
         FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
-        Lead: parsed.rows?.Lead ?? [],
-        PublicOrder: parsed.rows?.PublicOrder ?? [],
-        QrOrder: parsed.rows?.QrOrder ?? [],
-        RetailerPurchase: parsed.rows?.RetailerPurchase ?? [],
-        FinancialEntry: parsed.rows?.FinancialEntry ?? [],
-        SupplierStock: parsed.rows?.SupplierStock ?? [],
-        RetailerStock: parsed.rows?.RetailerStock ?? [],
       },
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
@@ -532,13 +496,6 @@ function loadLocalStore() {
         FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
         LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
         FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
-        Lead: parsed.seq?.Lead ?? 0,
-        PublicOrder: parsed.seq?.PublicOrder ?? 0,
-        QrOrder: parsed.seq?.QrOrder ?? 0,
-        RetailerPurchase: parsed.seq?.RetailerPurchase ?? 0,
-        FinancialEntry: parsed.seq?.FinancialEntry ?? 0,
-        SupplierStock: parsed.seq?.SupplierStock ?? 0,
-        RetailerStock: parsed.seq?.RetailerStock ?? 0,
       },
     };
   } catch {
@@ -587,13 +544,6 @@ async function loadPostgresStore() {
         FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
         LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
         FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
-        Lead: parsed.rows?.Lead ?? [],
-        PublicOrder: parsed.rows?.PublicOrder ?? [],
-        QrOrder: parsed.rows?.QrOrder ?? [],
-        RetailerPurchase: parsed.rows?.RetailerPurchase ?? [],
-        FinancialEntry: parsed.rows?.FinancialEntry ?? [],
-        SupplierStock: parsed.rows?.SupplierStock ?? [],
-        RetailerStock: parsed.rows?.RetailerStock ?? [],
       },
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
@@ -603,13 +553,6 @@ async function loadPostgresStore() {
         FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
         LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
         FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
-        Lead: parsed.seq?.Lead ?? 0,
-        PublicOrder: parsed.seq?.PublicOrder ?? 0,
-        QrOrder: parsed.seq?.QrOrder ?? 0,
-        RetailerPurchase: parsed.seq?.RetailerPurchase ?? 0,
-        FinancialEntry: parsed.seq?.FinancialEntry ?? 0,
-        SupplierStock: parsed.seq?.SupplierStock ?? 0,
-        RetailerStock: parsed.seq?.RetailerStock ?? 0,
       },
     };
   } catch (error) {
@@ -902,7 +845,7 @@ function model(table: TableName) {
       return this.findMany({ ...args, take: 1 }).then((rows) => rows[0] ?? null);
     },
 
-    findUnique(args: { where: Record<string, unknown>; include?: any }) {
+    findUnique(args: { where: Record<string, unknown> }) {
       return this.findFirst({ where: args.where });
     },
   };
@@ -1002,49 +945,7 @@ export const prisma = {
       update("FechamentoFinanceiro", args),
     delete: (args: DeleteArgs) => remove("FechamentoFinanceiro", args),
   },
-  lead: {
-    ...model("Lead"),
-    create: (args: WriteArgs<any>) => insert("Lead", args.data),
-    update: (args: UpdateArgs<Partial<any>>) => update("Lead", args),
-    delete: (args: DeleteArgs) => remove("Lead", args),
-  },
   $transaction: <T>(callback: (tx: any) => Promise<T>) =>
     runTransaction(callback),
-  publicOrder: {
-    ...model("PublicOrder"),
-    create: (args: WriteArgs<any>) => insert("PublicOrder", args.data),
-    update: (args: UpdateArgs<Partial<any>>) => update("PublicOrder", args),
-    delete: (args: DeleteArgs) => remove("PublicOrder", args),
-  },
-  qrOrder: {
-    ...model("QrOrder"),
-    create: (args: WriteArgs<any>) => insert("QrOrder", args.data),
-    update: (args: UpdateArgs<Partial<any>>) => update("QrOrder", args),
-    delete: (args: DeleteArgs) => remove("QrOrder", args),
-  },
-  retailerPurchase: {
-    ...model("RetailerPurchase"),
-    create: (args: WriteArgs<any>) => insert("RetailerPurchase", args.data),
-    update: (args: UpdateArgs<Partial<any>>) => update("RetailerPurchase", args),
-    delete: (args: DeleteArgs) => remove("RetailerPurchase", args),
-  },
-  financialEntry: {
-    ...model("FinancialEntry"),
-    create: (args: WriteArgs<any>) => insert("FinancialEntry", args.data),
-    update: (args: UpdateArgs<Partial<any>>) => update("FinancialEntry", args),
-    delete: (args: DeleteArgs) => remove("FinancialEntry", args),
-  },
-  supplierStock: {
-    ...model("SupplierStock"),
-    create: (args: WriteArgs<any>) => insert("SupplierStock", args.data),
-    update: (args: UpdateArgs<Partial<any>>) => update("SupplierStock", args),
-    delete: (args: DeleteArgs) => remove("SupplierStock", args),
-  },
-  retailerStock: {
-    ...model("RetailerStock"),
-    create: (args: WriteArgs<any>) => insert("RetailerStock", args.data),
-    update: (args: UpdateArgs<Partial<any>>) => update("RetailerStock", args),
-    delete: (args: DeleteArgs) => remove("RetailerStock", args),
-  },
   $disconnect: () => Promise.resolve(),
 };

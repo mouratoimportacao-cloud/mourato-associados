@@ -1,11 +1,13 @@
 import { prisma } from "../../lib/prisma";
-import { Prisma } from "@prisma/client";
+// OwnerType enum local
+const OwnerTypeEnum = { FORNECEDOR: "FORNECEDOR", ADMIN: "ADMIN", LOJISTA: "LOJISTA" } as const;
+const Prisma = { OwnerType: OwnerTypeEnum };
 
 /**
  * Generate a DRE (Demonstrativo de Resultado do Exercício) for a given owner.
  * Aggregates revenues, expenses, receivables, payables, and stock value.
  */
-export async function generateDRE(params: { ownerType: Prisma.OwnerType; ownerId?: number }) {
+export async function generateDRE(params: { ownerType: string; ownerId?: number }) {
   const { ownerType, ownerId } = params;
 
   // Base filter for financial entries

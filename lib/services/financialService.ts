@@ -1,18 +1,19 @@
 import { prisma } from "../prisma";
-import { Decimal } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+// type Decimal = number
+const Prisma = { OwnerType: { FORNECEDOR: "FORNECEDOR", ADMIN: "ADMIN", LOJISTA: "LOJISTA" } } as const;
+type Decimal = number;
 
 /**
  * Helper to create a financial entry.
  */
 export async function createFinancialEntry(params: {
-  ownerType: Prisma.OwnerType;
+  ownerType: string;
   ownerId: number;
   retailerId?: number;
-  type: Prisma.EntryType;
-  source: Prisma.EntrySource;
+  type: string;
+  source: string;
   amount: number;
-  status: Prisma.EntryStatus;
+  status: string;
   referenceId?: number;
   description?: string;
 }) {
@@ -35,7 +36,7 @@ export async function createFinancialEntry(params: {
       retailerId,
       type,
       source,
-      amount: new Decimal(amount),
+      amount: Number(amount),
       status,
       referenceId,
       description,

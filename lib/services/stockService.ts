@@ -1,5 +1,4 @@
 import { prisma } from "../prisma";
-import { Decimal } from "@prisma/client";
 
 /**
  * Transfer stock from supplier to retailer.
@@ -22,7 +21,7 @@ export async function transferStock(params: {
       data: {
         productId,
         quantity: -quantity, // decrement from supplier inventory
-        cost: new Decimal(unitCost),
+        cost: Number(unitCost),
       },
     });
   } else {
@@ -42,7 +41,7 @@ export async function transferStock(params: {
         retailerId,
         productId,
         quantity,
-        cost: new Decimal(unitCost),
+        cost: Number(unitCost),
       },
     });
   } else {

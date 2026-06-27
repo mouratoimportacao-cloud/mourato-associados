@@ -173,7 +173,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                     <button
                       type="button"
                       title={produto.vitrine ? "Remover do carrossel" : "Adicionar ao carrossel"}
-                      onClick={() => startTransition(() => toggleVitrine(produto.id, !produto.vitrine))}
+                      onClick={() => startTransition(async () => { await toggleVitrine(produto.id, !produto.vitrine); })}
                       disabled={isPending}
                       className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 mr-2 ${
                         produto.vitrine
