@@ -36,8 +36,14 @@ export default async function Navbar() {
               />
             </Link>
 
-            {/* Mobile Actions: Apenas Carrinho */}
+            {/* Mobile Actions: Carrinho + Lojista */}
             <div className="flex md:hidden items-center gap-3">
+              <Link
+                href="/lojista"
+                className="text-[9px] font-bold border border-gold/30 text-gold hover:bg-gold hover:text-black transition-all px-2 py-1.5 rounded uppercase tracking-wider"
+              >
+                Lojista
+              </Link>
               <CarrinhoButton />
             </div>
           </div>
