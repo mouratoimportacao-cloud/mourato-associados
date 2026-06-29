@@ -25,7 +25,7 @@ export default async function ProdutosPage() {
       
       <main className="flex-grow pt-32 pb-20">
         <div className="w-full px-2 sm:px-8 md:px-12 lg:px-16">
-          <header className="mb-16 text-center">
+          <header className="mb-16 text-center flex flex-col items-center justify-center min-h-[120px]">
             <span className="text-gold text-[10px] font-bold uppercase tracking-[0.4em] mb-4 block">Curadoria Exclusiva</span>
             <h1 className="text-4xl md:text-6xl font-serif mb-6 tracking-tight bg-gradient-to-r from-white via-[#F5E6C4] to-[#D4AF37] bg-clip-text text-transparent font-black">
               Fragrâncias à Pronta Entrega
