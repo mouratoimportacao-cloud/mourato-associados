@@ -172,17 +172,17 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                   <div className="flex items-center min-w-0">
                     <button
                       type="button"
-                      title={produto.vitrine ? "Remover do carrossel" : "Adicionar ao carrossel"}
+                      title={produto.vitrine ? "Remover da vitrine" : "Adicionar à vitrine"}
                       onClick={() => startTransition(async () => { await toggleVitrine(produto.id, !produto.vitrine); })}
                       disabled={isPending}
-                      className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 mr-2 ${
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all flex-shrink-0 mr-2 ${
                         produto.vitrine
-                          ? "bg-amber-500 border-amber-600 text-white"
+                          ? "bg-amber-500/10 border-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]"
                           : "bg-white border-gray-300 hover:border-amber-400"
                       }`}
                     >
                       {produto.vitrine && (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}

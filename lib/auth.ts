@@ -214,6 +214,75 @@ export async function loginLojista(formData: FormData) {
   }
 }
 
+export async function loginUnificado(formData: FormData) {
+  await ensureAdminExists();
+
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const senha = String(formData.get("senha") || "");
+
+  if (!email || !senha) {
+    return { success: false, error: "Preencha e-mail e senha." };
+  }
+
+  try {
+    const usuario = await prisma.usuario.findUnique({ where: { email } });
+
+    if (!usuario) {
+      return { success: false, error: "Credenciais inválidas." };
+    }
+
+    if (usuario.tipo === "lojista" && usuario.status !== "aprovado") {
+      return { success: false, error: "Cadastro aguardando aprovação do administrador." };
+    }
+
+    const senhaSalva = String(usuario.senha || "");
+    const passwordMatch = senhaSalva.startsWith("$2")
+      ? await bcrypt.compare(senha, senhaSalva)
+      : senha === senhaSalva;
+
+    if (!passwordMatch) {
+      return { success: false, error: "Credenciais inválidas." };
+    }
+
+    // Rehash se senha em texto puro
+    if (!senhaSalva.startsWith("$2")) {
+      await prisma.usuario.update({
+        where: { id: usuario.id },
+        data: { senha: await bcrypt.hash(senha, 10) },
+      });
+    }
+
+    const payload: SessionPayload = {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      tipo: usuario.tipo,
+    };
+
+    const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+    const token = await signJwt(
+      { ...payload, exp: Math.floor(Date.now() / 1000) + sevenDaysInSeconds },
+      JWT_SECRET
+    );
+
+    const cookieName = usuario.tipo === "admin" ? "admin_session" : "lojista_session";
+    const cookieStore = await cookies();
+    cookieStore.set(cookieName, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: sevenDaysInSeconds,
+    });
+
+    const redirect = usuario.tipo === "admin" ? "/admin" : "/lojista/painel";
+    return { success: true, redirect };
+  } catch (error) {
+    console.error("Erro no loginUnificado:", error);
+    return { success: false, error: "Erro interno no servidor." };
+  }
+}
+
 export async function configurarAdmin(formData: FormData) {
   const nome = String(formData.get("nome") || "").trim();
   const email = String(formData.get("email") || "").trim().toLowerCase();
