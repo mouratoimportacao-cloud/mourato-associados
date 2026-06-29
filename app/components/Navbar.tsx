@@ -50,7 +50,7 @@ export default async function Navbar() {
           </div>
 
           {/* Ações e Redes Sociais no Desktop */}
-          <div className="flex items-center justify-end gap-3 flex-shrink-0">
+          <div className="hidden md:flex items-center justify-end gap-3 flex-shrink-0">
             <Link
               href="/lojista"
               className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-gold transition-colors font-bold mr-1"
