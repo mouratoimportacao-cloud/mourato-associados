@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Navbar from "../components/Navbar";
-import BuscaExternaWidget from "../admin/components/BuscaExternaWidget";
+// TODO: Implementar login unificado (/login) que redireciona conforme tipo do usuário
+// import BuscaExternaWidget from "../admin/components/BuscaExternaWidget"; // Removido da página pública - fica só no admin
 import Footer from "../components/Footer";
 import { prisma } from "../../lib/prisma";
 import CatalogoPrincipal from "./components/CatalogoPrincipal";
@@ -33,7 +34,7 @@ export default async function ProdutosPage() {
           </header>
 
           <Suspense fallback={<div className="py-20 text-center text-zinc-500 font-serif italic text-lg">Carregando curadoria...</div>}>
-            <BuscaExternaWidget />
+            {/* BuscaExternaWidget removido - fica só no admin */}
             <CatalogoPrincipal produtos={produtosPublicos as any[]} />
           </Suspense>
         </div>
