@@ -17,6 +17,11 @@ export default async function Footer() {
   return (
     <footer className="bg-black text-white py-16 border-t border-gold/10">
       <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16">
+        {/* Top 5 Mais Vendidos */}
+        <Suspense fallback={<div className="pb-12 animate-pulse"><div className="h-48 bg-neutral-900 rounded-xl"></div></div>}>
+          <TopVendidos />
+        </Suspense>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
 
           {/* Coluna 1: Logo + descrição */}
@@ -91,11 +96,6 @@ export default async function Footer() {
             </p>
           </div>
         </div>
-
-        {/* Top 5 Mais Vendidos */}
-        <Suspense fallback={<div className="border-t border-white/5 mt-12 pt-10 pb-6 animate-pulse"><div className="h-48 bg-neutral-900 rounded-xl"></div></div>}>
-          <TopVendidos />
-        </Suspense>
       </div>
     </footer>
   );
