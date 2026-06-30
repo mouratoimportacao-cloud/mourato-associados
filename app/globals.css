@@ -137,6 +137,15 @@ h1, h2, h3, h4, .font-serif {
   }
 }
 
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .luxury-marquee {
   animation: luxury-marquee 36s linear infinite;
 }
@@ -484,10 +493,12 @@ input:-webkit-autofill:active {
 }
 
 /* Ocultar barra de rolagem mantendo a funcionalidade de scroll */
-.scrollbar-none {
+.scrollbar-none,
+.scrollbar-hide {
   -ms-overflow-style: none !important;  /* IE and Edge */
   scrollbar-width: none !important;  /* Firefox */
 }
-.scrollbar-none::-webkit-scrollbar {
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
   display: none !important;  /* Chrome, Safari and Opera */
 }

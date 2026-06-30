@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { getSocialLinks } from "../../lib/site-config";
+import TopVendidos from "./TopVendidos";
 
 export default async function Footer() {
   const socialLinks = await getSocialLinks();
@@ -73,14 +75,10 @@ export default async function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/5 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[10px] uppercase tracking-widest text-gray-500">
-            © 2026 Mourato & Associados. Todos os direitos reservados.
-          </p>
-          <p className="text-[10px] uppercase tracking-widest text-gray-500">
-            M&A Fragrâncias
-          </p>
-        </div>
+        {/* Top 5 Mais Vendidos */}
+        <Suspense fallback={<div className="border-t border-white/5 mt-16 pt-10 pb-6 animate-pulse"><div className="h-48 bg-neutral-900 rounded-xl"></div></div>}>
+          <TopVendidos />
+        </Suspense>
       </div>
     </footer>
   );
