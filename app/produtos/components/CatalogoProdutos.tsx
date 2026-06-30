@@ -285,7 +285,7 @@ export default function CatalogoProdutos({
           <span className="text-luxury-gold text-[10px] font-bold uppercase tracking-[0.3em] mb-3 block font-sans">Catálogo Completo</span>
           <h2 className="text-4xl font-serif text-white">Escolha sua fragrância</h2>
         </div>
-        <Link href="/lojista" className="btn-luxury-outline text-center">Área Lojista</Link>
+        <Link href="/login" className="btn-luxury-outline text-center">Entrar</Link>
       </section>
 
       <div className="mb-8">
@@ -296,12 +296,12 @@ export default function CatalogoProdutos({
         {produtosFiltrados.length} {produtosFiltrados.length === 1 ? "produto encontrado" : "produtos encontrados"}
       </p>
 
-      <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 sm:gap-x-8 sm:gap-y-16">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 sm:gap-x-8 sm:gap-y-16">
         {produtosFiltrados.map((produto) => {
           const valorAtual = precoPromocional(produto);
 
           return (
-            <div id={`produto-${produto.id}`} key={produto.id} className="group scroll-mt-32 flex flex-col h-full border border-zinc-900 bg-neutral-950 p-2.5 sm:p-4 shadow-2xl hover:shadow-gold/5 hover:border-gold/30 rounded-xl sm:rounded-2xl transition-all duration-500 text-white w-full max-w-sm mx-auto sm:max-w-none">
+            <div id={`produto-${produto.id}`} key={produto.id} className="group scroll-mt-32 flex flex-col h-full border border-zinc-900 bg-neutral-950 p-2 sm:p-4 shadow-2xl hover:shadow-gold/5 hover:border-gold/30 rounded-xl sm:rounded-2xl transition-all duration-500 text-white w-full">
               <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900/50 mb-3 sm:mb-6 border border-zinc-900 rounded-lg sm:rounded-xl transition-all duration-500">
                 {produto.promocaoAtiva && produto.descontoPercentual ? (
                   <div className="absolute right-2 top-2 sm:right-3 sm:top-3 z-10 rounded-full bg-red-600 px-2 py-1 sm:px-3 sm:py-2 text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
@@ -341,7 +341,7 @@ export default function CatalogoProdutos({
                     </span>
                   )}
                   <span className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-widest ${produto.estoque > 0 ? "text-green-500" : "text-red-400"}`}>
-                    {produto.estoque > 0 ? "Disponível" : "Não disponível - 0 unidades"}
+                    {produto.estoque > 0 ? "Disponível" : "Esgotado"}
                   </span>
                 </div>
                  <div className="flex flex-col gap-2 mt-3">

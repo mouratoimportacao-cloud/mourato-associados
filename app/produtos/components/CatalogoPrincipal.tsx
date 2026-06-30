@@ -42,7 +42,7 @@ export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: P
               </span>
               <h2 className="text-3xl font-serif text-white">Vitrine M&A Fragrâncias</h2>
             </div>
-            <p className="text-zinc-500 text-xs font-light max-w-md">
+            <p className="hidden md:block text-zinc-500 text-xs font-light max-w-md">
               Deslize ou use as setas laterais para consultar nossos destaques e ofertas.
             </p>
           </div>
