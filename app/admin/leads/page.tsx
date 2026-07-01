@@ -19,9 +19,16 @@ export default async function LeadsAdminPage() {
   }
 
   // Busca todos os leads cadastrados
-  const leads = await prisma.lead.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  let leads: any[] = [];
+  try {
+    leads = await prisma.lead.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Erro ao buscar leads:", error);
+    // fallback to empty list
+    leads = [];
+  }
 
   const totalLeads = leads.length;
   const leadsNovos = leads.filter((l: any) => l.status === "Novo").length;
