@@ -119,51 +119,53 @@ export default function ListaLojistas({ lojistas }: { lojistas: Lojista[] }) {
                   {[lojista.cidade, lojista.estado].filter(Boolean).join(" / ") || "Sem cidade"}
                 </div>
               </td>
-              <td className="px-3 py-1.5 whitespace-nowrap">
-                <span className={`px-2 py-0.5 text-[9px] font-bold rounded border uppercase tracking-wider ${
+              <td className="px-3 py-1.5">
+                <span className={`px-2 py-0.5 text-[9px] font-bold rounded border uppercase tracking-wider block w-fit ${
                   aguardandoAprovacao
                     ? "bg-amber-50 text-amber-700 border-amber-100"
                     : "bg-green-50 text-green-700 border-green-100"
                 }`}>
                   {aguardandoAprovacao ? "Pendente" : "Aprovado"}
                 </span>
+                <div className="text-[10px] text-gray-400 mt-1">
+                  {new Date(lojista.createdAt).toLocaleDateString("pt-BR")}
+                </div>
               </td>
-              <td className="px-3 py-1.5 whitespace-nowrap text-xs text-gray-500 font-medium">
-                {new Date(lojista.createdAt).toLocaleDateString("pt-BR")}
-              </td>
-              <td className="px-3 py-1.5 whitespace-nowrap text-right text-xs font-medium space-x-1">
-                <Link
-                  href={`/admin/lojistas/${lojista.id}`}
-                  className="text-gray-700 hover:text-black hover:bg-gray-100 px-2 py-0.5 rounded transition-all font-bold"
-                >
-                  Consultar
-                </Link>
-                {aguardandoAprovacao && (
+              <td className="px-3 py-1.5 text-right">
+                <div className="flex flex-col items-end gap-1">
+                  <Link
+                    href={`/admin/lojistas/${lojista.id}`}
+                    className="text-gray-700 hover:text-black hover:bg-gray-100 px-2 py-0.5 rounded transition-all font-bold text-xs"
+                  >
+                    Consultar
+                  </Link>
+                  {aguardandoAprovacao && (
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => handleApprove(lojista.id)}
+                      className="text-green-600 hover:text-green-800 hover:bg-green-50 px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer font-bold text-xs"
+                    >
+                      Validar
+                    </button>
+                  )}
                   <button
                     type="button"
                     disabled={isPending}
-                    onClick={() => handleApprove(lojista.id)}
-                    className="text-green-600 hover:text-green-800 hover:bg-green-50 px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer font-bold"
+                    onClick={() => handleRecovery(lojista.id, lojista.email)}
+                    className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer font-bold text-xs"
                   >
-                    Validar
+                    Rec. Senha
                   </button>
-                )}
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => handleRecovery(lojista.id, lojista.email)}
-                  className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 cursor-pointer text-sm font-medium mr-2"
-                >
-                  Recuperar Senha
-                </button>
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => handleDelete(lojista.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 cursor-pointer text-sm font-medium"
-                >
-                  Excluir
-                </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleDelete(lojista.id)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer font-bold text-xs"
+                  >
+                    Excluir
+                  </button>
+                </div>
               </td>
             </tr>
           );
@@ -193,8 +195,7 @@ export default function ListaLojistas({ lojistas }: { lojistas: Lojista[] }) {
               <th style={{ width: "var(--admin-col-loj-nome)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Lojista</th>
               <th style={{ width: "var(--admin-col-loj-mail)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">E-mail</th>
               <th style={{ width: "var(--admin-col-loj-tel)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Contato</th>
-              <th style={{ width: "var(--admin-col-loj-status)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
-              <th style={{ width: "var(--admin-col-loj-date)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Cadastro</th>
+              <th style={{ width: "var(--admin-col-loj-status)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status / Data</th>
               <th style={{ width: "var(--admin-col-loj-actions)" }} className="px-2 py-1.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
@@ -214,8 +215,7 @@ export default function ListaLojistas({ lojistas }: { lojistas: Lojista[] }) {
               <th style={{ width: "var(--admin-col-loj-nome)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Lojista</th>
               <th style={{ width: "var(--admin-col-loj-mail)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">E-mail</th>
               <th style={{ width: "var(--admin-col-loj-tel)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Contato</th>
-              <th style={{ width: "var(--admin-col-loj-status)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
-              <th style={{ width: "var(--admin-col-loj-date)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Cadastro</th>
+              <th style={{ width: "var(--admin-col-loj-status)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status / Data</th>
               <th style={{ width: "var(--admin-col-loj-actions)" }} className="px-2 py-1.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>

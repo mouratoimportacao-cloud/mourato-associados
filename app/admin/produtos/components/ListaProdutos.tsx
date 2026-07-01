@@ -156,8 +156,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
               <th style={{ width: "var(--admin-col-prod-nome)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Produto</th>
               <th style={{ width: "var(--admin-col-prod-cat)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Categoria</th>
               <th style={{ width: "var(--admin-col-prod-est)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Estoque</th>
-              <th style={{ width: "var(--admin-col-prod-prc)" }} className="px-2 py-1.5 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Preços</th>
-              <th style={{ width: "var(--admin-col-prod-cst)" }} className="px-2 py-1.5 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Custo Estoque</th>
+              <th style={{ width: "var(--admin-col-prod-prc)" }} className="px-2 py-1.5 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Preços / Custo</th>
               <th style={{ width: "var(--admin-col-prod-act)" }} className="px-2 py-1.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
@@ -258,17 +257,17 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                   </div>
                 </td>
                 <td className="px-3 py-1.5 whitespace-nowrap text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-xs">
-                    <span className="font-bold text-gray-900">S: {moeda(produto.preco)}</span>
-                    <span className="text-gray-300">|</span>
-                    <span className="font-semibold text-indigo-700">C: {moeda(produto.precoAtacado)}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-1.5 whitespace-nowrap text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-xs">
-                    <span className="font-bold text-gray-900">U: {custoReal ? moeda(custoReal) : "-"}</span>
-                    <span className="text-gray-300">|</span>
-                    <span className="text-gray-500 font-semibold">T: {totalEstoque ? moeda(totalEstoque) : "R$ 0,00"}</span>
+                  <div className="flex flex-col gap-0.5 text-xs">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span className="font-bold text-gray-900">S: {moeda(produto.preco)}</span>
+                      <span className="text-gray-300">|</span>
+                      <span className="font-semibold text-indigo-700">C: {moeda(produto.precoAtacado)}</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-500">
+                      <span>U: {custoReal ? moeda(custoReal) : "-"}</span>
+                      <span className="text-gray-300">|</span>
+                      <span>T: {totalEstoque ? moeda(totalEstoque) : "R$ 0,00"}</span>
+                    </div>
                   </div>
                 </td>
                 <td className="px-3 py-1.5 whitespace-nowrap text-right text-xs font-medium space-x-1">
@@ -292,7 +291,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
             })}
             {produtosFiltrados.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-sm text-gray-500 italic">
+                <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500 italic">
                   Nenhum produto encontrado para este filtro.
                 </td>
               </tr>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAdminSession, logoutAdmin } from "../../../lib/auth";
 import { redirect } from "next/navigation";
 import BuscaExternaWidget from "../components/BuscaExternaWidget";
+import AdminMobileHeader from "@/components/AdminMobileHeader";
 
 export const metadata = {
   title: "Radar de Preços | Mourato & Associados",
@@ -23,7 +24,8 @@ export default async function RadarPage() {
   }
 
   return (
-    <div className="admin-shell min-h-screen bg-gray-50 flex">
+    <div className="admin-shell min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+      <AdminMobileHeader currentPath="/admin/radar" />
       {/* SIDEBAR */}
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">

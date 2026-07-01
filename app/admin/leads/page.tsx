@@ -5,6 +5,7 @@ import { prisma } from "../../../lib/prisma";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { atualizarStatusLead, excluirLead } from "./actions";
 import StatusSelect from "./StatusSelect";
+import AdminMobileHeader from "@/components/AdminMobileHeader";
 
 export const metadata = {
   title: "Leads | Mourato & Associados",
@@ -61,8 +62,9 @@ export default async function LeadsAdminPage() {
   }
 
   return (
-    <div className="admin-shell min-h-screen bg-gray-50 flex">
+    <div className="admin-shell min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Sidebar */}
+      <AdminMobileHeader currentPath="/admin/leads" />
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">

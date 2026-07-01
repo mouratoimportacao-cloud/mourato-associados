@@ -126,6 +126,7 @@ export default function PainelLojistaClient({
   const setActiveTab = (tab: "inicio" | "produtos" | "carrinho" | "financeiro" | "perfil") => {
     setActiveTabState(tab);
     localStorage.setItem("lojista-active-tab", tab);
+    if (tab === "carrinho") setOrderSent(false);
   };
 
   // ─── ESTADO DO CARRINHO (LocalStorage) ────────────────────────────────────────
@@ -133,6 +134,11 @@ export default function PainelLojistaClient({
   const [orderSent, setOrderSent] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [isSendingOrder, startSendTransition] = useTransition();
+
+  // Reset orderSent quando carrinho estiver vazio (ex: após router.refresh)
+  useEffect(() => {
+    if (cart.length === 0 && orderSent) setOrderSent(false);
+  }, [cart.length]);
 
   useEffect(() => {
     const loadCart = window.setTimeout(() => {
@@ -167,6 +173,7 @@ export default function PainelLojistaClient({
     const prod = produtoMap.get(produtoId);
     if (!prod) return;
     const maxStock = Number(prod.estoque || 0);
+    setOrderSent(false);
 
     const existingIndex = cart.findIndex((item) => item.produtoId === produtoId);
     const newCart = [...cart];

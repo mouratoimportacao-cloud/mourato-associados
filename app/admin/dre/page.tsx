@@ -7,6 +7,7 @@ import {
 } from "../../../lib/financeiro";
 import { prisma } from "../../../lib/prisma";
 import FinanceiroClient from "./FinanceiroClient";
+import AdminMobileHeader from "@/components/AdminMobileHeader";
 
 export const metadata = {
   title: "Financeiro | Mourato & Associados",
@@ -65,7 +66,8 @@ export default async function FinanceiroAdminPage({
   }
 
   return (
-    <div className="admin-shell min-h-screen bg-[#f7f7f5] lg:flex">
+    <div className="admin-shell min-h-screen bg-[#f7f7f5] flex flex-col lg:flex-row">
+      <AdminMobileHeader currentPath="/admin/dre" />
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">

@@ -46,26 +46,23 @@
   --font-inter: Arial, Helvetica, sans-serif;
 
   /* LARGURAS DAS COLUNAS DAS TABELAS DO ADMIN (Estilo Excel - Altere aqui as proporções em % ou px) */
-  --admin-col-prod-nome: 38%;
-  --admin-col-prod-cat: 16%;
-  --admin-col-prod-est: 10%;
-  --admin-col-prod-prc: 12%;
-  --admin-col-prod-cst: 14%;
-  --admin-col-prod-act: 10%;
+  --admin-col-prod-nome: 35%;
+  --admin-col-prod-cat: 18%;
+  --admin-col-prod-est: 12%;
+  --admin-col-prod-prc: 23%;
+  --admin-col-prod-act: 12%;
 
   --admin-col-ped-id: 8%;
   --admin-col-ped-loj: 20%;
-  --admin-col-ped-prod: 26%;
-  --admin-col-ped-pgt: 14%;
-  --admin-col-ped-tot: 10%;
-  --admin-col-ped-sts: 22%;
+  --admin-col-ped-prod: 28%;
+  --admin-col-ped-pgt: 16%;
+  --admin-col-ped-sts: 28%;
 
-  --admin-col-loj-nome: 30%;
+  --admin-col-loj-nome: 28%;
   --admin-col-loj-mail: 22%;
-  --admin-col-loj-tel: 18%;
-  --admin-col-loj-status: 10%;
-  --admin-col-loj-date: 10%;
-  --admin-col-loj-actions: 10%;
+  --admin-col-loj-tel: 16%;
+  --admin-col-loj-status: 14%;
+  --admin-col-loj-actions: 20%;
 }
 
 html, body {

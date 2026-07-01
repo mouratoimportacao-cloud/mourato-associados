@@ -4,9 +4,9 @@ import { getAdminSession, logoutAdmin } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import AdminMobileHeader from "@/components/AdminMobileHeader";
 import { atualizarStatusPedido, deletePedidoAction } from "./actions";
 import { limparTodosPedidosAction } from "./clearActions";
-import { registrarPagamentoFornecedor } from "../lojistas/actions";
 
 export const metadata = {
   title: "Pedidos | Mourato & Associados",
@@ -67,21 +67,27 @@ export default async function PedidosAdminPage() {
     .filter((pedido: any) => !["cancelado", "rejeitado"].includes(pedido.status))
     .reduce((acc: number, pedido: any) => acc + Number(pedido.quantidade || 0), 0);
   // ── Agrupamentos de pedidos ───────────────────────────────────────────────
-  // Novos: precisam de ação imediata do Admin
-  const statusConcluidos = ["entregue", "cancelado", "rejeitado"];
-  const pedidosPendentesCount = pedidos.filter((pedido: any) => !statusConcluidos.includes(pedido.status)).length;
+  // Novos: status pendente fornecedor
+  const pedidosNovos = pedidos.filter((pedido: any) =>
+    pedido.status === "pendente fornecedor"
+  );
 
-  async function handleLogout() {
-    "use server";
-    await logoutAdmin();
-    redirect("/admin/login");
-  }
+  // Pendentes: saldo devedor > 0 e não cancelado/rejeitado
+  const pedidosPendentesAgrupados = pedidos.filter((pedido: any) =>
+    Number(pedido.saldoFornecedor ?? 0) > 0 &&
+    !["cancelado", "rejeitado"].includes(pedido.status) &&
+    pedido.status !== "pendente fornecedor"
+  );
+
+  // Concluídos: saldo zerado ou cancelado/rejeitado
+  const pedidosConcluidos = pedidos.filter((pedido: any) =>
+    Number(pedido.saldoFornecedor ?? 0) === 0 ||
+    ["cancelado", "rejeitado"].includes(pedido.status)
+  );
+
+  const pedidosPendentesCount = pedidosNovos.length + pedidosPendentesAgrupados.length;
 
   const statuses = [
-    "pendente fornecedor",
-    "aguardando confirmacao admin",
-    "intencao de compra",
-    "aguardando lojista",
     "aguardando pagamento",
     "pago",
     "enviado",
@@ -90,28 +96,15 @@ export default async function PedidosAdminPage() {
     "rejeitado"
   ];
 
-  // Novos: ação imediata (B2B pendente, QR aguardando, intenção de compra)
-  const pedidosNovos = pedidos.filter((pedido: any) => !statusConcluidos.includes(pedido.status));
-
-  // Pendentes públicos: ainda não concluídos (exclui lojistas)
-  const pedidosPendentesAgrupados = pedidos.filter((pedido: any) =>
-    pedido.usuarioId === 0 && !statusConcluidos.includes(pedido.status)
-  );
-
-  // Lojista (QR): vendas concluídas via QR Code pelo lojista
-  const pedidosLojista = pedidos.filter((pedido: any) =>
-    String(pedido.tipoFluxo || "") === "venda_qr" &&
-    ["entregue", "cancelado", "rejeitado"].includes(pedido.status)
-  );
-
-  // Concluídos: B2B / site finalizados (não-QR)
-  const pedidosConcluidos = pedidos.filter((pedido: any) =>
-    ["entregue", "cancelado", "rejeitado"].includes(pedido.status) &&
-    String(pedido.tipoFluxo || "") !== "venda_qr"
-  );
+  async function handleLogout() {
+    "use server";
+    await logoutAdmin();
+    redirect("/admin/login");
+  }
 
   return (
-    <div className="admin-shell min-h-screen bg-gray-50 flex">
+    <div className="admin-shell min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+      <AdminMobileHeader currentPath="/admin/pedidos" />
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
@@ -214,15 +207,6 @@ export default async function PedidosAdminPage() {
             corHeader="bg-blue-50 border-blue-100"
           />
           <PedidosGrupo
-            titulo="🏪 Lojista (QR)"
-            descricao="Vendas concluídas via QR Code pelos lojistas."
-            pedidos={pedidosLojista}
-            userMap={userMap}
-            statuses={statuses}
-            vazio="Nenhuma venda QR concluída."
-            corHeader="bg-indigo-50 border-indigo-100"
-          />
-          <PedidosGrupo
             titulo="✅ Concluídos"
             descricao="Pedidos B2B e site — pagos, entregues ou cancelados."
             pedidos={pedidosConcluidos}
@@ -272,8 +256,7 @@ function PedidosGrupo({
               <th style={{ width: "var(--admin-col-ped-id)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pedido</th>
               <th style={{ width: "var(--admin-col-ped-loj)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Lojista</th>
               <th style={{ width: "var(--admin-col-ped-prod)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Produto</th>
-              <th style={{ width: "var(--admin-col-ped-pgt)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pagamento</th>
-              <th style={{ width: "var(--admin-col-ped-tot)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total</th>
+              <th style={{ width: "var(--admin-col-ped-pgt)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pagamento / Total</th>
               <th style={{ width: "var(--admin-col-ped-sts)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
             </tr>
           </thead>
@@ -339,31 +322,25 @@ function PedidosGrupo({
                       </details>
                     )}
                   </td>
-                  <td className="px-3 py-1.5 whitespace-nowrap text-xs text-gray-600">{pedido.pagamento || "Pix / Nubank"}</td>
-                  <td className="px-3 py-1.5 whitespace-nowrap text-xs font-bold text-gray-900">
-                    <div>R$ {Number(pedido.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                    {pedido.tipoFluxo === "compra_fornecedor" && (
-                      <div className="text-[9px] font-normal mt-0.5">
-                        <div className="text-green-700">Pago: R$ {Number(pedido.totalPagoFornecedor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                        <div className="text-amber-700">Saldo: R$ {Number(pedido.saldoFornecedor ?? pedido.total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                      </div>
-                    )}
+                  <td className="px-3 py-1.5">
+                    <div className="text-xs text-gray-600">{pedido.pagamento || "Pix / Nubank"}</div>
+                    <div className="text-xs font-bold text-gray-900 mt-0.5">R$ {Number(pedido.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
                   </td>
-                  <td className="px-3 py-1.5 whitespace-nowrap">
+                  <td className="px-3 py-1.5">
                     <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1.5">
-                        {aguardandoDecisaoLojista ? (
-                          <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-700">
-                            Lojista pendente
-                          </span>
-                        ) : (
-                          <form action={atualizarStatusPedido} className="flex items-center gap-1">
-                            <input type="hidden" name="pedidoId" value={pedido.id} />
-                            <select name="status" defaultValue={pedido.status} className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-white text-gray-800 cursor-pointer">
-                              {statuses.map((status) => (
-                                <option key={status} value={status}>{status}</option>
-                              ))}
-                            </select>
+                      {aguardandoDecisaoLojista ? (
+                        <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-700 w-fit">
+                          Lojista pendente
+                        </span>
+                      ) : (
+                        <form action={atualizarStatusPedido} className="flex flex-col gap-1">
+                          <input type="hidden" name="pedidoId" value={pedido.id} />
+                          <select name="status" defaultValue={pedido.status} className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-white text-gray-800 cursor-pointer">
+                            {statuses.map((status) => (
+                              <option key={status} value={status}>{status}</option>
+                            ))}
+                          </select>
+                          <div className="flex items-center gap-1">
                             <input
                               type="number"
                               name="desconto"
@@ -379,37 +356,18 @@ function PedidosGrupo({
                             >
                               Salvar
                             </ConfirmSubmitButton>
-                          </form>
-                        )}
-                      </div>
-                      {pedido.tipoFluxo === "compra_fornecedor" && (
-                        <form action={registrarPagamentoFornecedor} className="flex items-center gap-1 border-t border-gray-100 pt-1">
-                          <input type="hidden" name="pedidoId" value={pedido.id} />
-                          <input
-                            name="quantidadePaga"
-                            type="number"
-                            min="1"
-                            max={Math.max(0, Number(pedido.quantidade || 0) - Number(pedido.quantidadePagaFornecedor || 0))}
-                            placeholder="Qtd paga"
-                            className="w-16 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-bold bg-white text-gray-800"
-                          />
-                          <ConfirmSubmitButton
-                            message={`Confirmar baixa deste pedido? Isso reduz o saldo do lojista com o fornecedor e credita o estoque pessoal dele conforme a quantidade informada.`}
-                            className="rounded bg-green-700 px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-green-800 transition duration-150 cursor-pointer"
-                          >
-                            Baixar
-                          </ConfirmSubmitButton>
-                        </form>
-                      )}
-                      {!["pago","enviado","entregue","rejeitado","cancelado"].includes(pedido.status) && !aguardandoDecisaoLojista && (
-                        <form action={deletePedidoAction} className="inline">
-                          <input type="hidden" name="pedidoId" value={pedido.id} />
-                          <ConfirmSubmitButton
-                            message={`Confirmar exclusão do pedido #${pedido.id}?`}
-                            className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-red-700 transition-colors cursor-pointer"
-                          >
-                            Excluir
-                          </ConfirmSubmitButton>
+                            {!["pago","enviado","entregue","rejeitado","cancelado"].includes(pedido.status) && (
+                              <form action={deletePedidoAction}>
+                                <input type="hidden" name="pedidoId" value={pedido.id} />
+                                <ConfirmSubmitButton
+                                  message={`Confirmar exclusão do pedido #${pedido.id}?`}
+                                  className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white hover:bg-red-700 transition-colors cursor-pointer"
+                                >
+                                  Excluir
+                                </ConfirmSubmitButton>
+                              </form>
+                            )}
+                          </div>
                         </form>
                       )}
                     </div>

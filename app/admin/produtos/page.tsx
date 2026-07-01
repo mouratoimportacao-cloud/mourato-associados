@@ -3,6 +3,7 @@ import GerenciadorProdutos from "./components/GerenciadorProdutos";
 import Link from "next/link";
 import { getAdminSession, logoutAdmin } from "../../../lib/auth";
 import { redirect } from "next/navigation";
+import AdminMobileHeader from "@/components/AdminMobileHeader";
 
 
 export const metadata = {
@@ -87,8 +88,9 @@ export default async function ProdutosAdmin() {
   }
 
   return (
-    <div className="admin-shell min-h-screen bg-gray-50 flex">
+    <div className="admin-shell min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* SIDEBAR */}
+      <AdminMobileHeader currentPath="/admin/produtos" />
       <aside className="admin-sidebar w-64 bg-luxury-black text-white hidden lg:flex flex-col sticky top-0 h-screen">
         <div className="p-8 border-b border-white/5">
           <Link href="/" className="block">
