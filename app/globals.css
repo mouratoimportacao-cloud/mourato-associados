@@ -146,6 +146,15 @@ h1, h2, h3, h4, .font-serif {
   }
 }
 
+@keyframes vitrine-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .luxury-marquee {
   animation: luxury-marquee 36s linear infinite;
 }

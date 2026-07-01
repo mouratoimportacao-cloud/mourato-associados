@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mercadopago": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.mercadopago.com/mcp"
+      ]
+    }
+  }
+}
