@@ -169,7 +169,8 @@ type TableName =
   | "RetailerPurchase"
   | "FinancialEntry"
   | "SupplierStock"
-  | "RetailerStock";
+  | "RetailerStock"
+  | "Package";
 type MemoryRow = Record<string, any>;
 
 const columns = {
@@ -288,6 +289,7 @@ const columns = {
   FinancialEntry: ["id","ownerType","ownerId","type","amount","description","relatedId","createdAt"],
   SupplierStock: ["id","productId","quantity","costPerUnit","createdAt"],
   RetailerStock: ["id","retailerId","productId","quantity","costPerUnit","createdAt"],
+  Package: ["id","retailerPurchaseId","totalAmount","paidAmount","openAmount","status","createdAt","updatedAt"],
 } as const;
 
 const globalStore = globalThis as unknown as {
@@ -365,6 +367,7 @@ function emptyStore() {
       FinancialEntry: [],
       SupplierStock: [],
       RetailerStock: [],
+      Package: [],
     } as Record<TableName, MemoryRow[]>,
     seq: {
       Produto: initialProducts.length,
@@ -381,6 +384,7 @@ function emptyStore() {
       FinancialEntry: 0,
       SupplierStock: 0,
       RetailerStock: 0,
+      Package: 0,
     } as Record<TableName, number>,
   };
 }
