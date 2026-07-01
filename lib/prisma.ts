@@ -527,7 +527,8 @@ function loadLocalStore() {
         FinancialEntry: parsed.rows?.FinancialEntry ?? [],
         SupplierStock: parsed.rows?.SupplierStock ?? [],
         RetailerStock: parsed.rows?.RetailerStock ?? [],
-      },
+        Package: parsed.rows?.Package ?? [],
+      } as Record<TableName, MemoryRow[]>,
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
         Pedido: parsed.seq?.Pedido ?? 0,
@@ -543,7 +544,8 @@ function loadLocalStore() {
         FinancialEntry: parsed.seq?.FinancialEntry ?? 0,
         SupplierStock: parsed.seq?.SupplierStock ?? 0,
         RetailerStock: parsed.seq?.RetailerStock ?? 0,
-      },
+        Package: parsed.seq?.Package ?? 0,
+      } as Record<TableName, number>,
     };
   } catch {
     return emptyStore();
@@ -598,7 +600,8 @@ async function loadPostgresStore() {
         FinancialEntry: parsed.rows?.FinancialEntry ?? [],
         SupplierStock: parsed.rows?.SupplierStock ?? [],
         RetailerStock: parsed.rows?.RetailerStock ?? [],
-      },
+        Package: parsed.rows?.Package ?? [],
+      } as Record<TableName, MemoryRow[]>,
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
         Pedido: parsed.seq?.Pedido ?? 0,
@@ -614,6 +617,21 @@ async function loadPostgresStore() {
         FinancialEntry: parsed.seq?.FinancialEntry ?? 0,
         SupplierStock: parsed.seq?.SupplierStock ?? 0,
         RetailerStock: parsed.seq?.RetailerStock ?? 0,
+        Package: parsed.seq?.Package ?? 0,
+      },
+    };
+        Despesa: parsed.seq?.Despesa ?? 0,
+        FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
+        LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
+        FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
+        Lead: parsed.seq?.Lead ?? 0,
+        PublicOrder: parsed.seq?.PublicOrder ?? 0,
+        QrOrder: parsed.seq?.QrOrder ?? 0,
+        RetailerPurchase: parsed.seq?.RetailerPurchase ?? 0,
+        FinancialEntry: parsed.seq?.FinancialEntry ?? 0,
+        SupplierStock: parsed.seq?.SupplierStock ?? 0,
+        RetailerStock: parsed.seq?.RetailerStock ?? 0,
+        Package: parsed.seq?.Package ?? 0,
       },
     };
   } catch (error) {
