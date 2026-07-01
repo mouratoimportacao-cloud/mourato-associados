@@ -1103,7 +1103,7 @@ export default function PainelLojistaClient({
 
         {/* ─── PREVIEW FLUTUANTE DO CARRINHO (Meu Pedido) ─── */}
         {activeTab !== "carrinho" && cart.length > 0 && (
-          <div className="fixed bottom-20 left-4 right-4 z-40 bg-white border border-stone-200 shadow-2xl rounded-2xl p-3.5 flex justify-between items-center gap-3 animate-in slide-in-from-bottom duration-300">
+          <div className="sticky bottom-16 lg:bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-200 shadow-2xl p-3 flex justify-between items-center gap-3">
             <div>
               <p className="text-[8px] font-black uppercase text-stone-500 tracking-wider">Meu Pedido Atual</p>
               <p className="text-xs font-bold text-stone-900 mt-0.5">

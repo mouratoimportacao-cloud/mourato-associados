@@ -1,36 +1,39 @@
-// Simple in-memory cache (query -> {slug, expires})
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
-const searchCache = new Map<string, { slug: string; expires: number }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+import { slugify } from "../../../lib/slug";
 
-function getFromCache(q: string) {
-  const entry = searchCache.get(q);
-  if (entry && entry.expires > Date.now()) return entry.slug;
-  searchCache.delete(q);
-  return null;
-}
-
-function setCache(q: string, slug: string) {
-  searchCache.set(q, { slug, expires: Date.now() + CACHE_TTL_MS });
-}
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim();
+  const isPreview = searchParams.get("preview") === "1";
+
   if (!query) {
     return NextResponse.json({ error: "query missing" }, { status: 400 });
   }
-  const produto = await prisma.produto.findFirst({
-    where: {
-      nome: { contains: query, mode: "insensitive" },
-    },
-    select: { id: true, nome: true },
-  });
-  if (!produto) {
+
+  const todos = await prisma.produto.findMany();
+  const termo = query.toLowerCase();
+  const filtrados = todos.filter((p: any) =>
+    p.nome?.toLowerCase().includes(termo) ||
+    p.marca?.toLowerCase().includes(termo) ||
+    (p.similaridade_inspiracao || "").toLowerCase().includes(termo)
+  );
+
+  if (isPreview) {
+    const results = filtrados.slice(0, 6).map((p: any) => ({
+      id: p.id,
+      nome: p.nome,
+      marca: p.marca,
+      preco: p.preco,
+      imagem: p.imagem,
+    }));
+    return NextResponse.json({ results });
+  }
+
+  if (!filtrados.length) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
-  // gera slug usando a mesma função que já existe em lib/slug
-  const { slugify } = await import("../../../lib/slug");
-  const slug = slugify(produto.nome);
+
+  const slug = slugify(filtrados[0].nome);
   return NextResponse.json({ slug });
 }

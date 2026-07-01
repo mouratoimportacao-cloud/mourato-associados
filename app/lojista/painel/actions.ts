@@ -302,115 +302,71 @@ export async function criarPedidosLojistaCarrinho(
 ): Promise<{ success: boolean; error?: string }> {
   const session = await getLojistaSession();
   if (!session) return { success: false, error: "Sessão expirada. Faça login novamente." };
-
-  if (!itens || itens.length === 0) {
-    return { success: false, error: "Pedido vazio." };
-  }
+  if (!itens || itens.length === 0) return { success: false, error: "Pedido vazio." };
 
   try {
     const lojista = await prisma.usuario.findUnique({ where: { id: session.id } });
     if (!lojista) return { success: false, error: "Lojista não encontrado." };
 
     await prisma.$transaction(async (tx) => {
+      // 1. Valida estoque e carrega produtos
+      const produtos: Array<{ id: number; nome: string; estoque: number; estoqueLojista: number; precoAtacado: number; preco: number; quantidade: number }> = [];
       for (const item of itens) {
-        if (!item.produtoId || !item.quantidade || item.quantidade < 1) {
+        if (!item.produtoId || !item.quantidade || item.quantidade < 1)
           throw new Error("O pedido contém produto ou quantidade inválida.");
-        }
         const produto = await tx.produto.findUnique({ where: { id: item.produtoId } });
         if (!produto) throw new Error(`Produto ID ${item.produtoId} não encontrado.`);
         const estoqueDisponivel = Number(produto.estoque || 0);
-        if (estoqueDisponivel < item.quantidade) {
-          throw new Error(
-            `Estoque de atacado insuficiente para "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${item.quantidade} un.`
-          );
-        }
+        if (estoqueDisponivel < item.quantidade)
+          throw new Error(`Estoque insuficiente para "${produto.nome}". Disponível: ${estoqueDisponivel} un., solicitado: ${item.quantidade} un.`);
+        produtos.push({ id: produto.id, nome: produto.nome, estoque: estoqueDisponivel, estoqueLojista: Number(produto.estoqueLojista || 0), precoAtacado: Number(produto.precoAtacado || 0), preco: Number(produto.preco || 0), quantidade: item.quantidade });
       }
 
-      for (const item of itens) {
-        const produto = (await tx.produto.findUnique({ where: { id: item.produtoId } }))!;
-        const precoAtacado = Number(produto.precoAtacado || 0);
+      // 2. Debita estoque global e credita estoque pessoal
+      const estoquePessoal = { ...(lojista.estoquePessoal || {}) } as Record<string, number>;
+      let totalGeral = 0;
+      const linhasObs: string[] = [];
 
-        // A. Debita estoque global
+      for (const p of produtos) {
         await tx.produto.update({
-          where: { id: produto.id },
+          where: { id: p.id },
           data: {
-            estoque: Number(produto.estoque || 0) - item.quantidade,
-            estoqueLojista: Math.max(0, Number(produto.estoqueLojista || 0) - item.quantidade),
+            estoque: p.estoque - p.quantidade,
+            estoqueLojista: Math.max(0, p.estoqueLojista - p.quantidade),
           },
         });
-
-        // B. Credita estoque pessoal do lojista imediatamente
-        const lojistaAtualizado = (await tx.usuario.findUnique({
-          where: { id: session.id },
-        }))!;
-        const estoquePessoal = {
-          ...(lojistaAtualizado.estoquePessoal || {}),
-        } as Record<string, number>;
-        const chave = String(produto.id);
-        estoquePessoal[chave] = Number(estoquePessoal[chave] || 0) + item.quantidade;
-        await tx.usuario.update({
-          where: { id: lojistaAtualizado.id },
-          data: { estoquePessoal },
-        });
-
-        // C. Cria ou agrupa pedido com marcador [ESTOQUE_LOJISTA_CREDITADO]
-        const pedidoExistente = await tx.pedido.findFirst({
-          where: {
-            usuarioId: session.id,
-            produtoId: item.produtoId,
-            status: "pendente fornecedor",
-          },
-        });
-
-        const podeAgrupar =
-          pedidoExistente &&
-          Number(pedidoExistente.totalPagoFornecedor || 0) === 0 &&
-          Number(pedidoExistente.quantidadePagaFornecedor || 0) === 0;
-
-        if (podeAgrupar && pedidoExistente) {
-          const novaQuantidade = Number(pedidoExistente.quantidade || 0) + item.quantidade;
-          const novoTotal =
-            Number(pedidoExistente.total || 0) + precoAtacado * item.quantidade;
-          const obsOriginal = pedidoExistente.observacao || "";
-          const obsComAdicao = `${obsOriginal} | Adicionado mais ${item.quantidade} un. via carrinho agrupado.`;
-          const novaObs = obsComAdicao.includes("[ESTOQUE_LOJISTA_CREDITADO]")
-            ? obsComAdicao
-            : `${obsComAdicao} [ESTOQUE_LOJISTA_CREDITADO]`.trim();
-
-          await tx.pedido.update({
-            where: { id: pedidoExistente.id },
-            data: {
-              quantidade: novaQuantidade,
-              total: novoTotal,
-              saldoFornecedor: calcularSaldoFornecedor(novoTotal, 0),
-              observacao: novaObs,
-            },
-          });
-        } else {
-          const total = precoAtacado * item.quantidade;
-          await tx.pedido.create({
-            data: {
-              usuarioId: session.id,
-              produtoId: produto.id,
-              produtoNome: produto.nome,
-              quantidade: item.quantidade,
-              precoUnitario: precoAtacado,
-              precoTabela: Number(produto.preco || 0),
-              custoUnitario: precoAtacado,
-              descontoConcedido: 0,
-              lucroBruto: 0,
-              tipoFluxo: "compra_fornecedor",
-              quantidadePagaFornecedor: 0,
-              totalPagoFornecedor: 0,
-              saldoFornecedor: total,
-              pagamento: "Pedido ao fornecedor",
-              observacao: `Lojista solicitou ${item.quantidade} unidade(s) ao fornecedor no pedido agrupado. [ESTOQUE_LOJISTA_CREDITADO]`,
-              total,
-              status: "pendente fornecedor",
-            },
-          });
-        }
+        estoquePessoal[String(p.id)] = Number(estoquePessoal[String(p.id)] || 0) + p.quantidade;
+        totalGeral += p.precoAtacado * p.quantidade;
+        linhasObs.push(`${p.nome} (${p.quantidade} un. x R$ ${p.precoAtacado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })})`);
       }
+
+      await tx.usuario.update({ where: { id: lojista.id }, data: { estoquePessoal } });
+
+      // 3. Cria 1 pedido agrupado
+      const qtdTotal = produtos.reduce((s, p) => s + p.quantidade, 0);
+      const observacao = `Itens: ${linhasObs.join(" | ")} [ESTOQUE_LOJISTA_CREDITADO]`;
+
+      await tx.pedido.create({
+        data: {
+          usuarioId: session.id,
+          produtoId: produtos[0].id,
+          produtoNome: `Carrinho (${produtos.length} ${produtos.length === 1 ? "item" : "itens"})`,
+          quantidade: qtdTotal,
+          precoUnitario: totalGeral / qtdTotal,
+          precoTabela: totalGeral / qtdTotal,
+          custoUnitario: totalGeral / qtdTotal,
+          descontoConcedido: 0,
+          lucroBruto: 0,
+          tipoFluxo: "compra_fornecedor",
+          quantidadePagaFornecedor: 0,
+          totalPagoFornecedor: 0,
+          saldoFornecedor: totalGeral,
+          pagamento: "Pedido ao fornecedor",
+          observacao,
+          total: totalGeral,
+          status: "pendente fornecedor",
+        },
+      });
     });
 
     try {

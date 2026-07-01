@@ -157,100 +157,71 @@ export default function ListaProdutosLojista({
           <FiltrosProdutos theme="light" onChange={setFiltros} />
         </div>
 
-        <div className="admin-table-scroll max-h-[72vh] overflow-auto hidden md:block">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="max-h-[72vh] overflow-y-auto hidden md:block">
+          <table className="w-full divide-y divide-gray-200 table-fixed">
             <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Produto</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Tipo</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Preço Lojista</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Estoque Fornecedor</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Ações</th>
+                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-[38%]">Produto</th>
+                <th className="px-2 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-[14%]">Tipo</th>
+                <th className="px-2 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-[14%]">Preço</th>
+                <th className="px-2 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-[10%]">Estoque</th>
+                <th className="px-2 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider w-[24%]">Ações</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {produtosFiltrados.map((produto) => {
-                return (
-                  <tr key={produto.id} className="hover:bg-gray-50 transition-colors align-middle">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-4">
-                        <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                          <OptimizedImage
-                            src={produto.imagem}
-                            alt={produto.nome}
-                            fill
-                            sizes="56px"
-                            className="object-cover"
-                            fallbackText="M&A"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900">
-                            <span className="mr-2 rounded bg-gray-100 px-2 py-0.5 text-[10px] font-black text-gray-500">
-                              Cód. {produto.codigo ?? produto.id}
-                            </span>
-                            {produto.nome}
-                          </div>
-                          <div className="text-xs text-gray-500">{produto.marca} - {produto.volume}</div>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedProduto(produto)}
-                            className="mt-1 text-xs font-bold text-stone-600 hover:text-stone-900 uppercase tracking-widest underline"
-                          >
-                            Ver produto
-                          </button>
-                        </div>
+              {produtosFiltrados.map((produto) => (
+                <tr key={produto.id} className="hover:bg-gray-50 transition-colors align-top">
+                  <td className="px-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                        <OptimizedImage src={produto.imagem} alt={produto.nome} fill sizes="40px" className="object-cover" fallbackText="M&A" />
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-                        {produto.categoria}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-black text-gray-900">
-                      {moeda(produto.precoAtacado)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={produto.estoque > 0 ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
-                        {produto.estoque || 0} un.
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <input
-                          id={`qty-desktop-${produto.id}`}
-                          type="number"
-                          min={1}
-                          max={produto.estoque}
-                          defaultValue={1}
-                          disabled={produto.estoque <= 0}
-                          className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 font-bold text-center disabled:opacity-50 disabled:bg-gray-50"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const inputEl = document.getElementById(`qty-desktop-${produto.id}`) as HTMLInputElement;
-                            const qty = Number(inputEl?.value || 1);
-                            if (qty > produto.estoque) {
-                              alert(`Quantidade solicitada (${qty} un.) excede o estoque disponível do fornecedor (${produto.estoque} un.).`);
-                              return;
-                            }
-                            onAddToCart(produto.id, qty);
-                          }}
-                          disabled={produto.estoque <= 0}
-                          className={`rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
-                            produto.estoque > 0
-                              ? "bg-white hover:bg-stone-50 text-zinc-950 border border-zinc-200 shadow-sm"
-                              : "bg-stone-100 text-stone-400 pointer-events-none"
-                          }`}
-                        >
-                          {produto.estoque > 0 ? "Adicionar ao Pedido" : "Indisponível"}
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-gray-900 truncate">
+                          <span className="mr-1 rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-black text-gray-500">#{produto.codigo ?? produto.id}</span>
+                          {produto.nome}
+                        </div>
+                        <div className="text-[10px] text-gray-500 truncate">{produto.marca} · {produto.volume}</div>
+                        <button type="button" onClick={() => setSelectedProduto(produto)} className="text-[9px] font-bold text-stone-500 hover:text-stone-900 uppercase underline">
+                          Detalhes
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                    </div>
+                  </td>
+                  <td className="px-2 py-3">
+                    <span className="px-2 py-0.5 text-[9px] font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 block w-fit max-w-full break-words">{produto.categoria}</span>
+                  </td>
+                  <td className="px-2 py-3 text-xs font-black text-gray-900">{moeda(produto.precoAtacado)}</td>
+                  <td className="px-2 py-3">
+                    <span className={`text-xs font-bold ${produto.estoque > 0 ? "text-green-600" : "text-red-500"}`}>{produto.estoque || 0}</span>
+                  </td>
+                  <td className="px-2 py-3">
+                    <div className="flex items-center gap-1.5 justify-end flex-wrap">
+                      <input
+                        id={`qty-desktop-${produto.id}`}
+                        type="number" min={1} max={produto.estoque} defaultValue={1}
+                        disabled={produto.estoque <= 0}
+                        className="w-12 rounded border border-gray-200 px-1.5 py-1 text-xs bg-white focus:outline-none font-bold text-center disabled:opacity-50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const inputEl = document.getElementById(`qty-desktop-${produto.id}`) as HTMLInputElement;
+                          const qty = Number(inputEl?.value || 1);
+                          if (qty > produto.estoque) { alert(`Estoque máximo: ${produto.estoque} un.`); return; }
+                          onAddToCart(produto.id, qty);
+                        }}
+                        disabled={produto.estoque <= 0}
+                        className={`rounded px-2 py-1.5 text-[9px] font-black uppercase tracking-wider cursor-pointer ${
+                          produto.estoque > 0 ? "bg-white hover:bg-stone-50 text-zinc-950 border border-zinc-200" : "bg-stone-100 text-stone-400 pointer-events-none"
+                        }`}
+                      >
+                        {produto.estoque > 0 ? "+ Pedido" : "Indispon."}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
               {produtosFiltrados.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500 italic">

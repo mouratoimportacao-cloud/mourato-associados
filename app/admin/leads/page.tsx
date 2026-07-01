@@ -4,6 +4,7 @@ import { getAdminSession, logoutAdmin } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import { atualizarStatusLead, excluirLead } from "./actions";
+import StatusSelect from "./StatusSelect";
 
 export const metadata = {
   title: "Leads | Mourato & Associados",
@@ -21,8 +22,11 @@ export default async function LeadsAdminPage() {
   // Busca todos os leads cadastrados
   let leads: any[] = [];
   try {
-    leads = await prisma.lead.findMany({
-      orderBy: { createdAt: "desc" },
+    const allLeads = await prisma.lead.findMany();
+    leads = allLeads.sort((a: any, b: any) => {
+      const da = new Date(a.createdAt).getTime();
+      const db = new Date(b.createdAt).getTime();
+      return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
     });
   } catch (error) {
     console.error("Erro ao buscar leads:", error);
@@ -45,9 +49,7 @@ export default async function LeadsAdminPage() {
     "use server";
     const leadId = Number(formData.get("leadId"));
     const status = String(formData.get("status"));
-    if (leadId && status) {
-      await atualizarStatusLead(leadId, status);
-    }
+    if (leadId && status) await atualizarStatusLead(leadId, status);
   }
 
   async function handleExcluir(formData: FormData) {
@@ -57,8 +59,6 @@ export default async function LeadsAdminPage() {
       await excluirLead(leadId);
     }
   }
-
-  const statusOptions = ["Novo", "Em Atendimento", "Convertido", "Perdido"];
 
   return (
     <div className="admin-shell min-h-screen bg-gray-50 flex">
@@ -188,29 +188,7 @@ export default async function LeadsAdminPage() {
                         })}
                       </td>
                       <td className="p-4 text-center">
-                        <form action={handleStatusChange} className="inline-block">
-                          <input type="hidden" name="leadId" value={lead.id} />
-                          <select
-                            name="status"
-                            defaultValue={lead.status}
-                            onChange={(e) => e.target.form?.requestSubmit()}
-                            className={`text-xs font-bold rounded-full px-3 py-1 border ${
-                              lead.status === "Novo"
-                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                : lead.status === "Em Atendimento"
-                                ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                                : lead.status === "Convertido"
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : "bg-gray-100 text-gray-700 border-gray-300"
-                            }`}
-                          >
-                            {statusOptions.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        </form>
+                        <StatusSelect leadId={lead.id} status={lead.status} action={handleStatusChange} />
                       </td>
                       <td className="p-4 text-center">
                         <form action={handleExcluir} className="inline-block">

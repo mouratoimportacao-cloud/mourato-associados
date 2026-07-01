@@ -166,9 +166,9 @@ export async function registrarIntencaoCompraCarrinho(
     }
 
     const checkoutRef = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const itemsToCreate: any[] = [];
     const listaProdutos: string[] = [];
     let valorTotalGeral = 0;
+    const itensPedido: any[] = [];
 
     const obsCliente = clienteInfo
       ? ` | Cliente: ${clienteInfo.nome} - Tel: ${clienteInfo.contato} - Endereço: ${clienteInfo.rua}, ${clienteInfo.numero}${clienteInfo.complemento ? ` (${clienteInfo.complemento})` : ""} - Bairro: ${clienteInfo.bairro} - ${clienteInfo.cidade}/${clienteInfo.estado} - CEP: ${clienteInfo.cep}`
@@ -208,38 +208,43 @@ export async function registrarIntencaoCompraCarrinho(
       }
 
       const total = valorAtual * item.quantidade;
-      const descontoConcedido = Math.max(0, precoTabela - valorAtual) * item.quantidade;
-      const lucroBruto = (valorAtual - custoUnitario) * item.quantidade;
-
       listaProdutos.push(`${produto.nome} (Qtd: ${item.quantidade})`);
       valorTotalGeral += total;
-
-      itemsToCreate.push({
-        usuarioId: lojistaId || 0,
-        produtoId: produto.id,
-        produtoNome: produto.nome,
-        quantidade: item.quantidade,
-        precoUnitario: valorAtual,
-        precoTabela,
-        custoUnitario,
-        descontoConcedido,
-        lucroBruto,
-        tipoFluxo: origemRevenda ? "venda_qr" : "intencao_site",
-        pagamento: origemRevenda ? "Venda via QR do lojista" : "Mercado Pago aguardando ativacao",
-        observacao: `${
-          origemRevenda
-            ? "Cliente entrou pelo QR/link de revenda. Pedido agrupado aguardando aprovação do lojista; estoque pessoal ainda não baixado."
-            : "Intenção de compra agrupada no site público."
-        } Ref: ${checkoutRef}. Produto: ${produto.nome}. Marca: ${produto.marca}. Valor exibido: R$ ${valorAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}.${obsCliente}`,
-        total,
-        status: origemRevenda ? "aguardando lojista" : "intencao de compra",
-      });
+      itensPedido.push({ produto, item, valorAtual, precoTabela, custoUnitario, total });
     }
 
+    // Monta 1 pedido agrupado por carrinho
+    const produtosNomes = itensPedido.map(i => `${i.produto.nome} x${i.item.quantidade}`).join(", ");
+    const totalGeral = itensPedido.reduce((acc, i) => acc + i.total, 0);
+    const custoTotal = itensPedido.reduce((acc, i) => acc + i.custoUnitario * i.item.quantidade, 0);
+    const descontoTotal = itensPedido.reduce((acc, i) => acc + Math.max(0, i.precoTabela - i.valorAtual) * i.item.quantidade, 0);
+    const lucroTotal = totalGeral - custoTotal;
+    const qtdTotal = itensPedido.reduce((acc, i) => acc + i.item.quantidade, 0);
+
+    const obsBase = origemRevenda
+      ? `Cliente entrou pelo QR/link de revenda. Pedido agrupado aguardando aprovação do lojista.`
+      : `Intenção de compra agrupada no site público.`;
+    const observacao = `${obsBase} Ref: ${checkoutRef}. Itens: ${produtosNomes}.${obsCliente}`;
+
     await prisma.$transaction(async (tx) => {
-      for (const orderData of itemsToCreate) {
-        await tx.pedido.create({ data: orderData });
-      }
+      await tx.pedido.create({
+        data: {
+          usuarioId: lojistaId || 0,
+          produtoId: itensPedido[0].produto.id,
+          produtoNome: itensPedido.length === 1 ? itensPedido[0].produto.nome : `Carrinho (${itensPedido.length} itens)`,
+          quantidade: qtdTotal,
+          precoUnitario: qtdTotal > 0 ? totalGeral / qtdTotal : 0,
+          precoTabela: qtdTotal > 0 ? (itensPedido.reduce((acc, i) => acc + i.precoTabela * i.item.quantidade, 0)) / qtdTotal : 0,
+          custoUnitario: qtdTotal > 0 ? custoTotal / qtdTotal : 0,
+          descontoConcedido: descontoTotal,
+          lucroBruto: lucroTotal,
+          tipoFluxo: origemRevenda ? "venda_qr" : "intencao_site",
+          pagamento: origemRevenda ? "Venda via QR do lojista" : "Mercado Pago",
+          observacao,
+          total: totalGeral,
+          status: origemRevenda ? "aguardando lojista" : "intencao de compra",
+        },
+      });
 
       if (!origemRevenda && clienteInfo) {
         await tx.lead.create({
@@ -256,6 +261,24 @@ export async function registrarIntencaoCompraCarrinho(
         });
       }
     });
+
+    // P3 — Notificação WhatsApp para o admin
+    if (!origemRevenda) {
+      const waMensagem = encodeURIComponent(
+        `🛒 *Novo Pedido #${checkoutRef}*\n` +
+        `👤 ${clienteInfo?.nome || "Cliente"}\n` +
+        `📱 ${clienteInfo?.contato || "-"}\n` +
+        `📦 ${produtosNomes}\n` +
+        `💰 R$ ${totalGeral.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}\n` +
+        `📍 ${clienteInfo?.cidade || "-"}/${clienteInfo?.estado || "-"}`
+      );
+      try {
+        await fetch(`https://api.callmebot.com/whatsapp.php?phone=5519988212747&text=${waMensagem}&apikey=7267550`, {
+          method: "GET",
+          signal: AbortSignal.timeout(5000),
+        }).catch(() => {});
+      } catch { /* notificação não bloqueia o fluxo */ }
+    }
 
     try {
       revalidatePath("/admin");
