@@ -47,7 +47,7 @@ export async function createPackage(params: {
 
   // Calcula total da compra (quantidade * custo unitário)
   const totalAmount = purchase.items.reduce(
-    (sum, item) => sum + item.quantity * Number(item.unitCost),
+    (sum: number, item: any) => sum + item.quantity * Number(item.unitCost),
     0,
   );
   const paidAmount = amountPaid;

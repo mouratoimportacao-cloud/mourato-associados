@@ -6,6 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+
 }
 
 model Usuario {
@@ -190,16 +191,30 @@ model RetailerPurchase {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   items            RetailerPurchaseItem[] @relation("RetailerPurchaseItems")
+  packages         Package[]
 }
 
+model Package {
+  id Int @id @default(autoincrement())
+  retailerPurchaseId Int
+  totalAmount Decimal
+  paidAmount Decimal
+  openAmount Decimal
+  status String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  retailerPurchase RetailerPurchase @relation(fields: [retailerPurchaseId], references: [id])
+}
+
+
 model RetailerPurchaseItem {
-  id         Int     @id @default(autoincrement())
+  id Int @id @default(autoincrement())
   purchaseId Int
-  productId  Int
-  quantity   Int
-  unitCost   Decimal
-  totalCost  Decimal
-  purchase   RetailerPurchase @relation("RetailerPurchaseItems", fields: [purchaseId], references: [id])
+  productId Int
+  quantity Int
+  unitCost Decimal
+  totalCost Decimal
+  purchase RetailerPurchase @relation("RetailerPurchaseItems", fields: [purchaseId], references: [id])
 }
 
 enum OwnerType {

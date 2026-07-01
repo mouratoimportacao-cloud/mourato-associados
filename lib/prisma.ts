@@ -620,20 +620,8 @@ async function loadPostgresStore() {
         Package: parsed.seq?.Package ?? 0,
       },
     };
-        Despesa: parsed.seq?.Despesa ?? 0,
-        FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
-        LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
-        FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
-        Lead: parsed.seq?.Lead ?? 0,
-        PublicOrder: parsed.seq?.PublicOrder ?? 0,
-        QrOrder: parsed.seq?.QrOrder ?? 0,
-        RetailerPurchase: parsed.seq?.RetailerPurchase ?? 0,
-        FinancialEntry: parsed.seq?.FinancialEntry ?? 0,
-        SupplierStock: parsed.seq?.SupplierStock ?? 0,
-        RetailerStock: parsed.seq?.RetailerStock ?? 0,
-        Package: parsed.seq?.Package ?? 0,
-      },
-    };
+
+
   } catch (error) {
     console.error("Falha ao conectar no Postgres (limite de quota ou rede). Usando banco em memoria fallback:", error);
     return loadLocalStore();
@@ -1067,6 +1055,12 @@ export const prisma = {
     create: (args: WriteArgs<any>) => insert("RetailerStock", args.data),
     update: (args: UpdateArgs<Partial<any>>) => update("RetailerStock", args),
     delete: (args: DeleteArgs) => remove("RetailerStock", args),
+  },
+  package: {
+    ...model("Package"),
+    create: (args: WriteArgs<any>) => insert("Package", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("Package", args),
+    delete: (args: DeleteArgs) => remove("Package", args),
   },
   $disconnect: () => Promise.resolve(),
 };

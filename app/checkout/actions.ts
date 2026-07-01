@@ -59,6 +59,7 @@ export async function criarPreferenciaPagamento(
             street_number: String(clienteInfo.numero || "0"),
           },
         },
+        notification_url: `${baseUrl}/api/mercado-pago/webhook`,
         back_urls: {
           success: `${baseUrl}/produtos?pagamento=sucesso`,
           failure: `${baseUrl}/produtos?pagamento=falha`,
