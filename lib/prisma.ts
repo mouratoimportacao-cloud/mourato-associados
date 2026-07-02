@@ -1,5 +1,17 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+
+const s3Client = new S3Client({
+  region: process.env.AWS_S3_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const S3_BUCKET = process.env.AWS_S3_BUCKET || "mourato-associados-db";
+const S3_KEY = "store.json";
 
 type OrderBy = Record<string, "asc" | "desc">;
 type Select = Record<string, boolean>;
@@ -310,7 +322,6 @@ const globalStore = globalThis as unknown as {
   memorySeq?: Record<TableName, number>;
   storeLoaded?: boolean;
   loadingStore?: Promise<void>;
-  pgPool?: any;
   lastLoadedAt?: number;
   transactionDepth?: number;
   transactionDirty?: boolean;
@@ -427,79 +438,8 @@ function canPersistLocally() {
   return process.env.VERCEL !== "1";
 }
 
-function databaseUrl() {
-  let rawUrl = (
-    process.env.MOURATO_DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    ""
-  ).replace(/\\r|\\n|\\t/g, "").replace(/\s+/g, "");
-
-  // Fallback caso a variável tenha sido criada com algum prefixo no Vercel (ex: LOJA_POSTGRES_URL_POSTGRES_URL)
-  if (!rawUrl || rawUrl === "DATABASE_URL" || rawUrl === "POSTGRES_URL") {
-    const keys = Object.keys(process.env);
-    const matchingKey = keys.find(k => k.endsWith('_POSTGRES_URL') || k.endsWith('_DATABASE_URL'))
-                     || keys.find(k => k.includes('POSTGRES_URL') && k !== 'POSTGRES_URL');
-    if (matchingKey) {
-      rawUrl = (process.env[matchingKey] || "").replace(/\\r|\\n|\\t/g, "").replace(/\s+/g, "");
-    }
-  }
-
-  if (!rawUrl || rawUrl === "DATABASE_URL" || rawUrl === "POSTGRES_URL") {
-    return "";
-  }
-
-  try {
-    const url = new URL(rawUrl);
-    if (!["postgres:", "postgresql:"].includes(url.protocol)) {
-      return "";
-    }
-    url.searchParams.delete("channel_binding");
-    if (!url.searchParams.has("sslmode")) {
-      url.searchParams.set("sslmode", "require");
-    }
-    return url.toString();
-  } catch {
-    return "";
-  }
-}
-
-function shouldUsePostgres() {
-  return Boolean(databaseUrl());
-}
-
-async function getPool() {
-  if (globalStore.pgPool) return globalStore.pgPool;
-
-  const url = databaseUrl();
-  if (!url) return null;
-
-  const { Pool } = await import("pg");
-
-  globalStore.pgPool = new Pool({
-    connectionString: url,
-    ssl: url.includes("localhost") || url.includes("127.0.0.1") ? false : { rejectUnauthorized: false },
-  });
-
-  // Inicializa a tabela uma única vez ao criar o pool de conexões
-  try {
-    const client = await globalStore.pgPool.connect();
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS mourato_store (
-        id TEXT PRIMARY KEY,
-        data JSONB NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      )
-    `);
-    client.release();
-    console.log("Postgres: Tabela mourato_store inicializada/verificada.");
-  } catch (err) {
-    console.error("Erro ao inicializar tabela mourato_store no Postgres:", err);
-  }
-
-  return globalStore.pgPool;
+function shouldUseS3() {
+  return Boolean(process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID);
 }
 
 function loadLocalStore() {
@@ -569,37 +509,24 @@ function loadLocalStore() {
   }
 }
 
-async function loadPostgresStore() {
-  const pool = await getPool();
-  if (!pool) return loadLocalStore();
-
+async function loadS3Store() {
   try {
-    const result = await pool.query("SELECT data FROM mourato_store WHERE id = $1", ["main"]);
+    const command = new GetObjectCommand({ Bucket: S3_BUCKET, Key: S3_KEY });
+    const response = await s3Client.send(command);
+    const body = await response.Body?.transformToString();
+    if (!body) return loadLocalStore();
 
-    if (!result.rows.length) {
-      const initial = emptyStore();
-      await pool.query(
-        "INSERT INTO mourato_store (id, data) VALUES ($1, $2::jsonb)",
-        ["main", JSON.stringify(initial)]
-      );
-      return initial;
-    }
-
-    const parsed = result.rows[0].data as ReturnType<typeof emptyStore>;
+    const parsed = JSON.parse(body) as ReturnType<typeof emptyStore>;
     const produtosSalvos = parsed.rows?.Produto ?? [];
     const uniqueMap = new Map<number, any>();
     produtosSalvos.forEach((p: any) => {
       if (p && p.id) {
-        if (!uniqueMap.has(Number(p.id))) {
-          uniqueMap.set(Number(p.id), p);
-        }
+        if (!uniqueMap.has(Number(p.id))) uniqueMap.set(Number(p.id), p);
       }
     });
 
     let produtos = Array.from(uniqueMap.values()).map(withProdutoDefaults);
-    if (produtos.length === 0) {
-      produtos = initialProducts.map(withProdutoDefaults);
-    }
+    if (produtos.length === 0) produtos = initialProducts.map(withProdutoDefaults);
 
     return {
       rows: {
@@ -621,7 +548,7 @@ async function loadPostgresStore() {
         Package: parsed.rows?.Package ?? [],
       } as Record<TableName, MemoryRow[]>,
       seq: {
-        Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
+        Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((p) => Number(p.id) || 0)),
         Pedido: parsed.seq?.Pedido ?? 0,
         Usuario: parsed.seq?.Usuario ?? 0,
         Despesa: parsed.seq?.Despesa ?? 0,
@@ -639,41 +566,25 @@ async function loadPostgresStore() {
         Package: parsed.seq?.Package ?? 0,
       },
     };
-
-
   } catch (error) {
-    console.error("Falha ao conectar no Postgres (limite de quota ou rede). Usando banco em memoria fallback:", error);
+    console.error("Falha ao carregar do S3, usando fallback local:", error);
     return loadLocalStore();
   }
 }
 
-async function savePostgresStore() {
-  const pool = await getPool();
-  if (!pool) {
-    saveLocalStore();
-    return;
-  }
-
+async function saveS3Store() {
+  if (!globalStore.memoryDb || !globalStore.memorySeq) return;
   try {
-    await pool.query(
-      `
-        INSERT INTO mourato_store (id, data, updated_at)
-        VALUES ($1, $2::jsonb, NOW())
-        ON CONFLICT (id)
-        DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()
-      `,
-      [
-        "main",
-        JSON.stringify({
-          rows: globalStore.memoryDb,
-          seq: globalStore.memorySeq,
-        }),
-      ]
-    );
+    const command = new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: S3_KEY,
+      Body: JSON.stringify({ rows: globalStore.memoryDb, seq: globalStore.memorySeq }),
+      ContentType: "application/json",
+    });
+    await s3Client.send(command);
   } catch (error) {
-    console.error("Falha ao salvar no Postgres (limite de quota ou rede). Usando fallback local:", error);
+    console.error("Falha ao salvar no S3, usando fallback local:", error);
     saveLocalStore();
-    return;
   }
 }
 
@@ -763,11 +674,10 @@ async function persistStore() {
     2
   );
 
-  if (!shouldUsePostgres()) {
+  if (!shouldUseS3()) {
     saveLocalStore();
   } else {
-    await savePostgresStore();
-    // Invalida o cache local atualizando o timestamp de escrita
+    await saveS3Store();
     globalStore.lastLoadedAt = Date.now();
   }
 
@@ -816,12 +726,12 @@ async function runTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> 
 
 async function store() {
   const now = Date.now();
-  const cacheDuration = 1000; // Atualizações operacionais devem aparecer em até 1 segundo
+  const cacheDuration = 30000;
 
-  if (shouldUsePostgres()) {
+  if (shouldUseS3()) {
     const cacheExpired = !globalStore.lastLoadedAt || (now - globalStore.lastLoadedAt > cacheDuration);
     if (!globalStore.memoryDb || cacheExpired) {
-      const loadedStore = await loadPostgresStore();
+      const loadedStore = await loadS3Store();
       globalStore.memoryDb = loadedStore.rows;
       globalStore.memorySeq = loadedStore.seq;
       globalStore.storeLoaded = true;

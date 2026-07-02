@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import OptimizedImage from "../../../components/OptimizedImage";
 import ListaProdutosLojista from "./ListaProdutosLojista";
 import AutoRefresh from "../../../components/AutoRefresh";
-import { confirmarVendaLojista, criarPedidosLojistaCarrinho, rejeitarVendaLojista } from "../actions";
+import { confirmarVendaLojista, criarPedidosLojistaCarrinho, rejeitarVendaLojista, registrarPagamentoFornecedor } from "../actions";
 import { logoutLojista } from "../../../../lib/auth";
 
 interface Produto {
@@ -241,6 +241,29 @@ export default function PainelLojistaClient({
         router.refresh();
       } else {
         setOrderError(res.error || "Erro ao enviar pedido.");
+      }
+    });
+  };
+
+  // ─── ESTADO PARA PAGAMENTO AO FORNECEDOR ─────────────────────────────────────
+  const [showPagamentoModal, setShowPagamentoModal] = useState(false);
+  const [valorPagamento, setValorPagamento] = useState("");
+  const [pagamentoErro, setPagamentoErro] = useState<string | null>(null);
+  const [isPagamentoPending, startPagamentoTransition] = useTransition();
+
+  const handleRegistrarPagamento = () => {
+    const valor = Number(valorPagamento.replace(",", "."));
+    if (!valor || valor <= 0) { setPagamentoErro("Informe um valor válido."); return; }
+    setPagamentoErro(null);
+    startPagamentoTransition(async () => {
+      const res = await registrarPagamentoFornecedor(valor);
+      if (res.success) {
+        setShowPagamentoModal(false);
+        setValorPagamento("");
+        showToast("Pagamento registrado com sucesso!");
+        router.refresh();
+      } else {
+        setPagamentoErro(res.error || "Erro ao registrar pagamento.");
       }
     });
   };
@@ -982,7 +1005,17 @@ export default function PainelLojistaClient({
               
               {/* Resumo Financeiro */}
               <div className="space-y-3">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-500 mb-2">Resumo Financeiro</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-500">Resumo Financeiro</h3>
+                  {saldoDevedor > 0 && (
+                    <button
+                      onClick={() => { setShowPagamentoModal(true); setPagamentoErro(null); setValorPagamento(""); }}
+                      className="bg-white border border-zinc-200 hover:bg-stone-50 text-zinc-950 font-black text-[9px] px-3 py-1.5 rounded-lg uppercase tracking-widest transition-all cursor-pointer shadow-sm"
+                    >
+                      💳 Efetuar Pagamento
+                    </button>
+                  )}
+                </div>
                 <div className="rounded-2xl border border-stone-200 bg-white p-4 space-y-3.5 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-stone-500/5 rounded-full blur-2xl"></div>
                   
@@ -1324,6 +1357,60 @@ export default function PainelLojistaClient({
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE PAGAMENTO AO FORNECEDOR */}
+      {showPagamentoModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-stone-200 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-black text-stone-900 uppercase tracking-widest">Registrar Pagamento</h3>
+                <p className="text-[10px] text-stone-500 mt-0.5">Saldo devedor: <span className="font-black text-red-600">R$ {saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></p>
+              </div>
+              <button onClick={() => setShowPagamentoModal(false)} className="text-stone-400 hover:text-stone-900 p-1 rounded-full hover:bg-stone-100 cursor-pointer">✕</button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[9px] font-black uppercase tracking-wider text-stone-500">Valor Pago (R$)</label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="0,00"
+                value={valorPagamento}
+                onChange={(e) => setValorPagamento(e.target.value)}
+                disabled={isPagamentoPending}
+                className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                autoFocus
+              />
+              <p className="text-[9px] text-stone-400">O valor será abatido dos pedidos mais antigos primeiro.</p>
+            </div>
+
+            {pagamentoErro && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600">
+                ⚠️ {pagamentoErro}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setShowPagamentoModal(false)}
+                disabled={isPagamentoPending}
+                className="rounded-xl border border-stone-200 bg-stone-50 py-3 text-xs font-black uppercase tracking-wider text-stone-600 hover:bg-stone-100 transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleRegistrarPagamento}
+                disabled={isPagamentoPending || !valorPagamento}
+                className="rounded-xl bg-white border border-zinc-200 hover:bg-stone-50 text-zinc-950 py-3 text-xs font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                {isPagamentoPending ? "Salvando..." : "Confirmar"}
+              </button>
+            </div>
           </div>
         </div>
       )}

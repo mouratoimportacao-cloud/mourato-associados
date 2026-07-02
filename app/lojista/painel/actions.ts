@@ -297,6 +297,68 @@ export async function confirmarVendaLojistaAction(formData: FormData): Promise<v
   await confirmarVendaLojista(formData);
 }
 
+// ─── registrarPagamentoFornecedor ────────────────────────────────────────────
+// Lojista registra um pagamento parcial ou total ao fornecedor.
+// Abate o saldoFornecedor dos pedidos mais antigos primeiro (FIFO).
+// ─────────────────────────────────────────────────────────────────────────────
+export async function registrarPagamentoFornecedor(
+  valor: number
+): Promise<{ success: boolean; error?: string }> {
+  const session = await getLojistaSession();
+  if (!session) return { success: false, error: "Sessão expirada. Faça login novamente." };
+  if (!valor || valor <= 0) return { success: false, error: "Valor inválido." };
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const pedidos = await tx.pedido.findMany({
+        where: { usuarioId: session.id, status: { not: "cancelado" } },
+        orderBy: { id: "asc" },
+      });
+
+      const comSaldo = pedidos.filter(
+        (p: any) => Number(p.saldoFornecedor ?? 0) > 0
+      );
+
+      if (comSaldo.length === 0) throw new Error("Não há saldo devedor em aberto.");
+
+      let restante = valor;
+      for (const pedido of comSaldo) {
+        if (restante <= 0) break;
+        const saldo = Number(pedido.saldoFornecedor ?? 0);
+        const abater = Math.min(saldo, restante);
+        const novoSaldo = saldo - abater;
+        const totalPago = Number(pedido.totalPagoFornecedor ?? 0) + abater;
+
+        await tx.pedido.update({
+          where: { id: pedido.id },
+          data: {
+            saldoFornecedor: novoSaldo,
+            totalPagoFornecedor: totalPago,
+            observacao: `${pedido.observacao || ""} | Pagamento de R$ ${abater.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} registrado pelo lojista.`,
+          },
+        });
+        restante -= abater;
+      }
+    });
+
+    try {
+      revalidatePath("/lojista/painel");
+      revalidatePath("/admin");
+      revalidatePath("/admin/pedidos");
+    } catch (e) {
+      console.warn("Aviso: revalidatePath ignorado.");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao registrar pagamento:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro ao registrar pagamento.",
+    };
+  }
+}
+
 export async function criarPedidosLojistaCarrinho(
   itens: { produtoId: number; quantidade: number }[]
 ): Promise<{ success: boolean; error?: string }> {
