@@ -25,13 +25,12 @@ export default async function FinanceiroAdminPage({
 
   const { mes } = await searchParams;
   const competencia = normalizarCompetencia(mes);
-  const [produtos, pedidos, lancamentos, fechamentos] = await Promise.all([
+  const [produtos, pedidos, lancamentos, fechamentos, emprestimos] = await Promise.all([
     prisma.produto.findMany(),
     prisma.pedido.findMany(),
     prisma.lancamentoFinanceiro.findMany(),
-    prisma.fechamentoFinanceiro.findMany({
-      orderBy: { competencia: "desc" },
-    }),
+    prisma.fechamentoFinanceiro.findMany({ orderBy: { competencia: "desc" } }),
+    prisma.emprestimo.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
 
   const fechamento = fechamentos.find(
@@ -127,6 +126,7 @@ export default async function FinanceiroAdminPage({
             resumo={resumo as any}
             fechado={Boolean(fechamento)}
             fechamentos={fechamentos as any[]}
+            emprestimos={emprestimos as any[]}
           />
         </div>
       </main>

@@ -352,7 +352,7 @@ h1, h2, h3, h4, .font-serif {
 .admin-main a.bg-white,
 .admin-main a.bg-luxury-black,
 .admin-main select,
-.admin-main input {
+.admin-main input:not([type="month"]) {
   padding-top: 0.35rem !important;
   padding-bottom: 0.35rem !important;
   padding-left: 0.6rem !important;
@@ -460,13 +460,20 @@ h1, h2, h3, h4, .font-serif {
 }
 
 /* Estilização Global de Formulários para o Tema de Luxo Escuro */
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), 
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="month"]), 
 select, 
 textarea {
   background-color: #0D0D0D;
   color: #FDFDFD;
   border: 1px solid #222222;
   transition: all 0.3s ease;
+}
+
+input[type="month"] {
+  background-color: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  color-scheme: light;
 }
 
 /* Estilização explícita para as opções dos dropdowns */

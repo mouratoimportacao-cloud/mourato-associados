@@ -110,6 +110,17 @@ type PedidoData = {
   status: string;
 };
 
+type EmprestimoData = {
+  banco: string;
+  valorRecebido: number;
+  valorParcela: number;
+  totalParcelas: number;
+  parcelasPagas?: number;
+  dataInicio: string;
+  observacao?: string | null;
+  status?: string;
+};
+
 type LancamentoFinanceiroData = {
   data: string;
   competencia: string;
@@ -161,6 +172,7 @@ type TableName =
   | "Usuario"
   | "Despesa"
   | "FechamentoMensal"
+  | "Emprestimo"
   | "LancamentoFinanceiro"
   | "FechamentoFinanceiro"
   | "Lead"
@@ -280,6 +292,7 @@ const columns = {
     "despesasPorCategoria",
     "createdAt",
   ],
+  Emprestimo: ["id", "banco", "valorRecebido", "valorParcela", "totalParcelas", "parcelasPagas", "dataInicio", "observacao", "status", "createdAt"],
   Despesa: ["id", "data", "categoria", "valor", "observacao", "createdAt"],
   FechamentoMensal: ["id", "mesAno", "receitaAtacado", "receitaSite", "receitaTotal", "cmv", "valorEstoque", "totalDespesas", "saldoBancario", "resultado", "dadosDespesas", "createdAt"],
   Lead: ["id", "nome", "contato", "cidade", "estado", "endereco", "produtos", "total", "status", "createdAt"],
@@ -358,6 +371,7 @@ function emptyStore() {
       Usuario: [],
       Despesa: [],
       FechamentoMensal: [],
+      Emprestimo: [],
       LancamentoFinanceiro: [],
       FechamentoFinanceiro: [],
       Lead: [],
@@ -375,6 +389,7 @@ function emptyStore() {
       Usuario: 0,
       Despesa: 0,
       FechamentoMensal: 0,
+      Emprestimo: 0,
       LancamentoFinanceiro: 0,
       FechamentoFinanceiro: 0,
       Lead: 0,
@@ -518,6 +533,7 @@ function loadLocalStore() {
         Usuario: parsed.rows?.Usuario ?? [],
         Despesa: parsed.rows?.Despesa ?? [],
         FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
+        Emprestimo: parsed.rows?.Emprestimo ?? [],
         LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
         FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
         Lead: parsed.rows?.Lead ?? [],
@@ -535,6 +551,7 @@ function loadLocalStore() {
         Usuario: parsed.seq?.Usuario ?? 0,
         Despesa: parsed.seq?.Despesa ?? 0,
         FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
+        Emprestimo: parsed.seq?.Emprestimo ?? 0,
         LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
         FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
         Lead: parsed.seq?.Lead ?? 0,
@@ -591,6 +608,7 @@ async function loadPostgresStore() {
         Usuario: parsed.rows?.Usuario ?? [],
         Despesa: parsed.rows?.Despesa ?? [],
         FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
+        Emprestimo: parsed.rows?.Emprestimo ?? [],
         LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
         FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
         Lead: parsed.rows?.Lead ?? [],
@@ -608,6 +626,7 @@ async function loadPostgresStore() {
         Usuario: parsed.seq?.Usuario ?? 0,
         Despesa: parsed.seq?.Despesa ?? 0,
         FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
+        Emprestimo: parsed.seq?.Emprestimo ?? 0,
         LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
         FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
         Lead: parsed.seq?.Lead ?? 0,
@@ -995,6 +1014,12 @@ export const prisma = {
     create: (args: WriteArgs<UsuarioData>) => insert("Usuario", args.data),
     update: (args: UpdateArgs<Partial<UsuarioData>>) => update("Usuario", args),
     delete: (args: DeleteArgs) => remove("Usuario", args),
+  },
+  emprestimo: {
+    ...model("Emprestimo"),
+    create: (args: WriteArgs<EmprestimoData>) => insert("Emprestimo", args.data),
+    update: (args: UpdateArgs<Partial<EmprestimoData>>) => update("Emprestimo", args),
+    delete: (args: DeleteArgs) => remove("Emprestimo", args),
   },
   lancamentoFinanceiro: {
     ...model("LancamentoFinanceiro"),

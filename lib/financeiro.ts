@@ -175,7 +175,30 @@ export function calcularFinanceiro({
         lancamento.tipo === "despesa" && new Date(lancamento.data) < fim
     )
     .reduce((total, lancamento) => total + Number(lancamento.valor || 0), 0);
-  const saldoBancario = receitasAteFim - despesasAteFim;
+  const emprestimosAteFim = lancamentos
+    .filter((l) => l.tipo === "emprestimo" && new Date(l.data) < fim)
+    .reduce((t, l) => t + Number(l.valor || 0), 0);
+  const investimentosAteFim = lancamentos
+    .filter((l) => l.tipo === "investimento" && new Date(l.data) < fim)
+    .reduce((t, l) => t + Number(l.valor || 0), 0);
+  const saldoBancario = receitasAteFim - despesasAteFim + emprestimosAteFim + investimentosAteFim;
+
+  // Passivos manuais do período
+  const passivosPeriodo = lancamentos
+    .filter((l) => l.tipo === "passivo" && String(l.competencia) === competencia)
+    .sort((a, b) => new Date(String(b.data)).getTime() - new Date(String(a.data)).getTime());
+  const passivosPorCategoria = passivosPeriodo.reduce((totais: Record<string, number>, l) => {
+    const cat = String(l.categoria || "Outros");
+    totais[cat] = Number(totais[cat] || 0) + Number(l.valor || 0);
+    return totais;
+  }, {});
+  const totalPassivos = passivosPeriodo.reduce((t, l) => t + Number(l.valor || 0), 0);
+
+  // Investimentos: aportes, aplicações
+  const investimentosPeriodo = lancamentos
+    .filter((l) => l.tipo === "investimento" && String(l.competencia) === competencia)
+    .sort((a, b) => new Date(String(b.data)).getTime() - new Date(String(a.data)).getTime());
+  const totalInvestimentos = investimentosPeriodo.reduce((t, l) => t + Number(l.valor || 0), 0);
 
   return {
     receitaAtacado,
@@ -189,5 +212,10 @@ export function calcularFinanceiro({
     totalDespesas,
     saldoBancario,
     resultadoOperacional,
+    passivosPeriodo,
+    passivosPorCategoria,
+    totalPassivos,
+    investimentosPeriodo,
+    totalInvestimentos,
   };
 }

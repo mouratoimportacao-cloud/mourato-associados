@@ -111,6 +111,19 @@ resultado      Float
 dadosDespesas  Json?
 createdAt      DateTime @default(now())
 }
+model Emprestimo {
+  id              Int      @id @default(autoincrement())
+  banco           String
+  valorRecebido   Float
+  valorParcela    Float
+  totalParcelas   Int
+  parcelasPagas   Int      @default(0)
+  dataInicio      DateTime
+  observacao      String?
+  status          String   @default("ativo")
+  createdAt       DateTime @default(now())
+}
+
 model LancamentoFinanceiro {
 id          Int      @id @default(autoincrement())
 data        DateTime
