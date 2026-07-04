@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { criarRifa, aprovarPagamentoBilhete, cancelarBilhete, realizarSorteio } from "../actions";
+import { criarRifa, aprovarPagamentoBilhete, cancelarBilhete, realizarSorteio, excluirRifa } from "../actions";
 
 interface Rifa {
   id: number;
@@ -245,6 +245,29 @@ export default function GerenciadorRifas({
     }
   };
 
+  const handleDeleteRifa = async (rifaId: number) => {
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir a rifa "${selectedRifa?.titulo}"? Esta ação removerá também todos os bilhetes associados e não pode ser desfeita.`
+      )
+    )
+      return;
+
+    setLoading(true);
+    const res = await excluirRifa(rifaId);
+    setLoading(false);
+
+    if (res.success) {
+      setSuccessMsg("Rifa excluída com sucesso.");
+      setRifas(rifas.filter((r) => r.id !== rifaId));
+      if (selectedRifaId === rifaId) {
+        setSelectedRifaId(rifas.length > 1 ? rifas.find((r) => r.id !== rifaId)?.id || null : null);
+      }
+    } else {
+      setErrorMsg(res.error || "Erro ao excluir rifa.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* MENSAGENS */}
@@ -431,14 +454,24 @@ export default function GerenciadorRifas({
                     </p>
                   </div>
                 </div>
-                {selectedRifa.status === "ATIVO" && (
+                <div className="flex flex-col sm:flex-row gap-2">
                   <button
-                    onClick={() => handleDraw(selectedRifa.id)}
-                    className="bg-emerald-600 text-white hover:bg-emerald-700 transition-colors font-bold text-xs uppercase tracking-widest px-5 py-3 rounded-xl cursor-pointer shadow-sm"
+                    onClick={() => handleDeleteRifa(selectedRifa.id)}
+                    disabled={loading}
+                    className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors font-bold text-[10px] uppercase tracking-widest px-4 py-3 rounded-xl cursor-pointer shadow-sm disabled:opacity-50"
                   >
-                    🏆 Realizar Sorteio
+                    🗑️ Excluir Rifa
                   </button>
-                )}
+                  {selectedRifa.status === "ATIVO" && (
+                    <button
+                      onClick={() => handleDraw(selectedRifa.id)}
+                      disabled={loading}
+                      className="bg-emerald-600 text-white hover:bg-emerald-700 transition-colors font-bold text-[10px] sm:text-xs uppercase tracking-widest px-4 sm:px-5 py-3 rounded-xl cursor-pointer shadow-sm disabled:opacity-50"
+                    >
+                      🏆 Realizar Sorteio
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Estatísticas Rápidas da Rifa */}

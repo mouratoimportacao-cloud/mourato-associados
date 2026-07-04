@@ -167,3 +167,27 @@ export async function realizarSorteio(rifaId: number) {
     return { success: false, error: error.message || "Erro ao realizar sorteio." };
   }
 }
+
+export async function excluirRifa(rifaId: number) {
+  const session = await getAdminSession();
+  if (!session) return { success: false, error: "Sessão administrativa expirada." };
+
+  try {
+    // Delete all bilhetes associated with the rifa first to avoid foreign key issues
+    await prisma.bilhete.deleteMany({
+      where: { rifaId },
+    });
+
+    // Delete the rifa
+    await prisma.rifa.delete({
+      where: { id: rifaId },
+    });
+
+    revalidatePath("/admin/rifas");
+    revalidatePath("/rifas");
+    revalidatePath("/produtos");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erro ao excluir rifa." };
+  }
+}
