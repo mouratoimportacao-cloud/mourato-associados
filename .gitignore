@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+.env*.local
 
 # vercel
 .vercel
@@ -42,17 +43,14 @@ next-env.d.ts
 
 /app/generated/prisma
 
-.vercel
-.env*
-
-# database and store files
-.data/
+# database e store — store.json é commitado para sincronizar produção
+# backups e arquivos pesados ficam fora
+.data/*.backup*.json
+.data/*.db
 *.db
 *.db-journal
 
-# zip and temporary files
+# zip e temporários
 *.zip
-*.txt
 .tmp-flow/
 entrega-agente/
-.env*.local
