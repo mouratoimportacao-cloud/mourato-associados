@@ -48,6 +48,8 @@ export async function criarRifa(formData: FormData) {
     });
 
     revalidatePath("/admin/rifas");
+    revalidatePath("/rifas");
+    revalidatePath("/produtos");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao criar rifa." };
@@ -90,6 +92,7 @@ export async function aprovarPagamentoBilhete(bilheteId: number) {
     }
 
     revalidatePath("/admin/rifas");
+    revalidatePath("/rifas");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao aprovar bilhete." };
@@ -107,6 +110,7 @@ export async function cancelarBilhete(bilheteId: number) {
     });
 
     revalidatePath("/admin/rifas");
+    revalidatePath("/rifas");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao cancelar bilhete." };
@@ -148,6 +152,8 @@ export async function realizarSorteio(rifaId: number) {
     });
 
     revalidatePath("/admin/rifas");
+    revalidatePath("/rifas");
+    revalidatePath("/produtos");
     return {
       success: true,
       ganhador: {

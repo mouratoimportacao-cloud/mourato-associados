@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { prisma } from "../../lib/prisma";
 import CatalogoPrincipal from "./components/CatalogoPrincipal";
+import RifaPopup from "./components/RifaPopup";
 
 export const metadata = {
   title: "Catálogo Exclusivo | Mourato & Associados",
@@ -16,6 +17,10 @@ export const dynamic = "force-dynamic";
 export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
     orderBy: { id: 'asc' }
+  });
+  const rifaAtiva = await prisma.rifa.findFirst({
+    where: { status: "ATIVO" },
+    orderBy: { id: "desc" },
   });
   // Somente produtos ativos no site — limitado aos primeiros 30 na vitrine pública
   const produtosPublicos = produtos
@@ -40,6 +45,7 @@ export default async function ProdutosPage() {
             {/* BuscaExternaWidget removido - fica só no admin */}
             <CatalogoPrincipal produtos={produtosPublicos as any[]} />
           </Suspense>
+          {rifaAtiva ? <RifaPopup rifa={rifaAtiva as any} /> : null}
         </div>
       </main>
 
