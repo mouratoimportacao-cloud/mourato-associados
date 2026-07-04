@@ -334,7 +334,7 @@ const globalStore = globalThis as unknown as {
   transactionQueue?: Promise<void>;
 };
 
-const storePath = join(process.cwd(), ".data", "store.json");
+const storePath = join(process.cwd(), "data", "store.json");
 
 const initialProducts: MemoryRow[] = [
   { id: 1, nome: "MARC JOSEPH 100ML", marca: "Marc Joseph", categoria: "Perfume", volume: "100ml", preco: 290, precoAtacado: 210, imagem: "/marketing/marc-joseph-paris.webp" },
@@ -633,7 +633,7 @@ async function syncToGithub(contentStr: string) {
   if (!token || !repo) return;
 
   try {
-    const url = `https://api.github.com/repos/${repo}/contents/.data/store.json`;
+    const url = `https://api.github.com/repos/${repo}/contents/data/store.json`;
     const headers = {
       "Authorization": `Bearer ${token}`,
       "Accept": "application/vnd.github.v3+json",

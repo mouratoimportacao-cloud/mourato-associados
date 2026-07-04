@@ -45,8 +45,8 @@ next-env.d.ts
 
 # database e store — store.json é commitado para sincronizar produção
 # backups e arquivos pesados ficam fora
-.data/*.backup*.json
-.data/*.db
+data/*.backup*.json
+data/*.db
 *.db
 *.db-journal
 
