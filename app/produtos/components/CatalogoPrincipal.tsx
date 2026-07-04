@@ -23,8 +23,9 @@ type Produto = {
 
 export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: Produto[]; lojistaId?: number | null }) {
   const searchParams = useSearchParams();
+  // Vitrine: somente produtos marcados com vitrine=true, limitados a 10
   const produtosVitrine = useMemo(
-    () => produtos.filter((produto) => Boolean(produto.vitrine)),
+    () => produtos.filter((produto) => Boolean(produto.vitrine)).slice(0, 10),
     [produtos]
   );
   const busca = searchParams.get('busca')?.trim() ?? '';

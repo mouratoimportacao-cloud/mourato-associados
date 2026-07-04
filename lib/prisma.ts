@@ -455,7 +455,9 @@ function shouldUseS3() {
 }
 
 function loadLocalStore() {
-  if (!canPersistLocally() || !existsSync(storePath)) {
+  // No Vercel: arquivo .data/store.json é lido como semente (read-only).
+  // Permite carregar os 622 produtos commitados no repositório.
+  if (!existsSync(storePath)) {
     return emptyStore();
   }
 
