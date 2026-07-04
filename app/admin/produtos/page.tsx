@@ -136,29 +136,29 @@ export default async function ProdutosAdmin() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="admin-main flex-grow p-3 md:p-5">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+      <main className="admin-main admin-produtos-main flex-grow p-3 md:p-5">
+        <header className="admin-produtos-header flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Gestão de Catálogo</h1>
-            <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mt-1">Controle de Inventário e Vitrine</p>
+            <h1 className="text-xl font-bold text-gray-800 tracking-tight">Gestão de Catálogo</h1>
+            <p className="text-gray-400 text-[10px] font-medium uppercase tracking-widest mt-0.5">Controle de Inventário e Vitrine</p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Link
               href="/admin"
-              className="bg-white border border-gray-100 shadow-sm px-6 py-3 rounded-2xl text-center font-bold text-gray-700 text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors"
+              className="bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl text-center font-bold text-gray-700 text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-colors"
             >
               Voltar ao Painel
             </Link>
-            <div className="bg-white border border-gray-100 shadow-sm px-6 py-3 rounded-2xl flex items-center justify-center gap-3">
+            <div className="bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl flex items-center justify-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="font-bold text-gray-700 text-xs uppercase tracking-widest">
+              <span className="font-bold text-gray-700 text-[10px] uppercase tracking-widest">
                 {produtos.length} {produtos.length === 1 ? 'Produto' : 'Produtos'}
               </span>
             </div>
           </div>
         </header>
 
-        <section className="mt-8">
+        <section className="admin-produtos-section mt-0">
           <GerenciadorProdutos produtos={produtos} pendentePorProduto={pendentePorProduto} />
         </section>
       </main>

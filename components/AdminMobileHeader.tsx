@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/admin/leads", icon: "👥", label: "Leads" },
   { href: "/admin/radar", icon: "🎯", label: "Radar" },
   { href: "/admin/dre", icon: "💰", label: "Financeiro" },
+  { href: "/admin/rifas", icon: "🎟️", label: "Rifas e Sorteios" },
   { href: "/admin/configurar", icon: "⚙️", label: "Configurar", external: true },
 ];
 

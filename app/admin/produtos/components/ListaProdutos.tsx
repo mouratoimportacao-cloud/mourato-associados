@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteProduto, toggleVitrine } from "../actions";
+import { deleteProduto, toggleAtivoSite, toggleVitrine } from "../actions";
 import { useMemo, useState, useTransition } from "react";
 import FiltrosProdutos from "../../../components/FiltrosProdutos";
 import OptimizedImage from "../../../components/OptimizedImage";
@@ -18,6 +18,7 @@ interface Produto {
   cotacaoDolar: number | null;
   estoque: number;
   estoqueLojista: number;
+  ativoSite?: boolean;
   vitrine?: boolean;
   promocaoAtiva?: boolean;
   descontoPercentual?: number | null;
@@ -48,8 +49,16 @@ interface ListaProdutosProps {
   pendentePorProduto?: Record<number, { qtd: number; saldo: number; lojistas: string[] }>;
 }
 
+const normalizarBusca = (valor: unknown) =>
+  String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
 export default function ListaProdutos({ produtos, onEditProduct, pendentePorProduto }: ListaProdutosProps) {
   const [isPending, startTransition] = useTransition();
+  const [busca, setBusca] = useState("");
   const [filtros, setFiltros] = useState<any>({
     origem: "todos",
     genero: "todos",
@@ -77,7 +86,22 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
   };
 
   const produtosFiltrados = useMemo(() => {
+    const termo = normalizarBusca(busca);
+
     return produtos.filter((produto) => {
+      if (termo) {
+        const textoProduto = normalizarBusca(
+          [
+            produto.codigo ?? produto.id,
+            produto.nome,
+            produto.marca,
+            produto.categoria,
+            produto.volume,
+          ].join(" ")
+        );
+        if (!textoProduto.includes(termo)) return false;
+      }
+
       // Categoria Principal
       if (filtros.categoriaPrincipal !== "todos") {
         const cat = produto.categoria_principal || produto.categoria || "";
@@ -125,7 +149,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
       
       return true;
     });
-  }, [produtos, filtros]);
+  }, [produtos, filtros, busca]);
 
   const handleDelete = (id: number) => {
     if (confirm("Tem certeza que deseja remover este produto do catálogo?")) {
@@ -139,17 +163,35 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
   };
 
   return (
-    <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
-      <div className="border-b border-gray-100 bg-gray-50 px-6 py-4 space-y-4">
+    <div className="admin-produtos-card bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+      <div className="admin-produtos-filters border-b border-gray-100 bg-gray-50 px-4 py-2 space-y-2">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-sm font-bold text-gray-800 font-sans">Filtro de produtos</h3>
             <p className="text-xs text-gray-500 font-sans">Mostrando {produtosFiltrados.length} de {produtos.length} produtos</p>
           </div>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
+          <input
+            type="search"
+            value={busca}
+            onChange={(event) => setBusca(event.target.value)}
+            placeholder="Buscar por nome, marca ou código"
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+          />
+          {busca && (
+            <button
+              type="button"
+              onClick={() => setBusca("")}
+              className="rounded-lg border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-100"
+            >
+              Limpar
+            </button>
+          )}
+        </div>
         <FiltrosProdutos theme="light" onChange={setFiltros} />
       </div>
-      <div className="admin-table-scroll max-h-[70vh] overflow-auto">
+      <div className="admin-produtos-table admin-table-scroll overflow-auto">
         <table className="w-full table-fixed divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
             <tr>
@@ -172,19 +214,16 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                     <button
                       type="button"
                       title={produto.vitrine ? "Remover da vitrine" : "Adicionar à vitrine"}
+                      aria-label={produto.vitrine ? "Remover da vitrine" : "Adicionar à vitrine"}
                       onClick={() => startTransition(async () => { await toggleVitrine(produto.id, !produto.vitrine); })}
                       disabled={isPending}
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all flex-shrink-0 mr-2 ${
+                      className={`w-6 h-6 rounded-full border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 mr-2 text-sm leading-none ${
                         produto.vitrine
-                          ? "bg-amber-500/10 border-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]"
-                          : "bg-white border-gray-300 hover:border-amber-400"
+                          ? "bg-red-50 border-red-300 text-red-500 shadow-[0_0_4px_rgba(239,68,68,0.25)]"
+                          : "bg-white border-gray-300 text-gray-300 hover:border-red-300 hover:text-red-400"
                       }`}
                     >
-                      {produto.vitrine && (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
+                      ♥
                     </button>
                     <div className="relative h-8 w-8 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-gray-200">
                       <OptimizedImage
@@ -215,6 +254,11 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                     {produto.vitrine && (
                       <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-amber-50 text-amber-700 border border-amber-100">
                         Vitrine
+                      </span>
+                    )}
+                    {produto.ativoSite === false && (
+                      <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-gray-100 text-gray-600 border border-gray-200">
+                        Oculto
                       </span>
                     )}
                     {produto.promocaoAtiva && produto.descontoPercentual ? (
@@ -271,6 +315,18 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                   </div>
                 </td>
                 <td className="px-3 py-1.5 whitespace-nowrap text-right text-xs font-medium space-x-1">
+                  <button
+                    onClick={() => startTransition(async () => { await toggleAtivoSite(produto.id, produto.ativoSite === false); })}
+                    disabled={isPending}
+                    title={produto.ativoSite === false ? "Ativar produto no site" : "Ocultar produto do site"}
+                    className={`px-2 py-0.5 rounded transition-all disabled:opacity-50 cursor-pointer ${
+                      produto.ativoSite === false
+                        ? "text-gray-600 hover:text-green-700 hover:bg-green-50"
+                        : "text-green-600 hover:text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {produto.ativoSite === false ? "Ativar" : "No site"}
+                  </button>
                   <button
                     onClick={() => onEditProduct(produto)}
                     disabled={isPending}

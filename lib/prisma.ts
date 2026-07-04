@@ -58,6 +58,7 @@ type ProdutoData = {
   cotacaoDolar?: number | null;
   estoque?: number;
   estoqueLojista?: number;
+  ativoSite?: boolean;
   vitrine?: boolean;
   promocaoAtiva?: boolean;
   descontoPercentual?: number | null;
@@ -194,7 +195,9 @@ type TableName =
   | "FinancialEntry"
   | "SupplierStock"
   | "RetailerStock"
-  | "Package";
+  | "Package"
+  | "Rifa"
+  | "Bilhete";
 type MemoryRow = Record<string, any>;
 
 const columns = {
@@ -211,6 +214,7 @@ const columns = {
     "cotacaoDolar",
     "estoque",
     "estoqueLojista",
+    "ativoSite",
     "vitrine",
     "promocaoAtiva",
     "descontoPercentual",
@@ -315,6 +319,8 @@ const columns = {
   SupplierStock: ["id","productId","quantity","costPerUnit","createdAt"],
   RetailerStock: ["id","retailerId","productId","quantity","costPerUnit","createdAt"],
   Package: ["id","retailerPurchaseId","totalAmount","paidAmount","openAmount","status","createdAt","updatedAt"],
+  Rifa: ["id", "titulo", "descricao", "imagem", "pixFixo", "precoBilhete", "status", "dataSorteio", "numeroGanhador", "createdAt", "updatedAt"],
+  Bilhete: ["id", "rifaId", "nome", "telefone", "usernameInsta", "usernameFace", "numeroBilhete", "statusPagto", "pixTxid", "createdAt"],
 } as const;
 
 const globalStore = globalThis as unknown as {
@@ -366,6 +372,7 @@ const initialProducts: MemoryRow[] = [
   cotacaoDolar: null,
   estoque: 0,
   estoqueLojista: 0,
+  ativoSite: false,
   vitrine: false,
   promocaoAtiva: false,
   descontoPercentual: null,
@@ -393,6 +400,8 @@ function emptyStore() {
       SupplierStock: [],
       RetailerStock: [],
       Package: [],
+      Rifa: [],
+      Bilhete: [],
     } as Record<TableName, MemoryRow[]>,
     seq: {
       Produto: initialProducts.length,
@@ -411,6 +420,8 @@ function emptyStore() {
       SupplierStock: 0,
       RetailerStock: 0,
       Package: 0,
+      Rifa: 0,
+      Bilhete: 0,
     } as Record<TableName, number>,
   };
 }
@@ -424,6 +435,7 @@ function withProdutoDefaults(produto: MemoryRow): MemoryRow {
   }
   return {
     codigo: Number(produto.codigo ?? produto.id ?? 0) || null,
+    ativoSite: false,
     vitrine: false,
     promocaoAtiva: false,
     descontoPercentual: null,
@@ -484,6 +496,8 @@ function loadLocalStore() {
         SupplierStock: parsed.rows?.SupplierStock ?? [],
         RetailerStock: parsed.rows?.RetailerStock ?? [],
         Package: parsed.rows?.Package ?? [],
+        Rifa: parsed.rows?.Rifa ?? [],
+        Bilhete: parsed.rows?.Bilhete ?? [],
       } as Record<TableName, MemoryRow[]>,
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
@@ -502,6 +516,8 @@ function loadLocalStore() {
         SupplierStock: parsed.seq?.SupplierStock ?? 0,
         RetailerStock: parsed.seq?.RetailerStock ?? 0,
         Package: parsed.seq?.Package ?? 0,
+        Rifa: parsed.seq?.Rifa ?? 0,
+        Bilhete: parsed.seq?.Bilhete ?? 0,
       } as Record<TableName, number>,
     };
   } catch {
@@ -546,6 +562,8 @@ async function loadS3Store() {
         SupplierStock: parsed.rows?.SupplierStock ?? [],
         RetailerStock: parsed.rows?.RetailerStock ?? [],
         Package: parsed.rows?.Package ?? [],
+        Rifa: parsed.rows?.Rifa ?? [],
+        Bilhete: parsed.rows?.Bilhete ?? [],
       } as Record<TableName, MemoryRow[]>,
       seq: {
         Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((p) => Number(p.id) || 0)),
@@ -564,6 +582,8 @@ async function loadS3Store() {
         SupplierStock: parsed.seq?.SupplierStock ?? 0,
         RetailerStock: parsed.seq?.RetailerStock ?? 0,
         Package: parsed.seq?.Package ?? 0,
+        Rifa: parsed.seq?.Rifa ?? 0,
+        Bilhete: parsed.seq?.Bilhete ?? 0,
       },
     };
   } catch (error) {
@@ -909,7 +929,7 @@ export const prisma = {
 
   produto: {
     ...model("Produto"),
-    create: (args: WriteArgs<ProdutoData>) => insert("Produto", args.data),
+    create: (args: WriteArgs<ProdutoData>) => insert("Produto", withProdutoDefaults(args.data)),
     update: (args: UpdateArgs<Partial<ProdutoData>>) => update("Produto", args),
     delete: (args: DeleteArgs) => remove("Produto", args),
   },
@@ -996,6 +1016,18 @@ export const prisma = {
     create: (args: WriteArgs<any>) => insert("Package", args.data),
     update: (args: UpdateArgs<Partial<any>>) => update("Package", args),
     delete: (args: DeleteArgs) => remove("Package", args),
+  },
+  rifa: {
+    ...model("Rifa"),
+    create: (args: WriteArgs<any>) => insert("Rifa", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("Rifa", args),
+    delete: (args: DeleteArgs) => remove("Rifa", args),
+  },
+  bilhete: {
+    ...model("Bilhete"),
+    create: (args: WriteArgs<any>) => insert("Bilhete", args.data),
+    update: (args: UpdateArgs<Partial<any>>) => update("Bilhete", args),
+    delete: (args: DeleteArgs) => remove("Bilhete", args),
   },
   $disconnect: () => Promise.resolve(),
 };

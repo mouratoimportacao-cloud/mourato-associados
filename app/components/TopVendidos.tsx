@@ -29,11 +29,12 @@ export default async function TopVendidos() {
     .slice(0, 5);
 
   // 2. Buscar todos os produtos
-  const todos = await prisma.produto.findMany({});
+  const todosProdutos = await prisma.produto.findMany({});
+  const todos = todosProdutos.filter((produto: any) => produto.ativoSite !== false);
 
   // 3. Montar top produtos com dados reais
-  let topProdutos: any[] = [];
-  let porcentuais: number[] = [];
+  const topProdutos: any[] = [];
+  const porcentuais: number[] = [];
   const temVendasReais = ranking.length > 0 && ranking[0].qtd > 0;
 
   if (temVendasReais) {

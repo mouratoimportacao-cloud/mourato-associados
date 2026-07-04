@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const produtos = await prisma.produto.findMany();
-  const produto = produtos.find(p => slugify(p.nome) === slug);
+  const produto = produtos.find((p: any) => p.ativoSite !== false && slugify(p.nome) === slug);
 
   return {
     title: produto ? `${produto.nome} | Mourato & Associados` : "Produto não encontrado",
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const produtos = await prisma.produto.findMany();
-  const produto = produtos.find(p => slugify(p.nome) === slug);
+  const produto = produtos.find((p: any) => p.ativoSite !== false && slugify(p.nome) === slug);
 
   if (!produto) {
     notFound();

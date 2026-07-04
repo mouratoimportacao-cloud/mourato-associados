@@ -27,6 +27,11 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
   // Habilita redirecionamento forçado para HTTPS em produção
   async redirects() {
     return [

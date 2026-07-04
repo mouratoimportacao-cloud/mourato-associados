@@ -451,7 +451,7 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
           <div>
             <h3 className="text-sm font-bold text-amber-500">Vitrine e Promoção</h3>
             <p className="text-xs text-zinc-400 mt-1">
-              Produto cadastrado aparece no catálogo e para lojistas. Use vitrine e promoção apenas para destacar a venda.
+              Produto cadastrado fica desativado no site. Ative na lista quando quiser publicar.
             </p>
           </div>
 

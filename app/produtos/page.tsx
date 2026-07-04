@@ -17,7 +17,10 @@ export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
     orderBy: { id: 'asc' }
   });
-  const produtosPublicos = produtos;
+  // Somente produtos ativos no site — limitado aos primeiros 30 na vitrine pública
+  const produtosPublicos = produtos
+    .filter((produto: any) => produto.ativoSite !== false)
+    .slice(0, 30);
 
   return (
     <div className="flex flex-col min-h-screen max-w-full overflow-x-hidden">

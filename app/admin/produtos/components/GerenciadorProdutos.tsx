@@ -68,14 +68,14 @@ export default function GerenciadorProdutos({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="admin-produtos-manager space-y-2">
+      <div className="admin-produtos-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h2 className="text-lg font-bold text-gray-800">Janela de estoque</h2>
-          <p className="text-xs text-gray-400 uppercase tracking-widest">Role a lista sem perder os botões de ação</p>
+          <h2 className="text-base font-bold text-gray-800">Janela de estoque</h2>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest">Role a lista sem perder os botões de ação</p>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
-          <label className={`relative flex items-center justify-center bg-emerald-600 text-white px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-emerald-700 transition-colors cursor-pointer ${isReadingFile ? 'opacity-50 cursor-wait' : ''}`}>
+          <label className={`relative flex items-center justify-center bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition-colors cursor-pointer ${isReadingFile ? 'opacity-50 cursor-wait' : ''}`}>
             <span>{isReadingFile ? "Lendo arquivo..." : "Importar Planilha"}</span>
             <input
               type="file"
@@ -91,14 +91,14 @@ export default function GerenciadorProdutos({
               setEditingProduto(null);
               setIsFormOpen(true);
             }}
-            className="bg-luxury-black text-white px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-luxury-gold transition-colors"
+            className="bg-luxury-black text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-luxury-gold transition-colors"
           >
             Novo Produto
           </button>
         </div>
       </div>
 
-      <div>
+      <div className="admin-produtos-list-wrap">
         <ListaProdutos produtos={produtos} onEditProduct={handleEdit} pendentePorProduto={pendentePorProduto} />
       </div>
 

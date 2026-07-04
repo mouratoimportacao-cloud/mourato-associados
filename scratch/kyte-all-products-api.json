@@ -1,0 +1,224 @@
+{
+  "fetchedAt": "2026-07-04T16:36:57.324Z",
+  "categories": [
+    {
+      "name": "Niche Avenue",
+      "id": "1773066243581-E3DL3",
+      "count": 11
+    },
+    {
+      "name": "Al Fares",
+      "id": "1773061140165-E3DL3",
+      "count": 19
+    },
+    {
+      "name": "Abdul Samad Al Qurashi",
+      "id": "1771444579648-E3DL3",
+      "count": 1
+    },
+    {
+      "name": "Afnan",
+      "id": "1771246642967-E3DL3",
+      "count": 13
+    },
+    {
+      "name": "Al Haramain",
+      "id": "1771260136617-E3DL3",
+      "count": 13
+    },
+    {
+      "name": "Arabyat Prestige",
+      "id": "1782570044049-E3DL3",
+      "count": 3
+    },
+    {
+      "name": "Al Wataniah",
+      "id": "1772819148119-E3DL3",
+      "count": 32
+    },
+    {
+      "name": "Ard Al Zaafaran",
+      "id": "1771270113387-E3DL3",
+      "count": 10
+    },
+    {
+      "name": "Armaf",
+      "id": "1771252813654-E3DL3",
+      "count": 16
+    },
+    {
+      "name": "Aurora Scents",
+      "id": "1771267167835-E3DL3",
+      "count": 6
+    },
+    {
+      "name": "Asdaaf",
+      "id": "1771262181412-E3DL3",
+      "count": 5
+    },
+    {
+      "name": "Bekim Cosmetica Capilar",
+      "id": "1773145875440-E3DL3",
+      "count": 1
+    },
+    {
+      "name": "Cremes",
+      "id": "1773066475778-E3DL3",
+      "count": 30
+    },
+    {
+      "name": "Desodorante",
+      "id": "1773429232136-E3DL3",
+      "count": 8
+    },
+    {
+      "name": "Emper",
+      "id": "1771688547552-E3DL3",
+      "count": 18
+    },
+    {
+      "name": "Fragrance World",
+      "id": "1771444477538-E3DL3",
+      "count": 1
+    },
+    {
+      "name": "French Avenue",
+      "id": "1771248198918-E3DL3",
+      "count": 11
+    },
+    {
+      "name": "Gissat",
+      "id": "1775671664924-E3DL3",
+      "count": 6
+    },
+    {
+      "name": "Kits",
+      "id": "1772899176439-E3DL3",
+      "count": 32
+    },
+    {
+      "name": "Lattafa",
+      "id": "1771500157232-E3DL3",
+      "count": 82
+    },
+    {
+      "name": "Le Chameau",
+      "id": "1771435760872-E3DL3",
+      "count": 11
+    },
+    {
+      "name": "Maison Alhambra",
+      "id": "1768326835944-E3DL3",
+      "count": 97
+    },
+    {
+      "name": "Manasik",
+      "id": "1771672673067-E3DL3",
+      "count": 6
+    },
+    {
+      "name": "Miniaturas",
+      "id": "1773084613812-E3DL3",
+      "count": 19
+    },
+    {
+      "name": "Mirada Shield",
+      "id": "1773400680007-E3DL3",
+      "count": 1
+    },
+    {
+      "name": "Nusuk",
+      "id": "1771681795493-E3DL3",
+      "count": 2
+    },
+    {
+      "name": "Orientica",
+      "id": "1771261246593-E3DL3",
+      "count": 1
+    },
+    {
+      "name": "Perfume Mist",
+      "id": "1773153204736-E3DL3",
+      "count": 29
+    },
+    {
+      "name": "Perfume Spray",
+      "id": "1773414486606-E3DL3",
+      "count": 4
+    },
+    {
+      "name": "Rasasi",
+      "id": "1771265969916-E3DL3",
+      "count": 5
+    },
+    {
+      "name": "Rave",
+      "id": "1771266584418-E3DL3",
+      "count": 4
+    },
+    {
+      "name": "Rayhaan",
+      "id": "1771440880291-E3DL3",
+      "count": 6
+    },
+    {
+      "name": "Riifs",
+      "id": "1771671499366-E3DL3",
+      "count": 4
+    },
+    {
+      "name": "Zimaya",
+      "id": "1771434880241-E3DL3",
+      "count": 1
+    },
+    {
+      "name": "Ohana Kameala",
+      "id": "1774456098406-E3DL3",
+      "count": 1
+    },
+    {
+      "name": "Prelitzy",
+      "id": "1776088441543-E3DL3",
+      "count": 3
+    },
+    {
+      "name": "Milestone",
+      "id": "1776095557892-E3DL3",
+      "count": 28
+    },
+    {
+      "name": "Tree Hut",
+      "id": "1779278482510-E3DL3",
+      "count": 10
+    },
+    {
+      "name": "MPF",
+      "id": "1779967227937-E3DL3",
+      "count": 27
+    },
+    {
+      "name": "Medicube - K Beauty",
+      "id": "1781721070424-E3DL3",
+      "count": 18
+    },
+    {
+      "name": "Celimax - K Beauty",
+      "id": "1781722454174-E3DL3",
+      "count": 4
+    },
+    {
+      "name": "Numbuzin - K Beauty",
+      "id": "1781723282711-E3DL3",
+      "count": 2
+    },
+    {
+      "name": "Sungboon - K Beauty",
+      "id": "1781784178523-E3DL3",
+      "count": 4
+    }
+  ],
+  "totalFetched": 605,
+  "totalUnique": 605,
+  "created": 573,
+  "updated": 32
+}

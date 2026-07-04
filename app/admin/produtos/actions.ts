@@ -104,6 +104,7 @@ export async function createProduto(formData: FormData) {
         cotacaoDolar,
         estoque,
         estoqueLojista,
+        ativoSite: false,
         vitrine,
         promocaoAtiva,
         descontoPercentual,
@@ -531,7 +532,7 @@ export async function analisarPlanilhaAction(base64Data: string, customMapping?:
 
       // Col F (index 5) - Quantidade Estoque
       const estoqueGeralRaw = row[5];
-      let estoqueGeral = estoqueGeralRaw !== undefined && estoqueGeralRaw !== null && String(estoqueGeralRaw).trim() !== "" ? parseInt(String(estoqueGeralRaw)) : null;
+      const estoqueGeral = estoqueGeralRaw !== undefined && estoqueGeralRaw !== null && String(estoqueGeralRaw).trim() !== "" ? parseInt(String(estoqueGeralRaw)) : null;
 
       const finalCustoDolar = custoDolar !== null ? custoDolar : matchedDbProduct.custoDolar;
       const finalCotacaoDolar = cotacaoDolar !== null ? cotacaoDolar : (matchedDbProduct.cotacaoDolar || 1.0);
@@ -712,5 +713,22 @@ export async function toggleVitrine(id: number, vitrine: boolean) {
   } catch (error) {
     console.error("Erro ao alterar vitrine:", error);
     return { success: false, error: "Erro ao alterar vitrine" };
+  }
+}
+
+export async function toggleAtivoSite(id: number, ativoSite: boolean) {
+  try {
+    await prisma.produto.update({
+      where: { id },
+      data: { ativoSite },
+    });
+
+    revalidatePath("/admin/produtos");
+    revalidatePath("/produtos");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao alterar status do produto no site:", error);
+    return { success: false, error: "Erro ao alterar status do produto no site" };
   }
 }

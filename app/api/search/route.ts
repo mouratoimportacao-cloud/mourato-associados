@@ -13,10 +13,12 @@ export async function GET(request: Request) {
 
   const todos = await prisma.produto.findMany();
   const termo = query.toLowerCase();
-  const filtrados = todos.filter((p: any) =>
-    p.nome?.toLowerCase().includes(termo) ||
-    p.marca?.toLowerCase().includes(termo) ||
-    (p.similaridade_inspiracao || "").toLowerCase().includes(termo)
+  const filtrados = todos.filter(
+    (p: any) =>
+      p.ativoSite !== false &&
+      (p.nome?.toLowerCase().includes(termo) ||
+        p.marca?.toLowerCase().includes(termo) ||
+        (p.similaridade_inspiracao || "").toLowerCase().includes(termo))
   );
 
   if (isPreview) {

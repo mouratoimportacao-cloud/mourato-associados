@@ -188,6 +188,9 @@ export default async function AdminPage() {
           <Link href="/admin/dre" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>💰</span> Financeiro
           </Link>
+          <Link href="/admin/rifas" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
+            <span>🎟️</span> Rifas e Sorteios
+          </Link>
           <Link href="/admin/configurar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-sm font-medium transition-colors">
             <span>⚙️</span> Configurar
           </Link>
