@@ -522,7 +522,7 @@ async function loadBlobStore() {
     if (blobs.length === 0) return loadLocalStore();
 
     const storeBlob = blobs.find((b) => b.pathname === "store.json") || blobs[0];
-    const response = await fetch(storeBlob.url);
+    const response = await fetch(storeBlob.url, { cache: "no-store" });
     if (!response.ok) return loadLocalStore();
 
     const body = await response.text();
