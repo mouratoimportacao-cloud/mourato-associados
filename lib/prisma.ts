@@ -1,17 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-
-const s3Client = new S3Client({
-  region: process.env.AWS_S3_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
-});
-
-const S3_BUCKET = process.env.AWS_S3_BUCKET || "mourato-associados-db";
-const S3_KEY = "store.json";
+import { put, list } from "@vercel/blob";
 
 type OrderBy = Record<string, "asc" | "desc">;
 type Select = Record<string, boolean>;
@@ -450,8 +439,8 @@ function canPersistLocally() {
   return process.env.VERCEL !== "1";
 }
 
-function shouldUseS3() {
-  return Boolean(process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID);
+function shouldUseBlob() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
 function loadLocalStore() {
@@ -527,11 +516,16 @@ function loadLocalStore() {
   }
 }
 
-async function loadS3Store() {
+async function loadBlobStore() {
   try {
-    const command = new GetObjectCommand({ Bucket: S3_BUCKET, Key: S3_KEY });
-    const response = await s3Client.send(command);
-    const body = await response.Body?.transformToString();
+    const { blobs } = await list({ prefix: "store.json" });
+    if (blobs.length === 0) return loadLocalStore();
+
+    const storeBlob = blobs.find((b) => b.pathname === "store.json") || blobs[0];
+    const response = await fetch(storeBlob.url);
+    if (!response.ok) return loadLocalStore();
+
+    const body = await response.text();
     if (!body) return loadLocalStore();
 
     const parsed = JSON.parse(body) as ReturnType<typeof emptyStore>;
@@ -589,23 +583,21 @@ async function loadS3Store() {
       },
     };
   } catch (error) {
-    console.error("Falha ao carregar do S3, usando fallback local:", error);
+    console.error("Falha ao carregar do Vercel Blob, usando fallback local:", error);
     return loadLocalStore();
   }
 }
 
-async function saveS3Store() {
+async function saveBlobStore() {
   if (!globalStore.memoryDb || !globalStore.memorySeq) return;
   try {
-    const command = new PutObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: S3_KEY,
-      Body: JSON.stringify({ rows: globalStore.memoryDb, seq: globalStore.memorySeq }),
-      ContentType: "application/json",
+    const dataStr = JSON.stringify({ rows: globalStore.memoryDb, seq: globalStore.memorySeq });
+    await put("store.json", dataStr, {
+      access: "public",
+      addRandomSuffix: false,
     });
-    await s3Client.send(command);
   } catch (error) {
-    console.error("Falha ao salvar no S3, usando fallback local:", error);
+    console.error("Falha ao salvar no Vercel Blob, usando fallback local:", error);
     saveLocalStore();
   }
 }
@@ -696,10 +688,10 @@ async function persistStore() {
     2
   );
 
-  if (!shouldUseS3()) {
+  if (!shouldUseBlob()) {
     saveLocalStore();
   } else {
-    await saveS3Store();
+    await saveBlobStore();
     globalStore.lastLoadedAt = Date.now();
   }
 
@@ -750,10 +742,10 @@ async function store() {
   const now = Date.now();
   const cacheDuration = 30000;
 
-  if (shouldUseS3()) {
+  if (shouldUseBlob()) {
     const cacheExpired = !globalStore.lastLoadedAt || (now - globalStore.lastLoadedAt > cacheDuration);
     if (!globalStore.memoryDb || cacheExpired) {
-      const loadedStore = await loadS3Store();
+      const loadedStore = await loadBlobStore();
       globalStore.memoryDb = loadedStore.rows;
       globalStore.memorySeq = loadedStore.seq;
       globalStore.storeLoaded = true;
@@ -865,6 +857,14 @@ function model(table: TableName) {
 
     findUnique(args: { where: Record<string, unknown>; include?: any }) {
       return this.findFirst({ where: args.where });
+    },
+
+    async deleteMany(args?: { where?: Where }) {
+      const { rows } = await store();
+      const initialLength = rows[table].length;
+      rows[table] = rows[table].filter((row) => !matchesWhere(row, args?.where));
+      await saveStore();
+      return { count: initialLength - rows[table].length };
     },
   };
 }
