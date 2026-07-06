@@ -20,7 +20,7 @@
         "preco": 290,
         "precoAtacado": 210,
         "imagem": "/marketing/marc-joseph-paris.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 2,
@@ -41,7 +41,7 @@
         "preco": 280,
         "precoAtacado": 150,
         "imagem": "/marketing/party-girl-night.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 3,
@@ -62,7 +62,7 @@
         "preco": 260,
         "precoAtacado": 208,
         "imagem": "/marketing/la-seine.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 4,
@@ -83,7 +83,7 @@
         "preco": 280,
         "precoAtacado": 160,
         "imagem": "/marketing/arabesque-amethyst.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 5,
@@ -104,7 +104,7 @@
         "preco": 280,
         "precoAtacado": 180,
         "imagem": "/marketing/musk-essential.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 6,
@@ -125,7 +125,7 @@
         "preco": 280,
         "precoAtacado": 215,
         "imagem": "/marketing/7-eme.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 7,
@@ -146,7 +146,7 @@
         "preco": 300,
         "precoAtacado": 225,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 8,
@@ -167,7 +167,7 @@
         "preco": 330,
         "precoAtacado": 190,
         "imagem": "/marketing/sharf.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 9,
@@ -188,7 +188,7 @@
         "preco": 330,
         "precoAtacado": 180,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 10,
@@ -209,7 +209,7 @@
         "preco": 330,
         "precoAtacado": 200,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 11,
@@ -230,7 +230,7 @@
         "preco": 330,
         "precoAtacado": 200,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 12,
@@ -251,7 +251,7 @@
         "preco": 300,
         "precoAtacado": 200,
         "imagem": "/marketing/norah-amour.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 13,
@@ -272,7 +272,7 @@
         "preco": 280,
         "precoAtacado": 170,
         "imagem": "/marketing/sahib.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 14,
@@ -293,7 +293,7 @@
         "preco": 290,
         "precoAtacado": 210,
         "imagem": "/marketing/champ-de-mars.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 15,
@@ -314,7 +314,7 @@
         "preco": 280,
         "precoAtacado": 210,
         "imagem": "/marketing/lettre-de-voltaire.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 16,
@@ -335,7 +335,7 @@
         "preco": 300,
         "precoAtacado": 190,
         "imagem": "/marketing/autograph.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 17,
@@ -356,7 +356,7 @@
         "preco": 300,
         "precoAtacado": 170,
         "imagem": "/marketing/good-girl-glam.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 18,
@@ -377,7 +377,7 @@
         "preco": 400,
         "precoAtacado": 250,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 19,
@@ -398,7 +398,7 @@
         "preco": 400,
         "precoAtacado": 250,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 20,
@@ -419,7 +419,7 @@
         "preco": 450,
         "precoAtacado": 280,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 21,
@@ -440,7 +440,7 @@
         "preco": 400,
         "precoAtacado": 250,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 22,
@@ -461,7 +461,7 @@
         "preco": 490,
         "precoAtacado": 290,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 23,
@@ -482,7 +482,7 @@
         "preco": 440,
         "precoAtacado": 260,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 24,
@@ -503,7 +503,7 @@
         "preco": 450,
         "precoAtacado": 260,
         "imagem": "/marketing/la-vida-es-bella.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 25,
@@ -524,7 +524,7 @@
         "preco": 280,
         "precoAtacado": 190,
         "imagem": "/marketing/pink-sexy-scandal.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 26,
@@ -564,7 +564,7 @@
         "ocasiao_uso": [],
         "similaridade_inspiracao": "",
         "descricao_olfativa": "",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 27,
@@ -585,7 +585,7 @@
         "preco": 100,
         "precoAtacado": 75,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 28,
@@ -606,7 +606,7 @@
         "preco": 180,
         "precoAtacado": 130,
         "imagem": null,
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 29,
@@ -627,7 +627,7 @@
         "preco": 300,
         "precoAtacado": 230,
         "imagem": "/marketing/kit-yara.webp",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 30,
@@ -644,7 +644,7 @@
         "estoque": 10,
         "estoqueLojista": 10,
         "createdAt": "2026-06-24T14:52:44.752Z",
-        "ativoSite": false
+        "ativoSite": true
       },
       {
         "codigo": 31,
