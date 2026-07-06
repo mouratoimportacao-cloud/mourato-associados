@@ -15,15 +15,18 @@ export default function RifaPopup({ rifa }: { rifa: Rifa }) {
   const router = useRouter();
   const [show, setShow] = useState(false);
 
+  const handleClose = () => {
+    setShow(false);
+    sessionStorage.setItem(`rifa_popup_${rifa.id}`, "1");
+  };
+
   useEffect(() => {
-    // Só exibe 1x por sessão do navegador
     const key = `rifa_popup_${rifa.id}`;
     if (sessionStorage.getItem(key)) return;
 
     const timer = setTimeout(() => {
       setShow(true);
-      sessionStorage.setItem(key, "1");
-    }, 1800); // Abre após 1.8s para não ser invasivo imediatamente
+    }, 500); // Abre mais rápido (500ms) ao entrar
 
     return () => clearTimeout(timer);
   }, [rifa.id]);
@@ -33,20 +36,20 @@ export default function RifaPopup({ rifa }: { rifa: Rifa }) {
   return (
     <div
       className="fixed inset-0 z-[999] flex items-center justify-center px-4"
-      onClick={() => setShow(false)}
+      onClick={handleClose}
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
       {/* Modal */}
       <div
-        className="relative z-10 max-w-sm w-full bg-gradient-to-b from-zinc-900 to-black border border-gold/25 rounded-3xl shadow-2xl overflow-hidden animate-[fadeInUp_0.4s_ease-out]"
+        className="relative z-10 max-w-sm w-full bg-gradient-to-b from-zinc-900 to-black border border-gold/25 rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         style={{ animation: "fadeInUp 0.4s ease-out" }}
       >
         {/* Fechar */}
         <button
-          onClick={() => setShow(false)}
+          onClick={handleClose}
           className="absolute top-3 right-3 z-10 text-zinc-500 hover:text-white transition-colors text-lg leading-none"
           aria-label="Fechar"
         >
@@ -105,7 +108,7 @@ export default function RifaPopup({ rifa }: { rifa: Rifa }) {
           <div className="space-y-2 pt-1">
             <button
               onClick={() => {
-                setShow(false);
+                handleClose();
                 router.push(`/rifas?id=${rifa.id}`);
               }}
               className="w-full bg-gradient-to-r from-gold to-[#D4AF37] text-black font-black text-xs uppercase tracking-widest py-3.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
@@ -113,7 +116,7 @@ export default function RifaPopup({ rifa }: { rifa: Rifa }) {
               🎟️ Quero Participar!
             </button>
             <button
-              onClick={() => setShow(false)}
+              onClick={handleClose}
               className="w-full text-zinc-500 hover:text-zinc-300 text-[10px] uppercase tracking-widest transition-colors py-1 cursor-pointer"
             >
               Agora não
