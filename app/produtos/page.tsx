@@ -22,10 +22,9 @@ export default async function ProdutosPage() {
     where: { status: "ATIVO" },
     orderBy: { id: "desc" },
   });
-  // Somente produtos ativos no site — limitado aos primeiros 30 na vitrine pública
+  // Somente produtos ativos no site
   const produtosPublicos = produtos
-    .filter((produto: any) => produto.ativoSite !== false)
-    .slice(0, 30);
+    .filter((produto: any) => produto.ativoSite !== false);
 
   return (
     <div className="flex flex-col min-h-screen max-w-full overflow-x-hidden">

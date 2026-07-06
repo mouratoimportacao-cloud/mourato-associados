@@ -1,7 +1,7 @@
 "use client";
 
 import { deleteProduto, toggleAtivoSite, toggleVitrine } from "../actions";
-import { useMemo, useState, useTransition } from "react";
+import { Fragment, useMemo, useState, useTransition } from "react";
 import FiltrosProdutos from "../../../components/FiltrosProdutos";
 import OptimizedImage from "../../../components/OptimizedImage";
 
@@ -59,6 +59,7 @@ const normalizarBusca = (valor: unknown) =>
 export default function ListaProdutos({ produtos, onEditProduct, pendentePorProduto }: ListaProdutosProps) {
   const [isPending, startTransition] = useTransition();
   const [busca, setBusca] = useState("");
+  const [marcaSelecionada, setMarcaSelecionada] = useState("todos");
   const [filtros, setFiltros] = useState<any>({
     origem: "todos",
     genero: "todos",
@@ -85,10 +86,29 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
     return [];
   };
 
+  const marcasDisponiveis = useMemo(() => {
+    const marcas = new Map<string, { nome: string; total: number }>();
+
+    for (const produto of produtos) {
+      const nome = String(produto.marca || "Sem marca").trim() || "Sem marca";
+      const chave = normalizarBusca(nome);
+      const atual = marcas.get(chave);
+      marcas.set(chave, { nome: atual?.nome || nome, total: (atual?.total || 0) + 1 });
+    }
+
+    return Array.from(marcas.entries())
+      .map(([chave, marca]) => ({ chave, ...marca }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  }, [produtos]);
+
   const produtosFiltrados = useMemo(() => {
     const termo = normalizarBusca(busca);
 
     return produtos.filter((produto) => {
+      if (marcaSelecionada !== "todos" && normalizarBusca(produto.marca || "Sem marca") !== marcaSelecionada) {
+        return false;
+      }
+
       if (termo) {
         const textoProduto = normalizarBusca(
           [
@@ -149,7 +169,22 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
       
       return true;
     });
-  }, [produtos, filtros, busca]);
+  }, [produtos, filtros, busca, marcaSelecionada]);
+
+  const produtosPorMarca = useMemo(() => {
+    const grupos = new Map<string, Produto[]>();
+
+    for (const produto of produtosFiltrados) {
+      const marca = String(produto.marca || "Sem marca").trim() || "Sem marca";
+      const grupo = grupos.get(marca) || [];
+      grupo.push(produto);
+      grupos.set(marca, grupo);
+    }
+
+    return Array.from(grupos.entries()).sort(([marcaA], [marcaB]) =>
+      marcaA.localeCompare(marcaB, "pt-BR")
+    );
+  }, [produtosFiltrados]);
 
   const handleDelete = (id: number) => {
     if (confirm("Tem certeza que deseja remover este produto do catálogo?")) {
@@ -171,7 +206,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
             <p className="text-xs text-gray-500 font-sans">Mostrando {produtosFiltrados.length} de {produtos.length} produtos</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_14rem_auto] gap-3 items-center">
           <input
             type="search"
             value={busca}
@@ -179,10 +214,25 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
             placeholder="Buscar por nome, marca ou código"
             className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
           />
-          {busca && (
+          <select
+            value={marcaSelecionada}
+            onChange={(event) => setMarcaSelecionada(event.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+          >
+            <option value="todos">Todas as marcas</option>
+            {marcasDisponiveis.map((marca) => (
+              <option key={marca.chave} value={marca.chave}>
+                {marca.nome} ({marca.total})
+              </option>
+            ))}
+          </select>
+          {(busca || marcaSelecionada !== "todos") && (
             <button
               type="button"
-              onClick={() => setBusca("")}
+              onClick={() => {
+                setBusca("");
+                setMarcaSelecionada("todos");
+              }}
               className="rounded-lg border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-100"
             >
               Limpar
@@ -203,11 +253,18 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {produtosFiltrados.map((produto) => {
-              const custoReal = (produto.custoDolar || 0) * (produto.cotacaoDolar || 0);
-              const totalEstoque = custoReal * (produto.estoque || 0);
+            {produtosPorMarca.map(([marca, produtosDaMarca]) => (
+              <Fragment key={marca}>
+                <tr className="bg-gray-100/80">
+                  <td colSpan={5} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-600">
+                    {marca} · {produtosDaMarca.length} {produtosDaMarca.length === 1 ? "produto" : "produtos"}
+                  </td>
+                </tr>
+                {produtosDaMarca.map((produto) => {
+                  const custoReal = (produto.custoDolar || 0) * (produto.cotacaoDolar || 0);
+                  const totalEstoque = custoReal * (produto.estoque || 0);
 
-              return (
+                  return (
               <tr key={produto.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-2 py-1.5 min-w-0">
                   <div className="flex items-center min-w-0">
@@ -343,8 +400,10 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                   </button>
                 </td>
               </tr>
-              );
-            })}
+                  );
+                })}
+              </Fragment>
+            ))}
             {produtosFiltrados.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500 italic">

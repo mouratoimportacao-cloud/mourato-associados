@@ -540,6 +540,20 @@ async function loadBlobStore() {
     let produtos = Array.from(uniqueMap.values()).map(withProdutoDefaults);
     if (produtos.length === 0) produtos = initialProducts.map(withProdutoDefaults);
 
+    // Auto-ativação dos primeiros 30 se nenhum estiver ativo no Vercel Blob
+    const activeCount = produtos.filter((p: any) => p.ativoSite === true).length;
+    if (activeCount === 0 && produtos.length > 0) {
+      let count = 0;
+      for (let i = 0; i < produtos.length; i++) {
+        produtos[i].ativoSite = true;
+        count++;
+        if (count >= 30) break;
+      }
+      setTimeout(() => {
+        saveBlobStore().catch(console.error);
+      }, 100);
+    }
+
     return {
       rows: {
         Produto: produtos,
