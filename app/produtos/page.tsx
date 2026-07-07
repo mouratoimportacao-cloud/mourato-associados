@@ -22,9 +22,8 @@ export default async function ProdutosPage() {
     where: { status: "ATIVO" },
     orderBy: { id: "desc" },
   });
-  // Somente produtos ativos no site — primeiros 30 por código
+  // Primeiros 30 produtos por código (#1 em diante)
   const produtosPublicos = produtos
-    .filter((produto: any) => produto.ativoSite === true)
     .sort((a: any, b: any) => (a.codigo ?? a.id) - (b.codigo ?? b.id))
     .slice(0, 30);
 
