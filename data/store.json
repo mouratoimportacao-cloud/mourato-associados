@@ -1649,7 +1649,7 @@
       {
         "codigo": 56,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 56,
@@ -1689,7 +1689,7 @@
       {
         "codigo": 57,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 57,
@@ -1729,7 +1729,7 @@
       {
         "codigo": 58,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 58,
@@ -1769,7 +1769,7 @@
       {
         "codigo": 59,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 59,
@@ -1809,7 +1809,7 @@
       {
         "codigo": 60,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 60,
@@ -1849,7 +1849,7 @@
       {
         "codigo": 61,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 61,
@@ -1889,7 +1889,7 @@
       {
         "codigo": 62,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 62,
@@ -1929,7 +1929,7 @@
       {
         "codigo": 63,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 63,
@@ -1969,7 +1969,7 @@
       {
         "codigo": 64,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 64,
@@ -2009,7 +2009,7 @@
       {
         "codigo": 65,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 65,
@@ -2049,7 +2049,7 @@
       {
         "codigo": 66,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 66,
@@ -2089,7 +2089,7 @@
       {
         "codigo": 67,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 67,
@@ -2129,7 +2129,7 @@
       {
         "codigo": 68,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 68,
@@ -2169,7 +2169,7 @@
       {
         "codigo": 69,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 69,
@@ -2209,7 +2209,7 @@
       {
         "codigo": 70,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 70,
@@ -2249,7 +2249,7 @@
       {
         "codigo": 71,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 71,
@@ -2289,7 +2289,7 @@
       {
         "codigo": 72,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 72,
@@ -2329,7 +2329,7 @@
       {
         "codigo": 73,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 73,
@@ -2369,7 +2369,7 @@
       {
         "codigo": 74,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 74,
@@ -2409,7 +2409,7 @@
       {
         "codigo": 75,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 75,
@@ -2449,7 +2449,7 @@
       {
         "codigo": 76,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 76,
@@ -2489,7 +2489,7 @@
       {
         "codigo": 77,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 77,
@@ -2529,7 +2529,7 @@
       {
         "codigo": 78,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 78,
@@ -2569,7 +2569,7 @@
       {
         "codigo": 79,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 79,
@@ -2609,7 +2609,7 @@
       {
         "codigo": 80,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 80,
@@ -2649,7 +2649,7 @@
       {
         "codigo": 81,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 81,
@@ -2689,7 +2689,7 @@
       {
         "codigo": 82,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 82,
@@ -2729,7 +2729,7 @@
       {
         "codigo": 83,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 83,
@@ -2769,7 +2769,7 @@
       {
         "codigo": 84,
         "ativoSite": true,
-        "vitrine": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 84,
@@ -2808,8 +2808,8 @@
       },
       {
         "codigo": 85,
-        "ativoSite": true,
-        "vitrine": false,
+        "ativoSite": false,
+        "vitrine": true,
         "promocaoAtiva": false,
         "descontoPercentual": null,
         "id": 85,
@@ -2848,7 +2848,7 @@
       },
       {
         "codigo": 86,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -2888,7 +2888,7 @@
       },
       {
         "codigo": 87,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -2928,7 +2928,7 @@
       },
       {
         "codigo": 88,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -2968,7 +2968,7 @@
       },
       {
         "codigo": 89,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3008,7 +3008,7 @@
       },
       {
         "codigo": 90,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3048,7 +3048,7 @@
       },
       {
         "codigo": 91,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3088,7 +3088,7 @@
       },
       {
         "codigo": 92,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3128,7 +3128,7 @@
       },
       {
         "codigo": 93,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3168,7 +3168,7 @@
       },
       {
         "codigo": 94,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3208,7 +3208,7 @@
       },
       {
         "codigo": 95,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3248,7 +3248,7 @@
       },
       {
         "codigo": 96,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3288,7 +3288,7 @@
       },
       {
         "codigo": 97,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3328,7 +3328,7 @@
       },
       {
         "codigo": 98,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3368,7 +3368,7 @@
       },
       {
         "codigo": 99,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3408,7 +3408,7 @@
       },
       {
         "codigo": 100,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3448,7 +3448,7 @@
       },
       {
         "codigo": 101,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3488,7 +3488,7 @@
       },
       {
         "codigo": 102,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3528,7 +3528,7 @@
       },
       {
         "codigo": 103,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3568,7 +3568,7 @@
       },
       {
         "codigo": 104,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3608,7 +3608,7 @@
       },
       {
         "codigo": 105,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3648,7 +3648,7 @@
       },
       {
         "codigo": 106,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3688,7 +3688,7 @@
       },
       {
         "codigo": 107,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3728,7 +3728,7 @@
       },
       {
         "codigo": 108,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3768,7 +3768,7 @@
       },
       {
         "codigo": 109,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3808,7 +3808,7 @@
       },
       {
         "codigo": 110,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3848,7 +3848,7 @@
       },
       {
         "codigo": 111,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3888,7 +3888,7 @@
       },
       {
         "codigo": 112,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3928,7 +3928,7 @@
       },
       {
         "codigo": 113,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -3968,7 +3968,7 @@
       },
       {
         "codigo": 114,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4008,7 +4008,7 @@
       },
       {
         "codigo": 115,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4048,7 +4048,7 @@
       },
       {
         "codigo": 116,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4088,7 +4088,7 @@
       },
       {
         "codigo": 117,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4128,7 +4128,7 @@
       },
       {
         "codigo": 118,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4168,7 +4168,7 @@
       },
       {
         "codigo": 119,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4208,7 +4208,7 @@
       },
       {
         "codigo": 120,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4248,7 +4248,7 @@
       },
       {
         "codigo": 121,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4288,7 +4288,7 @@
       },
       {
         "codigo": 122,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4328,7 +4328,7 @@
       },
       {
         "codigo": 123,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4368,7 +4368,7 @@
       },
       {
         "codigo": 124,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4408,7 +4408,7 @@
       },
       {
         "codigo": 125,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4448,7 +4448,7 @@
       },
       {
         "codigo": 126,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4488,7 +4488,7 @@
       },
       {
         "codigo": 127,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4528,7 +4528,7 @@
       },
       {
         "codigo": 128,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4568,7 +4568,7 @@
       },
       {
         "codigo": 129,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4608,7 +4608,7 @@
       },
       {
         "codigo": 130,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4648,7 +4648,7 @@
       },
       {
         "codigo": 131,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4688,7 +4688,7 @@
       },
       {
         "codigo": 132,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4728,7 +4728,7 @@
       },
       {
         "codigo": 133,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4768,7 +4768,7 @@
       },
       {
         "codigo": 134,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4808,7 +4808,7 @@
       },
       {
         "codigo": 135,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4848,7 +4848,7 @@
       },
       {
         "codigo": 136,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4888,7 +4888,7 @@
       },
       {
         "codigo": 137,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4928,7 +4928,7 @@
       },
       {
         "codigo": 138,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -4968,7 +4968,7 @@
       },
       {
         "codigo": 139,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5008,7 +5008,7 @@
       },
       {
         "codigo": 140,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5048,7 +5048,7 @@
       },
       {
         "codigo": 141,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5088,7 +5088,7 @@
       },
       {
         "codigo": 142,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5128,7 +5128,7 @@
       },
       {
         "codigo": 143,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5168,7 +5168,7 @@
       },
       {
         "codigo": 144,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5208,7 +5208,7 @@
       },
       {
         "codigo": 145,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5248,7 +5248,7 @@
       },
       {
         "codigo": 146,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5288,7 +5288,7 @@
       },
       {
         "codigo": 147,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5328,7 +5328,7 @@
       },
       {
         "codigo": 148,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5368,7 +5368,7 @@
       },
       {
         "codigo": 149,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5408,7 +5408,7 @@
       },
       {
         "codigo": 150,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5448,7 +5448,7 @@
       },
       {
         "codigo": 151,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5488,7 +5488,7 @@
       },
       {
         "codigo": 152,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5528,7 +5528,7 @@
       },
       {
         "codigo": 153,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5568,7 +5568,7 @@
       },
       {
         "codigo": 154,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5608,7 +5608,7 @@
       },
       {
         "codigo": 155,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5648,7 +5648,7 @@
       },
       {
         "codigo": 156,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5688,7 +5688,7 @@
       },
       {
         "codigo": 157,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5728,7 +5728,7 @@
       },
       {
         "codigo": 158,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5768,7 +5768,7 @@
       },
       {
         "codigo": 159,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5808,7 +5808,7 @@
       },
       {
         "codigo": 160,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5848,7 +5848,7 @@
       },
       {
         "codigo": 161,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5888,7 +5888,7 @@
       },
       {
         "codigo": 162,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5928,7 +5928,7 @@
       },
       {
         "codigo": 163,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -5968,7 +5968,7 @@
       },
       {
         "codigo": 164,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6008,7 +6008,7 @@
       },
       {
         "codigo": 165,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6048,7 +6048,7 @@
       },
       {
         "codigo": 166,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6088,7 +6088,7 @@
       },
       {
         "codigo": 167,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6128,7 +6128,7 @@
       },
       {
         "codigo": 168,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6168,7 +6168,7 @@
       },
       {
         "codigo": 169,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6208,7 +6208,7 @@
       },
       {
         "codigo": 170,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6248,7 +6248,7 @@
       },
       {
         "codigo": 171,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6288,7 +6288,7 @@
       },
       {
         "codigo": 172,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6328,7 +6328,7 @@
       },
       {
         "codigo": 173,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6368,7 +6368,7 @@
       },
       {
         "codigo": 174,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6408,7 +6408,7 @@
       },
       {
         "codigo": 175,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6448,7 +6448,7 @@
       },
       {
         "codigo": 176,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6488,7 +6488,7 @@
       },
       {
         "codigo": 177,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6528,7 +6528,7 @@
       },
       {
         "codigo": 178,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6568,7 +6568,7 @@
       },
       {
         "codigo": 179,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6608,7 +6608,7 @@
       },
       {
         "codigo": 180,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6648,7 +6648,7 @@
       },
       {
         "codigo": 181,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6688,7 +6688,7 @@
       },
       {
         "codigo": 182,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6728,7 +6728,7 @@
       },
       {
         "codigo": 183,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6768,7 +6768,7 @@
       },
       {
         "codigo": 184,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6808,7 +6808,7 @@
       },
       {
         "codigo": 185,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6848,7 +6848,7 @@
       },
       {
         "codigo": 186,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6888,7 +6888,7 @@
       },
       {
         "codigo": 187,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6928,7 +6928,7 @@
       },
       {
         "codigo": 188,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -6968,7 +6968,7 @@
       },
       {
         "codigo": 189,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7008,7 +7008,7 @@
       },
       {
         "codigo": 190,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7048,7 +7048,7 @@
       },
       {
         "codigo": 191,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7088,7 +7088,7 @@
       },
       {
         "codigo": 192,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7128,7 +7128,7 @@
       },
       {
         "codigo": 193,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7168,7 +7168,7 @@
       },
       {
         "codigo": 194,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7208,7 +7208,7 @@
       },
       {
         "codigo": 195,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7248,7 +7248,7 @@
       },
       {
         "codigo": 196,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7288,7 +7288,7 @@
       },
       {
         "codigo": 197,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7328,7 +7328,7 @@
       },
       {
         "codigo": 198,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7368,7 +7368,7 @@
       },
       {
         "codigo": 199,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7408,7 +7408,7 @@
       },
       {
         "codigo": 200,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7448,7 +7448,7 @@
       },
       {
         "codigo": 201,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7488,7 +7488,7 @@
       },
       {
         "codigo": 202,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7528,7 +7528,7 @@
       },
       {
         "codigo": 203,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7568,7 +7568,7 @@
       },
       {
         "codigo": 204,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7608,7 +7608,7 @@
       },
       {
         "codigo": 205,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7648,7 +7648,7 @@
       },
       {
         "codigo": 206,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7688,7 +7688,7 @@
       },
       {
         "codigo": 207,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7728,7 +7728,7 @@
       },
       {
         "codigo": 208,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7768,7 +7768,7 @@
       },
       {
         "codigo": 209,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7808,7 +7808,7 @@
       },
       {
         "codigo": 210,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7848,7 +7848,7 @@
       },
       {
         "codigo": 211,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7888,7 +7888,7 @@
       },
       {
         "codigo": 212,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7928,7 +7928,7 @@
       },
       {
         "codigo": 213,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -7968,7 +7968,7 @@
       },
       {
         "codigo": 214,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8008,7 +8008,7 @@
       },
       {
         "codigo": 215,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8048,7 +8048,7 @@
       },
       {
         "codigo": 216,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8088,7 +8088,7 @@
       },
       {
         "codigo": 217,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8128,7 +8128,7 @@
       },
       {
         "codigo": 218,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8168,7 +8168,7 @@
       },
       {
         "codigo": 219,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8208,7 +8208,7 @@
       },
       {
         "codigo": 220,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8248,7 +8248,7 @@
       },
       {
         "codigo": 221,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8288,7 +8288,7 @@
       },
       {
         "codigo": 222,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8328,7 +8328,7 @@
       },
       {
         "codigo": 223,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8368,7 +8368,7 @@
       },
       {
         "codigo": 224,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8408,7 +8408,7 @@
       },
       {
         "codigo": 225,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8448,7 +8448,7 @@
       },
       {
         "codigo": 226,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8488,7 +8488,7 @@
       },
       {
         "codigo": 227,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8528,7 +8528,7 @@
       },
       {
         "codigo": 228,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8568,7 +8568,7 @@
       },
       {
         "codigo": 229,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8608,7 +8608,7 @@
       },
       {
         "codigo": 230,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8648,7 +8648,7 @@
       },
       {
         "codigo": 231,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8688,7 +8688,7 @@
       },
       {
         "codigo": 232,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8728,7 +8728,7 @@
       },
       {
         "codigo": 233,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8768,7 +8768,7 @@
       },
       {
         "codigo": 234,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8808,7 +8808,7 @@
       },
       {
         "codigo": 235,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8848,7 +8848,7 @@
       },
       {
         "codigo": 236,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8888,7 +8888,7 @@
       },
       {
         "codigo": 237,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8928,7 +8928,7 @@
       },
       {
         "codigo": 238,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -8968,7 +8968,7 @@
       },
       {
         "codigo": 239,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9008,7 +9008,7 @@
       },
       {
         "codigo": 240,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9048,7 +9048,7 @@
       },
       {
         "codigo": 241,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9088,7 +9088,7 @@
       },
       {
         "codigo": 242,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9128,7 +9128,7 @@
       },
       {
         "codigo": 243,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9168,7 +9168,7 @@
       },
       {
         "codigo": 244,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9208,7 +9208,7 @@
       },
       {
         "codigo": 245,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9248,7 +9248,7 @@
       },
       {
         "codigo": 246,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9288,7 +9288,7 @@
       },
       {
         "codigo": 247,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9328,7 +9328,7 @@
       },
       {
         "codigo": 248,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9368,7 +9368,7 @@
       },
       {
         "codigo": 249,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9408,7 +9408,7 @@
       },
       {
         "codigo": 250,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9448,7 +9448,7 @@
       },
       {
         "codigo": 251,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9488,7 +9488,7 @@
       },
       {
         "codigo": 252,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9528,7 +9528,7 @@
       },
       {
         "codigo": 253,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9568,7 +9568,7 @@
       },
       {
         "codigo": 254,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9608,7 +9608,7 @@
       },
       {
         "codigo": 255,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9648,7 +9648,7 @@
       },
       {
         "codigo": 256,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9688,7 +9688,7 @@
       },
       {
         "codigo": 257,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9728,7 +9728,7 @@
       },
       {
         "codigo": 258,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9768,7 +9768,7 @@
       },
       {
         "codigo": 259,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9808,7 +9808,7 @@
       },
       {
         "codigo": 260,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9848,7 +9848,7 @@
       },
       {
         "codigo": 261,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9888,7 +9888,7 @@
       },
       {
         "codigo": 262,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9928,7 +9928,7 @@
       },
       {
         "codigo": 263,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -9968,7 +9968,7 @@
       },
       {
         "codigo": 264,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10008,7 +10008,7 @@
       },
       {
         "codigo": 265,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10048,7 +10048,7 @@
       },
       {
         "codigo": 266,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10088,7 +10088,7 @@
       },
       {
         "codigo": 267,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10128,7 +10128,7 @@
       },
       {
         "codigo": 268,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10168,7 +10168,7 @@
       },
       {
         "codigo": 269,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10208,7 +10208,7 @@
       },
       {
         "codigo": 270,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10248,7 +10248,7 @@
       },
       {
         "codigo": 271,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10288,7 +10288,7 @@
       },
       {
         "codigo": 272,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10328,7 +10328,7 @@
       },
       {
         "codigo": 273,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10368,7 +10368,7 @@
       },
       {
         "codigo": 274,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10408,7 +10408,7 @@
       },
       {
         "codigo": 275,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10448,7 +10448,7 @@
       },
       {
         "codigo": 276,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10488,7 +10488,7 @@
       },
       {
         "codigo": 277,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10528,7 +10528,7 @@
       },
       {
         "codigo": 278,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10568,7 +10568,7 @@
       },
       {
         "codigo": 279,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10608,7 +10608,7 @@
       },
       {
         "codigo": 280,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10648,7 +10648,7 @@
       },
       {
         "codigo": 281,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10688,7 +10688,7 @@
       },
       {
         "codigo": 282,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10728,7 +10728,7 @@
       },
       {
         "codigo": 283,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10768,7 +10768,7 @@
       },
       {
         "codigo": 284,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10808,7 +10808,7 @@
       },
       {
         "codigo": 285,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10848,7 +10848,7 @@
       },
       {
         "codigo": 286,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10888,7 +10888,7 @@
       },
       {
         "codigo": 287,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10928,7 +10928,7 @@
       },
       {
         "codigo": 288,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -10968,7 +10968,7 @@
       },
       {
         "codigo": 289,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11008,7 +11008,7 @@
       },
       {
         "codigo": 290,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11048,7 +11048,7 @@
       },
       {
         "codigo": 291,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11088,7 +11088,7 @@
       },
       {
         "codigo": 292,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11128,7 +11128,7 @@
       },
       {
         "codigo": 293,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11168,7 +11168,7 @@
       },
       {
         "codigo": 294,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11208,7 +11208,7 @@
       },
       {
         "codigo": 295,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11248,7 +11248,7 @@
       },
       {
         "codigo": 296,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11288,7 +11288,7 @@
       },
       {
         "codigo": 297,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11328,7 +11328,7 @@
       },
       {
         "codigo": 298,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11368,7 +11368,7 @@
       },
       {
         "codigo": 299,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11408,7 +11408,7 @@
       },
       {
         "codigo": 300,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11448,7 +11448,7 @@
       },
       {
         "codigo": 301,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11488,7 +11488,7 @@
       },
       {
         "codigo": 302,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11528,7 +11528,7 @@
       },
       {
         "codigo": 303,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11568,7 +11568,7 @@
       },
       {
         "codigo": 304,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11608,7 +11608,7 @@
       },
       {
         "codigo": 305,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11648,7 +11648,7 @@
       },
       {
         "codigo": 306,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11688,7 +11688,7 @@
       },
       {
         "codigo": 307,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11728,7 +11728,7 @@
       },
       {
         "codigo": 308,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11768,7 +11768,7 @@
       },
       {
         "codigo": 309,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11808,7 +11808,7 @@
       },
       {
         "codigo": 310,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11848,7 +11848,7 @@
       },
       {
         "codigo": 311,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11888,7 +11888,7 @@
       },
       {
         "codigo": 312,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11928,7 +11928,7 @@
       },
       {
         "codigo": 313,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -11968,7 +11968,7 @@
       },
       {
         "codigo": 314,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12008,7 +12008,7 @@
       },
       {
         "codigo": 315,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12048,7 +12048,7 @@
       },
       {
         "codigo": 316,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12088,7 +12088,7 @@
       },
       {
         "codigo": 317,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12128,7 +12128,7 @@
       },
       {
         "codigo": 318,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12168,7 +12168,7 @@
       },
       {
         "codigo": 319,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12208,7 +12208,7 @@
       },
       {
         "codigo": 320,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12248,7 +12248,7 @@
       },
       {
         "codigo": 321,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12288,7 +12288,7 @@
       },
       {
         "codigo": 322,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12328,7 +12328,7 @@
       },
       {
         "codigo": 323,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12368,7 +12368,7 @@
       },
       {
         "codigo": 324,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12408,7 +12408,7 @@
       },
       {
         "codigo": 325,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12448,7 +12448,7 @@
       },
       {
         "codigo": 326,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12488,7 +12488,7 @@
       },
       {
         "codigo": 327,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12528,7 +12528,7 @@
       },
       {
         "codigo": 328,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12568,7 +12568,7 @@
       },
       {
         "codigo": 329,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12608,7 +12608,7 @@
       },
       {
         "codigo": 330,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12648,7 +12648,7 @@
       },
       {
         "codigo": 331,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12688,7 +12688,7 @@
       },
       {
         "codigo": 332,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12728,7 +12728,7 @@
       },
       {
         "codigo": 333,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12768,7 +12768,7 @@
       },
       {
         "codigo": 334,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12808,7 +12808,7 @@
       },
       {
         "codigo": 335,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12848,7 +12848,7 @@
       },
       {
         "codigo": 336,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12888,7 +12888,7 @@
       },
       {
         "codigo": 337,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12928,7 +12928,7 @@
       },
       {
         "codigo": 338,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -12968,7 +12968,7 @@
       },
       {
         "codigo": 339,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13008,7 +13008,7 @@
       },
       {
         "codigo": 340,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13048,7 +13048,7 @@
       },
       {
         "codigo": 341,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13088,7 +13088,7 @@
       },
       {
         "codigo": 342,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13128,7 +13128,7 @@
       },
       {
         "codigo": 343,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13168,7 +13168,7 @@
       },
       {
         "codigo": 344,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13208,7 +13208,7 @@
       },
       {
         "codigo": 345,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13248,7 +13248,7 @@
       },
       {
         "codigo": 346,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13288,7 +13288,7 @@
       },
       {
         "codigo": 347,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13328,7 +13328,7 @@
       },
       {
         "codigo": 348,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13368,7 +13368,7 @@
       },
       {
         "codigo": 349,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13408,7 +13408,7 @@
       },
       {
         "codigo": 350,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13448,7 +13448,7 @@
       },
       {
         "codigo": 351,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13488,7 +13488,7 @@
       },
       {
         "codigo": 352,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13528,7 +13528,7 @@
       },
       {
         "codigo": 353,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13568,7 +13568,7 @@
       },
       {
         "codigo": 354,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13608,7 +13608,7 @@
       },
       {
         "codigo": 355,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13648,7 +13648,7 @@
       },
       {
         "codigo": 356,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13688,7 +13688,7 @@
       },
       {
         "codigo": 357,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13728,7 +13728,7 @@
       },
       {
         "codigo": 358,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13768,7 +13768,7 @@
       },
       {
         "codigo": 359,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13808,7 +13808,7 @@
       },
       {
         "codigo": 360,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13848,7 +13848,7 @@
       },
       {
         "codigo": 361,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13888,7 +13888,7 @@
       },
       {
         "codigo": 362,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13928,7 +13928,7 @@
       },
       {
         "codigo": 363,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -13968,7 +13968,7 @@
       },
       {
         "codigo": 364,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14008,7 +14008,7 @@
       },
       {
         "codigo": 365,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14048,7 +14048,7 @@
       },
       {
         "codigo": 366,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14088,7 +14088,7 @@
       },
       {
         "codigo": 367,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14128,7 +14128,7 @@
       },
       {
         "codigo": 368,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14168,7 +14168,7 @@
       },
       {
         "codigo": 369,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14208,7 +14208,7 @@
       },
       {
         "codigo": 370,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14248,7 +14248,7 @@
       },
       {
         "codigo": 371,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14288,7 +14288,7 @@
       },
       {
         "codigo": 372,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14328,7 +14328,7 @@
       },
       {
         "codigo": 373,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14368,7 +14368,7 @@
       },
       {
         "codigo": 374,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14408,7 +14408,7 @@
       },
       {
         "codigo": 375,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14448,7 +14448,7 @@
       },
       {
         "codigo": 376,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14488,7 +14488,7 @@
       },
       {
         "codigo": 377,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14528,7 +14528,7 @@
       },
       {
         "codigo": 378,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14568,7 +14568,7 @@
       },
       {
         "codigo": 379,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14608,7 +14608,7 @@
       },
       {
         "codigo": 380,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14648,7 +14648,7 @@
       },
       {
         "codigo": 381,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14688,7 +14688,7 @@
       },
       {
         "codigo": 382,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14728,7 +14728,7 @@
       },
       {
         "codigo": 383,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14768,7 +14768,7 @@
       },
       {
         "codigo": 384,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14808,7 +14808,7 @@
       },
       {
         "codigo": 385,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14848,7 +14848,7 @@
       },
       {
         "codigo": 386,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14888,7 +14888,7 @@
       },
       {
         "codigo": 387,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14928,7 +14928,7 @@
       },
       {
         "codigo": 388,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -14968,7 +14968,7 @@
       },
       {
         "codigo": 389,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15008,7 +15008,7 @@
       },
       {
         "codigo": 390,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15048,7 +15048,7 @@
       },
       {
         "codigo": 391,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15088,7 +15088,7 @@
       },
       {
         "codigo": 392,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15128,7 +15128,7 @@
       },
       {
         "codigo": 393,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15168,7 +15168,7 @@
       },
       {
         "codigo": 394,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15208,7 +15208,7 @@
       },
       {
         "codigo": 395,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15248,7 +15248,7 @@
       },
       {
         "codigo": 396,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15288,7 +15288,7 @@
       },
       {
         "codigo": 397,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15328,7 +15328,7 @@
       },
       {
         "codigo": 398,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15368,7 +15368,7 @@
       },
       {
         "codigo": 399,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15408,7 +15408,7 @@
       },
       {
         "codigo": 400,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15448,7 +15448,7 @@
       },
       {
         "codigo": 401,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15488,7 +15488,7 @@
       },
       {
         "codigo": 402,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15528,7 +15528,7 @@
       },
       {
         "codigo": 403,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15568,7 +15568,7 @@
       },
       {
         "codigo": 404,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15608,7 +15608,7 @@
       },
       {
         "codigo": 405,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15648,7 +15648,7 @@
       },
       {
         "codigo": 406,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15688,7 +15688,7 @@
       },
       {
         "codigo": 407,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15728,7 +15728,7 @@
       },
       {
         "codigo": 408,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15768,7 +15768,7 @@
       },
       {
         "codigo": 409,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15808,7 +15808,7 @@
       },
       {
         "codigo": 410,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15848,7 +15848,7 @@
       },
       {
         "codigo": 411,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15888,7 +15888,7 @@
       },
       {
         "codigo": 412,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15928,7 +15928,7 @@
       },
       {
         "codigo": 413,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -15968,7 +15968,7 @@
       },
       {
         "codigo": 414,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16008,7 +16008,7 @@
       },
       {
         "codigo": 415,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16048,7 +16048,7 @@
       },
       {
         "codigo": 416,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16088,7 +16088,7 @@
       },
       {
         "codigo": 417,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16128,7 +16128,7 @@
       },
       {
         "codigo": 418,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16168,7 +16168,7 @@
       },
       {
         "codigo": 419,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16208,7 +16208,7 @@
       },
       {
         "codigo": 420,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16248,7 +16248,7 @@
       },
       {
         "codigo": 421,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16288,7 +16288,7 @@
       },
       {
         "codigo": 422,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16328,7 +16328,7 @@
       },
       {
         "codigo": 423,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16368,7 +16368,7 @@
       },
       {
         "codigo": 424,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16408,7 +16408,7 @@
       },
       {
         "codigo": 425,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16448,7 +16448,7 @@
       },
       {
         "codigo": 426,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16488,7 +16488,7 @@
       },
       {
         "codigo": 427,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16528,7 +16528,7 @@
       },
       {
         "codigo": 428,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16568,7 +16568,7 @@
       },
       {
         "codigo": 429,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16608,7 +16608,7 @@
       },
       {
         "codigo": 430,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16648,7 +16648,7 @@
       },
       {
         "codigo": 431,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16688,7 +16688,7 @@
       },
       {
         "codigo": 432,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16728,7 +16728,7 @@
       },
       {
         "codigo": 433,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16768,7 +16768,7 @@
       },
       {
         "codigo": 434,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16808,7 +16808,7 @@
       },
       {
         "codigo": 435,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16848,7 +16848,7 @@
       },
       {
         "codigo": 436,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16888,7 +16888,7 @@
       },
       {
         "codigo": 437,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16928,7 +16928,7 @@
       },
       {
         "codigo": 438,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -16968,7 +16968,7 @@
       },
       {
         "codigo": 439,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17008,7 +17008,7 @@
       },
       {
         "codigo": 440,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17048,7 +17048,7 @@
       },
       {
         "codigo": 441,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17088,7 +17088,7 @@
       },
       {
         "codigo": 442,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17128,7 +17128,7 @@
       },
       {
         "codigo": 443,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17168,7 +17168,7 @@
       },
       {
         "codigo": 444,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17208,7 +17208,7 @@
       },
       {
         "codigo": 445,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17248,7 +17248,7 @@
       },
       {
         "codigo": 446,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17288,7 +17288,7 @@
       },
       {
         "codigo": 447,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17328,7 +17328,7 @@
       },
       {
         "codigo": 448,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17368,7 +17368,7 @@
       },
       {
         "codigo": 449,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17408,7 +17408,7 @@
       },
       {
         "codigo": 450,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17448,7 +17448,7 @@
       },
       {
         "codigo": 451,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17488,7 +17488,7 @@
       },
       {
         "codigo": 452,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17528,7 +17528,7 @@
       },
       {
         "codigo": 453,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17568,7 +17568,7 @@
       },
       {
         "codigo": 454,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17608,7 +17608,7 @@
       },
       {
         "codigo": 455,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17648,7 +17648,7 @@
       },
       {
         "codigo": 456,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17688,7 +17688,7 @@
       },
       {
         "codigo": 457,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17728,7 +17728,7 @@
       },
       {
         "codigo": 458,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17768,7 +17768,7 @@
       },
       {
         "codigo": 459,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17808,7 +17808,7 @@
       },
       {
         "codigo": 460,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17848,7 +17848,7 @@
       },
       {
         "codigo": 461,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17888,7 +17888,7 @@
       },
       {
         "codigo": 462,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17928,7 +17928,7 @@
       },
       {
         "codigo": 463,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -17968,7 +17968,7 @@
       },
       {
         "codigo": 464,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18008,7 +18008,7 @@
       },
       {
         "codigo": 465,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18048,7 +18048,7 @@
       },
       {
         "codigo": 466,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18088,7 +18088,7 @@
       },
       {
         "codigo": 467,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18128,7 +18128,7 @@
       },
       {
         "codigo": 468,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18168,7 +18168,7 @@
       },
       {
         "codigo": 469,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18208,7 +18208,7 @@
       },
       {
         "codigo": 470,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18248,7 +18248,7 @@
       },
       {
         "codigo": 471,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18288,7 +18288,7 @@
       },
       {
         "codigo": 472,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18328,7 +18328,7 @@
       },
       {
         "codigo": 473,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18368,7 +18368,7 @@
       },
       {
         "codigo": 474,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18408,7 +18408,7 @@
       },
       {
         "codigo": 475,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18448,7 +18448,7 @@
       },
       {
         "codigo": 476,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18488,7 +18488,7 @@
       },
       {
         "codigo": 477,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18528,7 +18528,7 @@
       },
       {
         "codigo": 478,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18568,7 +18568,7 @@
       },
       {
         "codigo": 479,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18608,7 +18608,7 @@
       },
       {
         "codigo": 480,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18648,7 +18648,7 @@
       },
       {
         "codigo": 481,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18688,7 +18688,7 @@
       },
       {
         "codigo": 482,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18728,7 +18728,7 @@
       },
       {
         "codigo": 483,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18768,7 +18768,7 @@
       },
       {
         "codigo": 484,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18808,7 +18808,7 @@
       },
       {
         "codigo": 485,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18848,7 +18848,7 @@
       },
       {
         "codigo": 486,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18888,7 +18888,7 @@
       },
       {
         "codigo": 487,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18928,7 +18928,7 @@
       },
       {
         "codigo": 488,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -18968,7 +18968,7 @@
       },
       {
         "codigo": 489,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19008,7 +19008,7 @@
       },
       {
         "codigo": 490,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19048,7 +19048,7 @@
       },
       {
         "codigo": 491,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19088,7 +19088,7 @@
       },
       {
         "codigo": 492,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19128,7 +19128,7 @@
       },
       {
         "codigo": 493,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19168,7 +19168,7 @@
       },
       {
         "codigo": 494,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19208,7 +19208,7 @@
       },
       {
         "codigo": 495,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19248,7 +19248,7 @@
       },
       {
         "codigo": 496,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19288,7 +19288,7 @@
       },
       {
         "codigo": 497,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19328,7 +19328,7 @@
       },
       {
         "codigo": 498,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19368,7 +19368,7 @@
       },
       {
         "codigo": 499,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19408,7 +19408,7 @@
       },
       {
         "codigo": 500,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19448,7 +19448,7 @@
       },
       {
         "codigo": 501,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19488,7 +19488,7 @@
       },
       {
         "codigo": 502,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19528,7 +19528,7 @@
       },
       {
         "codigo": 503,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19568,7 +19568,7 @@
       },
       {
         "codigo": 504,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19608,7 +19608,7 @@
       },
       {
         "codigo": 505,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19648,7 +19648,7 @@
       },
       {
         "codigo": 506,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19688,7 +19688,7 @@
       },
       {
         "codigo": 507,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19728,7 +19728,7 @@
       },
       {
         "codigo": 508,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19768,7 +19768,7 @@
       },
       {
         "codigo": 509,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19808,7 +19808,7 @@
       },
       {
         "codigo": 510,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19848,7 +19848,7 @@
       },
       {
         "codigo": 511,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19888,7 +19888,7 @@
       },
       {
         "codigo": 512,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19928,7 +19928,7 @@
       },
       {
         "codigo": 513,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -19968,7 +19968,7 @@
       },
       {
         "codigo": 514,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20008,7 +20008,7 @@
       },
       {
         "codigo": 515,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20048,7 +20048,7 @@
       },
       {
         "codigo": 516,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20088,7 +20088,7 @@
       },
       {
         "codigo": 517,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20128,7 +20128,7 @@
       },
       {
         "codigo": 518,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20168,7 +20168,7 @@
       },
       {
         "codigo": 519,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20208,7 +20208,7 @@
       },
       {
         "codigo": 520,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20248,7 +20248,7 @@
       },
       {
         "codigo": 521,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20288,7 +20288,7 @@
       },
       {
         "codigo": 522,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20328,7 +20328,7 @@
       },
       {
         "codigo": 523,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20368,7 +20368,7 @@
       },
       {
         "codigo": 524,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20408,7 +20408,7 @@
       },
       {
         "codigo": 525,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20448,7 +20448,7 @@
       },
       {
         "codigo": 526,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20488,7 +20488,7 @@
       },
       {
         "codigo": 527,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20528,7 +20528,7 @@
       },
       {
         "codigo": 528,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20568,7 +20568,7 @@
       },
       {
         "codigo": 529,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20608,7 +20608,7 @@
       },
       {
         "codigo": 530,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20648,7 +20648,7 @@
       },
       {
         "codigo": 531,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20688,7 +20688,7 @@
       },
       {
         "codigo": 532,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20728,7 +20728,7 @@
       },
       {
         "codigo": 533,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20768,7 +20768,7 @@
       },
       {
         "codigo": 534,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20808,7 +20808,7 @@
       },
       {
         "codigo": 535,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20848,7 +20848,7 @@
       },
       {
         "codigo": 536,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20888,7 +20888,7 @@
       },
       {
         "codigo": 537,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20928,7 +20928,7 @@
       },
       {
         "codigo": 538,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -20968,7 +20968,7 @@
       },
       {
         "codigo": 539,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21008,7 +21008,7 @@
       },
       {
         "codigo": 540,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21048,7 +21048,7 @@
       },
       {
         "codigo": 541,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21088,7 +21088,7 @@
       },
       {
         "codigo": 542,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21128,7 +21128,7 @@
       },
       {
         "codigo": 543,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21168,7 +21168,7 @@
       },
       {
         "codigo": 544,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21208,7 +21208,7 @@
       },
       {
         "codigo": 545,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21248,7 +21248,7 @@
       },
       {
         "codigo": 546,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21288,7 +21288,7 @@
       },
       {
         "codigo": 547,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21328,7 +21328,7 @@
       },
       {
         "codigo": 548,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21368,7 +21368,7 @@
       },
       {
         "codigo": 549,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21408,7 +21408,7 @@
       },
       {
         "codigo": 550,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21448,7 +21448,7 @@
       },
       {
         "codigo": 551,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21488,7 +21488,7 @@
       },
       {
         "codigo": 552,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21528,7 +21528,7 @@
       },
       {
         "codigo": 553,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21568,7 +21568,7 @@
       },
       {
         "codigo": 554,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21608,7 +21608,7 @@
       },
       {
         "codigo": 555,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21648,7 +21648,7 @@
       },
       {
         "codigo": 556,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21688,7 +21688,7 @@
       },
       {
         "codigo": 557,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21728,7 +21728,7 @@
       },
       {
         "codigo": 558,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21768,7 +21768,7 @@
       },
       {
         "codigo": 559,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21808,7 +21808,7 @@
       },
       {
         "codigo": 560,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21848,7 +21848,7 @@
       },
       {
         "codigo": 561,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21888,7 +21888,7 @@
       },
       {
         "codigo": 562,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21928,7 +21928,7 @@
       },
       {
         "codigo": 563,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -21968,7 +21968,7 @@
       },
       {
         "codigo": 564,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22008,7 +22008,7 @@
       },
       {
         "codigo": 565,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22048,7 +22048,7 @@
       },
       {
         "codigo": 566,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22088,7 +22088,7 @@
       },
       {
         "codigo": 567,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22128,7 +22128,7 @@
       },
       {
         "codigo": 568,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22168,7 +22168,7 @@
       },
       {
         "codigo": 569,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22208,7 +22208,7 @@
       },
       {
         "codigo": 570,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22248,7 +22248,7 @@
       },
       {
         "codigo": 571,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22288,7 +22288,7 @@
       },
       {
         "codigo": 572,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22328,7 +22328,7 @@
       },
       {
         "codigo": 573,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22368,7 +22368,7 @@
       },
       {
         "codigo": 574,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22408,7 +22408,7 @@
       },
       {
         "codigo": 575,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22448,7 +22448,7 @@
       },
       {
         "codigo": 576,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22488,7 +22488,7 @@
       },
       {
         "codigo": 577,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22528,7 +22528,7 @@
       },
       {
         "codigo": 578,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22568,7 +22568,7 @@
       },
       {
         "codigo": 579,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22608,7 +22608,7 @@
       },
       {
         "codigo": 580,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22648,7 +22648,7 @@
       },
       {
         "codigo": 581,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22688,7 +22688,7 @@
       },
       {
         "codigo": 582,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22728,7 +22728,7 @@
       },
       {
         "codigo": 583,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22768,7 +22768,7 @@
       },
       {
         "codigo": 584,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22808,7 +22808,7 @@
       },
       {
         "codigo": 585,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22848,7 +22848,7 @@
       },
       {
         "codigo": 586,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22888,7 +22888,7 @@
       },
       {
         "codigo": 587,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22928,7 +22928,7 @@
       },
       {
         "codigo": 588,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -22968,7 +22968,7 @@
       },
       {
         "codigo": 589,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23008,7 +23008,7 @@
       },
       {
         "codigo": 590,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23048,7 +23048,7 @@
       },
       {
         "codigo": 591,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23088,7 +23088,7 @@
       },
       {
         "codigo": 592,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23128,7 +23128,7 @@
       },
       {
         "codigo": 593,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23168,7 +23168,7 @@
       },
       {
         "codigo": 594,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23208,7 +23208,7 @@
       },
       {
         "codigo": 595,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23248,7 +23248,7 @@
       },
       {
         "codigo": 596,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23288,7 +23288,7 @@
       },
       {
         "codigo": 597,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23328,7 +23328,7 @@
       },
       {
         "codigo": 598,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23368,7 +23368,7 @@
       },
       {
         "codigo": 599,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23408,7 +23408,7 @@
       },
       {
         "codigo": 600,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23448,7 +23448,7 @@
       },
       {
         "codigo": 601,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23488,7 +23488,7 @@
       },
       {
         "codigo": 602,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23528,7 +23528,7 @@
       },
       {
         "codigo": 603,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23568,7 +23568,7 @@
       },
       {
         "codigo": 604,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23608,7 +23608,7 @@
       },
       {
         "codigo": 605,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23648,7 +23648,7 @@
       },
       {
         "codigo": 606,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23688,7 +23688,7 @@
       },
       {
         "codigo": 607,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23728,7 +23728,7 @@
       },
       {
         "codigo": 608,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23768,7 +23768,7 @@
       },
       {
         "codigo": 609,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23808,7 +23808,7 @@
       },
       {
         "codigo": 610,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23848,7 +23848,7 @@
       },
       {
         "codigo": 611,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23888,7 +23888,7 @@
       },
       {
         "codigo": 612,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23928,7 +23928,7 @@
       },
       {
         "codigo": 613,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -23968,7 +23968,7 @@
       },
       {
         "codigo": 614,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24008,7 +24008,7 @@
       },
       {
         "codigo": 615,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24048,7 +24048,7 @@
       },
       {
         "codigo": 616,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24088,7 +24088,7 @@
       },
       {
         "codigo": 617,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24128,7 +24128,7 @@
       },
       {
         "codigo": 618,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24168,7 +24168,7 @@
       },
       {
         "codigo": 619,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24208,7 +24208,7 @@
       },
       {
         "codigo": 620,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24248,7 +24248,7 @@
       },
       {
         "codigo": 621,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,
@@ -24288,7 +24288,7 @@
       },
       {
         "codigo": 622,
-        "ativoSite": true,
+        "ativoSite": false,
         "vitrine": false,
         "promocaoAtiva": false,
         "descontoPercentual": null,

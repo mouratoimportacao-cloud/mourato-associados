@@ -18,10 +18,6 @@ export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
     orderBy: { id: 'asc' }
   });
-  const rifaAtiva = await prisma.rifa.findFirst({
-    where: { status: "ATIVO" },
-    orderBy: { id: "desc" },
-  });
   // Primeiros 30 por código + produtos com vitrine=true que não estejam nos 30
   const ordenados = produtos.sort((a: any, b: any) => (a.codigo ?? a.id) - (b.codigo ?? b.id));
   const primeiros30 = ordenados.slice(0, 30);
@@ -47,7 +43,7 @@ export default async function ProdutosPage() {
             {/* BuscaExternaWidget removido - fica só no admin */}
             <CatalogoPrincipal produtos={produtosPublicos as any[]} />
           </Suspense>
-          {rifaAtiva ? <RifaPopup rifa={rifaAtiva as any} /> : null}
+          <RifaPopup />
         </div>
       </main>
 

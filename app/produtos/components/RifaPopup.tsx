@@ -11,20 +11,26 @@ type Rifa = {
   imagem?: string | null;
 };
 
-export default function RifaPopup({ rifa }: { rifa: Rifa }) {
+export default function RifaPopup() {
   const router = useRouter();
+  const [rifa, setRifa] = useState<Rifa | null>(null);
   const [show, setShow] = useState(false);
 
-  const handleClose = () => {
-    setShow(false);
-  };
-
   useEffect(() => {
-    const timer = setTimeout(() => setShow(true), 500);
-    return () => clearTimeout(timer);
-  }, [rifa.id]);
+    fetch("/api/rifa-ativa")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.id) {
+          setRifa(data);
+          setTimeout(() => setShow(true), 500);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  if (!show) return null;
+  const handleClose = () => setShow(false);
+
+  if (!show || !rifa) return null;
 
   return (
     <div
