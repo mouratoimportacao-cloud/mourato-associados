@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://mouratoassociados.com.br
+
+# Sitemaps
+Sitemap: https://mouratoassociados.com.br/sitemap.xml

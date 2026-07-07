@@ -1,6 +1,17 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { put, list } from "@vercel/blob";
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+
+const s3Client = new S3Client({
+  region: process.env.AWS_S3_REGION || "sa-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const S3_BUCKET = process.env.AWS_S3_BUCKET || "mourato-associados-db";
+const S3_KEY = "store.json";
 
 type OrderBy = Record<string, "asc" | "desc">;
 type Select = Record<string, boolean>;
@@ -439,8 +450,8 @@ function canPersistLocally() {
   return process.env.VERCEL !== "1";
 }
 
-function shouldUseBlob() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+function shouldUseS3() {
+  return Boolean(process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID);
 }
 
 function loadLocalStore() {
@@ -516,16 +527,11 @@ function loadLocalStore() {
   }
 }
 
-async function loadBlobStore() {
+async function loadS3Store() {
   try {
-    const { blobs } = await list({ prefix: "store.json" });
-    if (blobs.length === 0) return loadLocalStore();
-
-    const storeBlob = blobs.find((b) => b.pathname === "store.json") || blobs[0];
-    const response = await fetch(storeBlob.url, { cache: "no-store" });
-    if (!response.ok) return loadLocalStore();
-
-    const body = await response.text();
+    const command = new GetObjectCommand({ Bucket: S3_BUCKET, Key: S3_KEY });
+    const response = await s3Client.send(command);
+    const body = await response.Body?.transformToString();
     if (!body) return loadLocalStore();
 
     const parsed = JSON.parse(body) as ReturnType<typeof emptyStore>;
@@ -539,20 +545,6 @@ async function loadBlobStore() {
 
     let produtos = Array.from(uniqueMap.values()).map(withProdutoDefaults);
     if (produtos.length === 0) produtos = initialProducts.map(withProdutoDefaults);
-
-    // Auto-ativação dos primeiros 30 se nenhum estiver ativo no Vercel Blob
-    const activeCount = produtos.filter((p: any) => p.ativoSite === true).length;
-    if (activeCount === 0 && produtos.length > 0) {
-      let count = 0;
-      for (let i = 0; i < produtos.length; i++) {
-        produtos[i].ativoSite = true;
-        count++;
-        if (count >= 30) break;
-      }
-      setTimeout(() => {
-        saveBlobStore().catch(console.error);
-      }, 100);
-    }
 
     return {
       rows: {
@@ -597,21 +589,24 @@ async function loadBlobStore() {
       },
     };
   } catch (error) {
-    console.error("Falha ao carregar do Vercel Blob, usando fallback local:", error);
+    console.error("Falha ao carregar do S3, usando fallback local:", error);
     return loadLocalStore();
   }
 }
 
-async function saveBlobStore() {
+async function saveS3Store() {
   if (!globalStore.memoryDb || !globalStore.memorySeq) return;
   try {
-    const dataStr = JSON.stringify({ rows: globalStore.memoryDb, seq: globalStore.memorySeq });
-    await put("store.json", dataStr, {
-      access: "public",
-      addRandomSuffix: false,
+    const content = JSON.stringify({ rows: globalStore.memoryDb, seq: globalStore.memorySeq });
+    const command = new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: S3_KEY,
+      Body: content,
+      ContentType: "application/json",
     });
+    await s3Client.send(command);
   } catch (error) {
-    console.error("Falha ao salvar no Vercel Blob, usando fallback local:", error);
+    console.error("Falha ao salvar no S3, usando fallback local:", error);
     saveLocalStore();
   }
 }
@@ -702,10 +697,10 @@ async function persistStore() {
     2
   );
 
-  if (!shouldUseBlob()) {
+  if (!shouldUseS3()) {
     saveLocalStore();
   } else {
-    await saveBlobStore();
+    await saveS3Store();
     globalStore.lastLoadedAt = Date.now();
   }
 
@@ -756,10 +751,10 @@ async function store() {
   const now = Date.now();
   const cacheDuration = 30000;
 
-  if (shouldUseBlob()) {
+  if (shouldUseS3()) {
     const cacheExpired = !globalStore.lastLoadedAt || (now - globalStore.lastLoadedAt > cacheDuration);
     if (!globalStore.memoryDb || cacheExpired) {
-      const loadedStore = await loadBlobStore();
+      const loadedStore = await loadS3Store();
       globalStore.memoryDb = loadedStore.rows;
       globalStore.memorySeq = loadedStore.seq;
       globalStore.storeLoaded = true;

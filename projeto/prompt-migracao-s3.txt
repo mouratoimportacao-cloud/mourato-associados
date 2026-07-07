@@ -1,0 +1,309 @@
+Contexto do Projeto
+Mourato & Associados — Plataforma de venda de perfumes/cosméticos com área de revendedores.
+URL: https://mouratoassociados.com.br
+Stack: Next.js 16 (App Router), TypeScript, Tailwind CSS 4, PostgreSQL (Neon) via pg, Prisma 7 (migrações), JWT + bcryptjs, Zod + React Hook Form, Vercel.
+
+PROBLEMA ATUAL: O Neon PostgreSQL estourou a cota de transferência de dados e está 100% bloqueado. O site não loga ninguém. Precisamos migrar a persistência para AWS S3.
+
+Key Insights Críticos
+- PRISMA CUSTOMIZADO: lib/prisma.ts é um ORM próprio em memória com fallback para Postgres via pg. Não usa Prisma Client real. O store inteiro é um JSON único gravado numa tabela mourato_store no Postgres.
+- ALIAS @/: Aponta para raiz ./. Componentes globais em ./components/.
+- SENHA ADMIN: 1307 para operações destrutivas.
+- LOGIN ADMIN: admin@mi.com / admin123
+
+Estado Atual do lib/prisma.ts
+- Usa pg (Pool) para conectar no Neon PostgreSQL
+- Grava/lê um JSON único na tabela mourato_store (coluna data JSONB)
+- cacheDuration atual: 1000ms (1 segundo) — CAUSA DO ESTOURO DE COTA
+- Tem fallback para arquivo local (.data/store.json) quando não há Postgres
+- Tem sync para GitHub em background (syncToGithub)
+- Funções a substituir: getPool(), loadPostgresStore(), savePostgresStore(), databaseUrl(), shouldUsePostgres()
+
+Estrutura do Projeto
+app/
+├── produtos/        # Catálogo público
+├── admin/           # Painel admin (JWT)
+│   ├── produtos/    # CRUD produtos
+│   ├── pedidos/     # Gestão pedidos
+│   ├── lojistas/    # Gestão revendedores
+│   ├── radar/       # Monitoramento
+│   ├── dre/         # Financeiro (DRE, empréstimos)
+│   └── configurar/  # Configurações
+├── lojista/         # Área do revendedor
+├── r/[codigo]/      # Links de referência
+└── components/      # Navbar, Footer, PWA
+lib/
+├── auth.ts
+├── jwt.ts
+├── prisma.ts        # ORM customizado (ARQUIVO A ALTERAR)
+├── financeiro.ts
+└── site-config.ts
+prisma/
+└── schema.prisma
+
+O QUE PRECISA SER FEITO — MIGRAÇÃO NEON → AWS S3
+
+FASE 1: Infraestrutura AWS (criar manualmente no Console antes de executar)
+
+1.1 — Criar Bucket S3:
+- Nome: mourato-associados-db
+- Região: sa-east-1 (São Paulo)
+- Bloquear todo acesso público: SIM
+- Versionamento: Ativado
+
+1.2 — Criar IAM User:
+- Nome: mourato-s3-app
+- Apenas acesso programático
+- Policy inline:
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::mourato-associados-db/*"
+    }
+  ]
+}
+- Gerar Access Key e Secret Access Key
+
+FASE 2: Instalar dependência
+
+npm install @aws-sdk/client-s3
+
+FASE 3: Alterar lib/prisma.ts
+
+REMOVER completamente:
+- Função getPool()
+- Função loadPostgresStore()
+- Função savePostgresStore()
+- Função databaseUrl()
+- Função shouldUsePostgres()
+- Campo pgPool do globalStore
+- Qualquer import ou referência a "pg"
+
+ADICIONAR no topo (após os imports existentes de node:fs e node:path):
+
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+
+const s3Client = new S3Client({
+  region: process.env.AWS_S3_REGION || "sa-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const S3_BUCKET = process.env.AWS_S3_BUCKET || "mourato-associados-db";
+const S3_KEY = "store.json";
+
+ADICIONAR função shouldUseS3 (substitui shouldUsePostgres):
+
+function shouldUseS3() {
+  return Boolean(process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID);
+}
+
+ADICIONAR função loadS3Store (substitui loadPostgresStore):
+
+async function loadS3Store() {
+  try {
+    const command = new GetObjectCommand({ Bucket: S3_BUCKET, Key: S3_KEY });
+    const response = await s3Client.send(command);
+    const body = await response.Body?.transformToString();
+    if (!body) return loadLocalStore();
+
+    const parsed = JSON.parse(body) as ReturnType<typeof emptyStore>;
+
+    const produtosSalvos = parsed.rows?.Produto ?? [];
+    const uniqueMap = new Map<number, any>();
+    produtosSalvos.forEach((p: any) => {
+      if (p && p.id) {
+        if (!uniqueMap.has(Number(p.id))) {
+          uniqueMap.set(Number(p.id), p);
+        }
+      }
+    });
+
+    let produtos = Array.from(uniqueMap.values()).map(withProdutoDefaults);
+    if (produtos.length === 0) {
+      produtos = initialProducts.map(withProdutoDefaults);
+    }
+
+    return {
+      rows: {
+        Produto: produtos,
+        Pedido: parsed.rows?.Pedido ?? [],
+        Usuario: parsed.rows?.Usuario ?? [],
+        Despesa: parsed.rows?.Despesa ?? [],
+        FechamentoMensal: parsed.rows?.FechamentoMensal ?? [],
+        Emprestimo: parsed.rows?.Emprestimo ?? [],
+        LancamentoFinanceiro: parsed.rows?.LancamentoFinanceiro ?? [],
+        FechamentoFinanceiro: parsed.rows?.FechamentoFinanceiro ?? [],
+        Lead: parsed.rows?.Lead ?? [],
+        PublicOrder: parsed.rows?.PublicOrder ?? [],
+        QrOrder: parsed.rows?.QrOrder ?? [],
+        RetailerPurchase: parsed.rows?.RetailerPurchase ?? [],
+        FinancialEntry: parsed.rows?.FinancialEntry ?? [],
+        SupplierStock: parsed.rows?.SupplierStock ?? [],
+        RetailerStock: parsed.rows?.RetailerStock ?? [],
+        Package: parsed.rows?.Package ?? [],
+      } as Record<TableName, MemoryRow[]>,
+      seq: {
+        Produto: Math.max(parsed.seq?.Produto ?? 0, ...produtos.map((produto) => Number(produto.id) || 0)),
+        Pedido: parsed.seq?.Pedido ?? 0,
+        Usuario: parsed.seq?.Usuario ?? 0,
+        Despesa: parsed.seq?.Despesa ?? 0,
+        FechamentoMensal: parsed.seq?.FechamentoMensal ?? 0,
+        Emprestimo: parsed.seq?.Emprestimo ?? 0,
+        LancamentoFinanceiro: parsed.seq?.LancamentoFinanceiro ?? 0,
+        FechamentoFinanceiro: parsed.seq?.FechamentoFinanceiro ?? 0,
+        Lead: parsed.seq?.Lead ?? 0,
+        PublicOrder: parsed.seq?.PublicOrder ?? 0,
+        QrOrder: parsed.seq?.QrOrder ?? 0,
+        RetailerPurchase: parsed.seq?.RetailerPurchase ?? 0,
+        FinancialEntry: parsed.seq?.FinancialEntry ?? 0,
+        SupplierStock: parsed.seq?.SupplierStock ?? 0,
+        RetailerStock: parsed.seq?.RetailerStock ?? 0,
+        Package: parsed.seq?.Package ?? 0,
+      },
+    };
+  } catch (error) {
+    console.error("Falha ao carregar do S3, usando fallback local:", error);
+    return loadLocalStore();
+  }
+}
+
+ADICIONAR função saveS3Store (substitui savePostgresStore):
+
+async function saveS3Store() {
+  if (!globalStore.memoryDb || !globalStore.memorySeq) return;
+
+  const content = JSON.stringify({
+    rows: globalStore.memoryDb,
+    seq: globalStore.memorySeq,
+  });
+
+  try {
+    const command = new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: S3_KEY,
+      Body: content,
+      ContentType: "application/json",
+    });
+    await s3Client.send(command);
+  } catch (error) {
+    console.error("Falha ao salvar no S3, usando fallback local:", error);
+    saveLocalStore();
+  }
+}
+
+ALTERAR na função store() — cacheDuration:
+- DE: const cacheDuration = 1000;
+- PARA: const cacheDuration = 30000;
+
+ALTERAR na função store() — referências:
+- DE: shouldUsePostgres() → PARA: shouldUseS3()
+- DE: loadPostgresStore() → PARA: loadS3Store()
+
+ALTERAR na função persistStore() — referências:
+- DE: shouldUsePostgres() → PARA: shouldUseS3()
+- DE: savePostgresStore() → PARA: saveS3Store()
+
+ALTERAR no globalStore type — remover pgPool, manter o resto.
+
+NÃO ALTERAR:
+- Toda a lógica de models (model(), insert(), update(), remove())
+- matchesWhere(), selectRow(), sortRows()
+- loadLocalStore(), saveLocalStore()
+- syncToGithub()
+- runTransaction()
+- Todos os types, columns, emptyStore, initialProducts
+- O export prisma com todos os models
+- Nenhum outro arquivo do projeto
+
+FASE 4: Criar script scripts/seed-s3.ts
+
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
+
+const s3Client = new S3Client({
+  region: process.env.AWS_S3_REGION || "sa-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
+
+async function main() {
+  const storePath = join(process.cwd(), ".data", "store.json");
+
+  if (!existsSync(storePath)) {
+    console.error("Arquivo .data/store.json não encontrado. Rode o app localmente primeiro.");
+    process.exit(1);
+  }
+
+  const content = readFileSync(storePath, "utf8");
+  const bucket = process.env.AWS_S3_BUCKET || "mourato-associados-db";
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: "store.json",
+    Body: content,
+    ContentType: "application/json",
+  });
+
+  await s3Client.send(command);
+  console.log(`Store enviado para s3://${bucket}/store.json com sucesso!`);
+}
+
+main().catch((e) => {
+  console.error("Erro:", e);
+  process.exit(1);
+});
+
+FASE 5: Atualizar .env.local
+
+Remover todas as variáveis do Neon (DATABASE_URL, POSTGRES_URL, PGHOST, etc).
+Adicionar:
+AWS_S3_BUCKET=mourato-associados-db
+AWS_S3_REGION=sa-east-1
+AWS_ACCESS_KEY_ID=<access_key_gerada_na_fase_1>
+AWS_SECRET_ACCESS_KEY=<secret_key_gerada_na_fase_1>
+
+Manter as outras variáveis existentes (MERCADO_PAGO_PUBLIC_KEY, MERCADO_PAGO_ACCESS_TOKEN, NEXT_PUBLIC_SITE_URL).
+
+FASE 6: Configurar Vercel
+
+No painel da Vercel (Settings → Environment Variables), adicionar:
+- AWS_S3_BUCKET = mourato-associados-db
+- AWS_S3_REGION = sa-east-1
+- AWS_ACCESS_KEY_ID = <access_key_gerada>
+- AWS_SECRET_ACCESS_KEY = <secret_key_gerada>
+
+FASE 7: Seed e Deploy
+
+# Seed do store para o S3
+npx tsx scripts/seed-s3.ts
+
+# Build para validar
+npm run build
+
+# Push para deploy
+git add -A
+git commit -m "feat: migrar persistência de Neon PostgreSQL para AWS S3 + cache 30s"
+git push origin main
+
+FASE 8: Validação pós-deploy
+
+- Acessar https://mouratoassociados.com.br/login
+- Login com admin@mi.com / admin123
+- Criar uma despesa no /admin/dre
+- Verificar no S3 Console que o store.json foi atualizado
+- Cadastrar um lojista e testar login do lojista
+
+RESUMO DE ARQUIVOS ALTERADOS:
+- lib/prisma.ts — Substituir Postgres por S3, cache 30s
+- scripts/seed-s3.ts — Criar (novo)
+- .env.local — Atualizar variáveis
+- package.json — Nova dependência @aws-sdk/client-s3
