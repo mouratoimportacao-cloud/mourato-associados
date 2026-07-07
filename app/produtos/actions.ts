@@ -273,7 +273,7 @@ export async function registrarIntencaoCompraCarrinho(
         `📍 ${clienteInfo?.cidade || "-"}/${clienteInfo?.estado || "-"}`
       );
       try {
-        await fetch(`https://api.callmebot.com/whatsapp.php?phone=5519988212747&text=${waMensagem}&apikey=7267550`, {
+        await fetch(`https://api.callmebot.com/whatsapp.php?phone=5511978990034&text=${waMensagem}&apikey=3748355`, {
           method: "GET",
           signal: AbortSignal.timeout(5000),
         }).catch(() => {});

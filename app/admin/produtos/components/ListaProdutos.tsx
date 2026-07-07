@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteProduto, toggleAtivoSite, toggleVitrine } from "../actions";
+import { deleteProduto, toggleAtivoSite, batchToggleVitrine, batchToggleAtivoSite } from "../actions";
 import { Fragment, useMemo, useState, useTransition } from "react";
 import FiltrosProdutos from "../../../components/FiltrosProdutos";
 import OptimizedImage from "../../../components/OptimizedImage";
@@ -46,6 +46,7 @@ interface Produto {
 interface ListaProdutosProps {
   produtos: Produto[];
   onEditProduct: (produto: Produto) => void;
+  onEntradaEstoque?: (produto: Produto) => void;
   pendentePorProduto?: Record<number, { qtd: number; saldo: number; lojistas: string[] }>;
 }
 
@@ -56,10 +57,13 @@ const normalizarBusca = (valor: unknown) =>
     .toLowerCase()
     .trim();
 
-export default function ListaProdutos({ produtos, onEditProduct, pendentePorProduto }: ListaProdutosProps) {
+export default function ListaProdutos({ produtos, onEditProduct, onEntradaEstoque, pendentePorProduto }: ListaProdutosProps) {
   const [isPending, startTransition] = useTransition();
   const [busca, setBusca] = useState("");
+  const [buscaFocada, setBuscaFocada] = useState(false);
   const [marcaSelecionada, setMarcaSelecionada] = useState("todos");
+  const [ordenacao, setOrdenacao] = useState<"codigo" | "nome" | "estoque" | "preco">("codigo");
+  const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
   const [filtros, setFiltros] = useState<any>({
     origem: "todos",
     genero: "todos",
@@ -69,6 +73,22 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
     familiaOlfativa: [],
     ocasiaoUso: []
   });
+
+  const toggleSelecionado = (id: number) => {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleTodos = () => {
+    if (selecionados.size === produtosFiltrados.length) {
+      setSelecionados(new Set());
+    } else {
+      setSelecionados(new Set(produtosFiltrados.map(p => p.id)));
+    }
+  };
 
   const moeda = (valor: number | null | undefined) =>
     valor ? `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Consultar";
@@ -104,7 +124,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
   const produtosFiltrados = useMemo(() => {
     const termo = normalizarBusca(busca);
 
-    return produtos.filter((produto) => {
+    const filtered = produtos.filter((produto) => {
       if (marcaSelecionada !== "todos" && normalizarBusca(produto.marca || "Sem marca") !== marcaSelecionada) {
         return false;
       }
@@ -169,7 +189,18 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
       
       return true;
     });
-  }, [produtos, filtros, busca, marcaSelecionada]);
+
+    // Ordenar
+    return filtered.sort((a, b) => {
+      switch (ordenacao) {
+        case "codigo": return (a.codigo ?? a.id) - (b.codigo ?? b.id);
+        case "nome": return a.nome.localeCompare(b.nome, "pt-BR");
+        case "estoque": return b.estoque - a.estoque;
+        case "preco": return (b.preco ?? 0) - (a.preco ?? 0);
+        default: return 0;
+      }
+    });
+  }, [produtos, filtros, busca, marcaSelecionada, ordenacao]);
 
   const produtosPorMarca = useMemo(() => {
     const grupos = new Map<string, Produto[]>();
@@ -203,17 +234,65 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-sm font-bold text-gray-800 font-sans">Filtro de produtos</h3>
-            <p className="text-xs text-gray-500 font-sans">Mostrando {produtosFiltrados.length} de {produtos.length} produtos</p>
+            <p className="text-xs text-gray-500 font-sans">Mostrando {produtosFiltrados.length} de {produtos.length} produtos{selecionados.size > 0 && ` · ${selecionados.size} selecionado(s)`}</p>
           </div>
+          {selecionados.size > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => startTransition(async () => { await batchToggleVitrine([...selecionados], true); setSelecionados(new Set()); })}
+                disabled={isPending}
+                className="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-amber-200 disabled:opacity-50"
+              >
+                Carrossel ✓
+              </button>
+              <button
+                type="button"
+                onClick={() => startTransition(async () => { await batchToggleVitrine([...selecionados], false); setSelecionados(new Set()); })}
+                disabled={isPending}
+                className="bg-gray-100 text-gray-600 border border-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-200 disabled:opacity-50"
+              >
+                Carrossel ✗
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelecionados(new Set())}
+                className="text-gray-500 px-2 py-1.5 text-[10px] font-bold uppercase tracking-widest hover:text-gray-800"
+              >
+                Limpar
+              </button>
+            </div>
+          )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_14rem_auto] gap-3 items-center">
-          <input
-            type="search"
-            value={busca}
-            onChange={(event) => setBusca(event.target.value)}
-            placeholder="Buscar por nome, marca ou código"
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_10rem_10rem_auto] gap-3 items-center">
+          <div className="relative">
+            <input
+              type="search"
+              value={busca}
+              onChange={(event) => setBusca(event.target.value)}
+              onFocus={() => setBuscaFocada(true)}
+              onBlur={() => setTimeout(() => setBuscaFocada(false), 200)}
+              placeholder="Buscar por nome, marca ou código"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+            />
+            {buscaFocada && busca.trim() && onEntradaEstoque && produtosFiltrados.length > 0 && produtosFiltrados.length <= 8 && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-56 overflow-y-auto divide-y">
+                {produtosFiltrados.slice(0, 6).map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); onEntradaEstoque(p); setBusca(""); }}
+                    className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors cursor-pointer"
+                  >
+                    <span className="text-[10px] font-bold text-gray-400">#{p.codigo ?? p.id}</span>{" "}
+                    <span className="text-xs font-semibold text-gray-800">{p.nome}</span>
+                    <span className="text-[10px] text-gray-500 ml-1">{p.marca} · Est: {p.estoque}</span>
+                  </button>
+                ))}
+                <div className="px-3 py-1.5 text-[9px] text-gray-400 uppercase tracking-wider bg-gray-50">Clique para entrada de estoque</div>
+              </div>
+            )}
+          </div>
           <select
             value={marcaSelecionada}
             onChange={(event) => setMarcaSelecionada(event.target.value)}
@@ -225,6 +304,16 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                 {marca.nome} ({marca.total})
               </option>
             ))}
+          </select>
+          <select
+            value={ordenacao}
+            onChange={(event) => setOrdenacao(event.target.value as any)}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+          >
+            <option value="codigo">Ordenar: #Código</option>
+            <option value="nome">Ordenar: Nome A-Z</option>
+            <option value="estoque">Ordenar: Maior Estoque</option>
+            <option value="preco">Ordenar: Maior Preço</option>
           </select>
           {(busca || marcaSelecionada !== "todos") && (
             <button
@@ -245,6 +334,14 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
         <table className="w-full table-fixed divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
             <tr>
+              <th style={{ width: "2.5rem" }} className="px-2 py-1.5 text-center">
+                <input
+                  type="checkbox"
+                  checked={selecionados.size === produtosFiltrados.length && produtosFiltrados.length > 0}
+                  onChange={toggleTodos}
+                  className="rounded border-gray-300 cursor-pointer"
+                />
+              </th>
               <th style={{ width: "var(--admin-col-prod-nome)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Produto</th>
               <th style={{ width: "var(--admin-col-prod-cat)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Categoria</th>
               <th style={{ width: "var(--admin-col-prod-est)" }} className="px-2 py-1.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Estoque</th>
@@ -256,6 +353,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
             {produtosPorMarca.map(([marca, produtosDaMarca]) => (
               <Fragment key={marca}>
                 <tr className="bg-gray-100/80">
+                  <td></td>
                   <td colSpan={5} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-600">
                     {marca} · {produtosDaMarca.length} {produtosDaMarca.length === 1 ? "produto" : "produtos"}
                   </td>
@@ -265,23 +363,17 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
                   const totalEstoque = custoReal * (produto.estoque || 0);
 
                   return (
-              <tr key={produto.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={produto.id} className={`hover:bg-gray-50 transition-colors ${selecionados.has(produto.id) ? 'bg-amber-50/50' : ''}`}>
+                <td className="px-2 py-1.5 text-center">
+                  <input
+                    type="checkbox"
+                    checked={selecionados.has(produto.id)}
+                    onChange={() => toggleSelecionado(produto.id)}
+                    className="rounded border-gray-300 cursor-pointer"
+                  />
+                </td>
                 <td className="px-2 py-1.5 min-w-0">
                   <div className="flex items-center min-w-0">
-                    <button
-                      type="button"
-                      title={produto.vitrine ? "Remover da vitrine" : "Adicionar à vitrine"}
-                      aria-label={produto.vitrine ? "Remover da vitrine" : "Adicionar à vitrine"}
-                      onClick={() => startTransition(async () => { await toggleVitrine(produto.id, !produto.vitrine); })}
-                      disabled={isPending}
-                      className={`w-6 h-6 rounded-full border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 mr-2 text-sm leading-none ${
-                        produto.vitrine
-                          ? "bg-red-50 border-red-300 text-red-500 shadow-[0_0_4px_rgba(239,68,68,0.25)]"
-                          : "bg-white border-gray-300 text-gray-300 hover:border-red-300 hover:text-red-400"
-                      }`}
-                    >
-                      ♥
-                    </button>
                     <div className="relative h-8 w-8 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-gray-200">
                       <OptimizedImage
                         src={produto.imagem}
@@ -406,6 +498,7 @@ export default function ListaProdutos({ produtos, onEditProduct, pendentePorProd
             ))}
             {produtosFiltrados.length === 0 && (
               <tr>
+                <td></td>
                 <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500 italic">
                   Nenhum produto encontrado para este filtro.
                 </td>

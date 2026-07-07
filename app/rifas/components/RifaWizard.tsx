@@ -96,14 +96,22 @@ export default function RifaWizard({
   } | null>(null);
 
   // Validations
-  const isFormValid = nome.trim() !== "" && telefone.trim() !== "" && usernameInsta.trim() !== "";
+  const nomeValido = nome.trim().split(/\s+/).length >= 2 && nome.trim().length >= 5;
+  const telefoneValido = telefone.replace(/\D/g, "").length === 11;
+  const instaValido = /^@[a-zA-Z0-9._]{2,30}$/.test(usernameInsta.trim());
+  const isFormValid = nomeValido && telefoneValido && instaValido;
   const isSocialsClicked = clickedInsta && clickedFace;
 
   const handleNextStep = () => {
-    if (isFormValid) {
-      setStep(2);
+    if (!nomeValido) {
+      setErrorMsg("Informe seu nome completo (nome e sobrenome).");
+    } else if (!telefoneValido) {
+      setErrorMsg("Telefone inválido. Use o formato (XX) XXXXX-XXXX.");
+    } else if (!instaValido) {
+      setErrorMsg("Instagram inválido. Use o formato @seu_perfil (sem espaços).");
     } else {
-      setErrorMsg("Preencha todos os campos obrigatórios.");
+      setErrorMsg("");
+      setStep(2);
     }
   };
 
@@ -239,7 +247,11 @@ export default function RifaWizard({
                 type="text"
                 required
                 value={usernameInsta}
-                onChange={(e) => setUsernameInsta(e.target.value)}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\s/g, "");
+                  if (val && !val.startsWith("@")) val = "@" + val;
+                  setUsernameInsta(val);
+                }}
                 placeholder="@seu_perfil"
                 className="w-full bg-zinc-950/80 border border-gold/15 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold placeholder-zinc-600 text-white"
               />

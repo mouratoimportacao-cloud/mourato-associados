@@ -375,52 +375,21 @@ export async function deletePedido(
   }
 
   try {
-    // Retornar estoque ao fornecedor se o pedido deletado for de fluxoFornecedor ou fluxoSite e estiver ativo (não cancelado)
-    if (pedido && pedido.status !== "cancelado" && pedido.produtoId && pedido.quantidade) {
-      const fluxoFornecedor =
-        String(pedido.tipoFluxo || "") === "compra_fornecedor" ||
-        String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
-        String(pedido.pagamento || "").includes("Compra do fornecedor") ||
-        pedido.status === "pendente fornecedor";
+    await prisma.$transaction(async (tx: any) => {
+      if (pedido && pedido.status !== "cancelado" && pedido.produtoId && pedido.quantidade) {
+        const fluxoFornecedor =
+          String(pedido.tipoFluxo || "") === "compra_fornecedor" ||
+          String(pedido.pagamento || "").includes("Pedido ao fornecedor") ||
+          String(pedido.pagamento || "").includes("Compra do fornecedor") ||
+          pedido.status === "pendente fornecedor";
 
-      const fluxoSite =
-        String(pedido.tipoFluxo || "") === "intencao_site";
+        const fluxoSite =
+          String(pedido.tipoFluxo || "") === "intencao_site";
 
-      if (fluxoFornecedor) {
-        const produto = await prisma.produto.findUnique({ where: { id: pedido.produtoId } });
-        if (produto) {
-          await prisma.produto.update({
-            where: { id: produto.id },
-            data: {
-              estoque: Number(produto.estoque || 0) + Number(pedido.quantidade),
-              estoqueLojista: Number(produto.estoqueLojista || 0) + Number(pedido.quantidade),
-            },
-          });
-        }
-
-        // Se o estoque pessoal do lojista já tinha sido creditado, estorna
-        const jaCreditado = String(pedido.observacao || "").includes("[ESTOQUE_LOJISTA_CREDITADO]");
-        if (jaCreditado && pedido.usuarioId) {
-          const lojista = await prisma.usuario.findUnique({ where: { id: pedido.usuarioId } });
-          if (lojista) {
-            const estoquePessoal = {
-              ...(lojista.estoquePessoal || {}),
-            } as Record<string, number>;
-            const chave = String(pedido.produtoId);
-            estoquePessoal[chave] = Math.max(0, Number(estoquePessoal[chave] || 0) - Number(pedido.quantidade));
-            await prisma.usuario.update({
-              where: { id: lojista.id },
-              data: { estoquePessoal },
-            });
-          }
-        }
-      } else if (fluxoSite) {
-        // Se o estoque global do ADM já tinha sido debitado, estorna
-        const jaDebitadoAdm = String(pedido.observacao || "").includes("[ESTOQUE_ADM_DEBITADO]");
-        if (jaDebitadoAdm) {
-          const produto = await prisma.produto.findUnique({ where: { id: pedido.produtoId } });
+        if (fluxoFornecedor) {
+          const produto = await tx.produto.findUnique({ where: { id: pedido.produtoId } });
           if (produto) {
-            await prisma.produto.update({
+            await tx.produto.update({
               where: { id: produto.id },
               data: {
                 estoque: Number(produto.estoque || 0) + Number(pedido.quantidade),
@@ -428,11 +397,37 @@ export async function deletePedido(
               },
             });
           }
+
+          const jaCreditado = String(pedido.observacao || "").includes("[ESTOQUE_LOJISTA_CREDITADO]");
+          if (jaCreditado && pedido.usuarioId) {
+            const lojista = await tx.usuario.findUnique({ where: { id: pedido.usuarioId } });
+            if (lojista) {
+              const estoquePessoal = { ...(lojista.estoquePessoal || {}) } as Record<string, number>;
+              const chave = String(pedido.produtoId);
+              estoquePessoal[chave] = Math.max(0, Number(estoquePessoal[chave] || 0) - Number(pedido.quantidade));
+              await tx.usuario.update({ where: { id: lojista.id }, data: { estoquePessoal } });
+            }
+          }
+        } else if (fluxoSite) {
+          const jaDebitadoAdm = String(pedido.observacao || "").includes("[ESTOQUE_ADM_DEBITADO]");
+          if (jaDebitadoAdm) {
+            const produto = await tx.produto.findUnique({ where: { id: pedido.produtoId } });
+            if (produto) {
+              await tx.produto.update({
+                where: { id: produto.id },
+                data: {
+                  estoque: Number(produto.estoque || 0) + Number(pedido.quantidade),
+                  estoqueLojista: Number(produto.estoqueLojista || 0) + Number(pedido.quantidade),
+                },
+              });
+            }
+          }
         }
       }
-    }
 
-    await prisma.pedido.delete({ where: { id: pedidoId } });
+      await tx.pedido.delete({ where: { id: pedidoId } });
+    });
+
     try {
       revalidatePath("/admin");
       revalidatePath("/admin/pedidos");

@@ -723,6 +723,20 @@ export async function toggleAtivoSite(id: number, ativoSite: boolean) {
       data: { ativoSite },
     });
 
+    // Garante máximo 30 ativos — desativa os excedentes (maior código)
+    if (ativoSite) {
+      const todos = await prisma.produto.findMany();
+      const ativos = todos
+        .filter((p: any) => p.ativoSite === true)
+        .sort((a: any, b: any) => (a.codigo ?? a.id) - (b.codigo ?? b.id));
+      if (ativos.length > 30) {
+        const excedentes = ativos.slice(30);
+        for (const p of excedentes) {
+          await prisma.produto.update({ where: { id: p.id }, data: { ativoSite: false } });
+        }
+      }
+    }
+
     revalidatePath("/admin/produtos");
     revalidatePath("/produtos");
     revalidatePath("/");
@@ -730,5 +744,50 @@ export async function toggleAtivoSite(id: number, ativoSite: boolean) {
   } catch (error) {
     console.error("Erro ao alterar status do produto no site:", error);
     return { success: false, error: "Erro ao alterar status do produto no site" };
+  }
+}
+
+export async function batchToggleVitrine(ids: number[], vitrine: boolean) {
+  try {
+    for (const id of ids) {
+      await prisma.produto.update({ where: { id }, data: { vitrine } });
+    }
+    revalidatePath("/admin/produtos");
+    revalidatePath("/produtos");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao alterar vitrine em lote:", error);
+    return { success: false, error: "Erro ao alterar vitrine em lote" };
+  }
+}
+
+export async function batchToggleAtivoSite(ids: number[], ativoSite: boolean) {
+  try {
+    for (const id of ids) {
+      await prisma.produto.update({ where: { id }, data: { ativoSite } });
+    }
+
+    // Garante máximo 30 ativos
+    if (ativoSite) {
+      const todos = await prisma.produto.findMany();
+      const ativos = todos
+        .filter((p: any) => p.ativoSite === true)
+        .sort((a: any, b: any) => (a.codigo ?? a.id) - (b.codigo ?? b.id));
+      if (ativos.length > 30) {
+        const excedentes = ativos.slice(30);
+        for (const p of excedentes) {
+          await prisma.produto.update({ where: { id: p.id }, data: { ativoSite: false } });
+        }
+      }
+    }
+
+    revalidatePath("/admin/produtos");
+    revalidatePath("/produtos");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao alterar status em lote:", error);
+    return { success: false, error: "Erro ao alterar status em lote" };
   }
 }

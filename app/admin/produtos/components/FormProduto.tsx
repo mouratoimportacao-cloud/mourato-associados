@@ -96,17 +96,32 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 interface FormProdutoProps {
   editingProduto: Produto | null;
   onCancelEdit: () => void;
+  todosProdutos?: any[];
 }
 
 const tagOptions = [
   "Perfume Árabe", "Importado", "Feminino", "Masculino", "Unissex"
 ];
 
-export default function FormProduto({ editingProduto, onCancelEdit }: FormProdutoProps) {
+export default function FormProduto({ editingProduto, onCancelEdit, todosProdutos = [] }: FormProdutoProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [fileError, setFileError] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [nomeBusca, setNomeBusca] = useState(editingProduto?.nome || "");
+  const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(editingProduto);
+  const [buscaAberta, setBuscaAberta] = useState(false);
   const maxImageSize = 8 * 1024 * 1024;
+
+  const sugestoes = !editingProduto && nomeBusca.trim().length >= 2 && !produtoSelecionado
+    ? todosProdutos.filter((p: any) => {
+        const termo = nomeBusca.trim().toLowerCase();
+        return (
+          String(p.codigo ?? p.id) === termo ||
+          p.nome.toLowerCase().includes(termo) ||
+          p.marca.toLowerCase().includes(termo)
+        );
+      }).slice(0, 6)
+    : [];
 
   const getArrayValue = (val: any): string[] => {
     if (!val) return [];
@@ -147,13 +162,17 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
       let result;
       if (editingProduto) {
         result = await updateProduto(editingProduto.id, formData);
+      } else if (produtoSelecionado) {
+        result = await updateProduto(produtoSelecionado.id, formData);
       } else {
         result = await createProduto(formData);
       }
 
       if (result.success) {
-        alert(editingProduto ? "Produto atualizado com sucesso." : "Produto cadastrado com sucesso.");
+        alert(editingProduto || produtoSelecionado ? "Produto atualizado com sucesso." : "Produto cadastrado com sucesso.");
         formRef.current?.reset();
+        setNomeBusca("");
+        setProdutoSelecionado(null);
         onCancelEdit();
       } else {
         alert(result.error);
@@ -196,16 +215,41 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* NOME */}
-          <div className="space-y-1">
+          <div className="space-y-1 relative">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Nome do Produto</label>
             <input
               name="nome"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.nome || ""}
+              value={nomeBusca}
+              onChange={(e) => { setNomeBusca(e.target.value); setProdutoSelecionado(null); setBuscaAberta(true); }}
+              onFocus={() => setBuscaAberta(true)}
+              onBlur={() => setTimeout(() => setBuscaAberta(false), 200)}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white"
-              placeholder="Ex: 212 VIP Rose"
+              placeholder="Digite para buscar produto existente ou cadastrar novo"
             />
+            {buscaAberta && sugestoes.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl max-h-52 overflow-y-auto divide-y divide-zinc-800">
+                {sugestoes.map((p: any) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setProdutoSelecionado(p);
+                      setNomeBusca(p.nome);
+                      setBuscaAberta(false);
+                    }}
+                    className="w-full text-left px-3 py-2.5 hover:bg-gold/10 transition-colors cursor-pointer"
+                  >
+                    <span className="text-[10px] font-bold text-gold">#{p.codigo ?? p.id}</span>{" "}
+                    <span className="text-sm font-semibold text-white">{p.nome}</span>
+                    <span className="text-[10px] text-zinc-500 ml-2">{p.marca} · {p.volume} · Est: {p.estoque}</span>
+                  </button>
+                ))}
+                <div className="px-3 py-1.5 text-[9px] text-zinc-500 uppercase tracking-wider bg-zinc-950">Clique para carregar dados e adicionar estoque</div>
+              </div>
+            )}
           </div>
 
           {/* MARCA */}
@@ -215,7 +259,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               name="marca"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.marca || ""}
+              key={`marca-${produtoSelecionado?.id || editingProduto?.id || 'new'}`}
+              defaultValue={produtoSelecionado?.marca || editingProduto?.marca || ""}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white"
               placeholder="Ex: Carolina Herrera"
             />
@@ -228,7 +273,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               name="categoria_principal"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.categoria_principal || editingProduto?.categoria || "Perfume"}
+              key={`cat-${produtoSelecionado?.id || editingProduto?.id || 'new'}`}
+              defaultValue={produtoSelecionado?.categoria_principal || produtoSelecionado?.categoria || editingProduto?.categoria_principal || editingProduto?.categoria || "Perfume"}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border bg-neutral-900 transition-all text-sm text-white"
             >
               <option value="Perfume">Perfume</option>
@@ -245,7 +291,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               name="volume"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.volume || ""}
+              key={`vol-${produtoSelecionado?.id || editingProduto?.id || 'new'}`}
+              defaultValue={produtoSelecionado?.volume || editingProduto?.volume || ""}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white"
               placeholder="Ex: 100ml"
             />
@@ -368,7 +415,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               step="0.01"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.preco || ""}
+              key={`preco-${produtoSelecionado?.id || editingProduto?.id || 'new'}`}
+              defaultValue={produtoSelecionado?.preco || editingProduto?.preco || ""}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white"
               placeholder="0.00"
             />
@@ -383,7 +431,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               step="0.01"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.precoAtacado || ""}
+              key={`atacado-${produtoSelecionado?.id || editingProduto?.id || 'new'}`}
+              defaultValue={produtoSelecionado?.precoAtacado || editingProduto?.precoAtacado || ""}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white"
               placeholder="0.00"
             />
@@ -391,16 +440,23 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
 
           {/* ESTOQUE GERAL */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Estoque Geral</label>
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              {produtoSelecionado ? `Estoque (atual: ${produtoSelecionado.estoque}) — digite o total` : "Estoque Geral"}
+            </label>
             <input
               name="estoque"
               type="number"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.estoque ?? ""}
-              className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white"
+              key={`est-${produtoSelecionado?.id || editingProduto?.id || 'new'}`}
+              defaultValue={produtoSelecionado?.estoque ?? editingProduto?.estoque ?? ""}
+              className={`w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white ${produtoSelecionado ? 'ring-2 ring-gold/50 border-gold/30' : ''}`}
               placeholder="0"
+              autoFocus={!!produtoSelecionado}
             />
+            {produtoSelecionado && (
+              <p className="text-[10px] text-gold">Produto encontrado! Ajuste a quantidade acima.</p>
+            )}
           </div>
 
           {/* ESTOQUE LOJISTA */}
@@ -411,7 +467,8 @@ export default function FormProduto({ editingProduto, onCancelEdit }: FormProdut
               type="number"
               required
               disabled={isPending}
-              defaultValue={editingProduto?.estoqueLojista ?? ""}
+              key={`estL-${produtoSelecionado?.id || editingProduto?.id || 'new'}`}
+              defaultValue={produtoSelecionado?.estoqueLojista ?? editingProduto?.estoqueLojista ?? ""}
               className="w-full rounded-lg border-zinc-800 shadow-sm focus:ring-2 focus:ring-gold focus:border-gold p-2.5 border transition-all text-sm bg-neutral-900 text-white"
               placeholder="0"
             />

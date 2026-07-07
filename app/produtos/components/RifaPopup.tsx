@@ -17,17 +17,10 @@ export default function RifaPopup({ rifa }: { rifa: Rifa }) {
 
   const handleClose = () => {
     setShow(false);
-    sessionStorage.setItem(`rifa_popup_${rifa.id}`, "1");
   };
 
   useEffect(() => {
-    const key = `rifa_popup_${rifa.id}`;
-    if (sessionStorage.getItem(key)) return;
-
-    const timer = setTimeout(() => {
-      setShow(true);
-    }, 500); // Abre mais rápido (500ms) ao entrar
-
+    const timer = setTimeout(() => setShow(true), 500);
     return () => clearTimeout(timer);
   }, [rifa.id]);
 

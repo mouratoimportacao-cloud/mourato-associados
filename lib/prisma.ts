@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_S3_REGION || "sa-east-1",
+  region: process.env.AWS_S3_REGION || "us-east-1",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
@@ -701,7 +701,9 @@ async function persistStore() {
     saveLocalStore();
   } else {
     await saveS3Store();
-    globalStore.lastLoadedAt = Date.now();
+    // Invalidate cache so next read fetches fresh data from S3
+    // This handles multi-instance serverless environments (Vercel)
+    globalStore.lastLoadedAt = 0;
   }
 
   // Sincroniza em background sem travar o request do cliente
@@ -724,7 +726,8 @@ async function runTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> 
   const seqBackup = structuredClone(globalStore.memorySeq);
   globalStore.transactionDepth = (globalStore.transactionDepth || 0) + 1;
   globalStore.transactionDirty = false;
-  globalStore.lastLoadedAt = Date.now();
+  // Prevent cache expiry during transaction (use far-future timestamp)
+  globalStore.lastLoadedAt = Date.now() + 600000;
 
   try {
     const result = await callback(prisma);

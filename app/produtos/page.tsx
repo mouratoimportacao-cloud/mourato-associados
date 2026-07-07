@@ -22,9 +22,11 @@ export default async function ProdutosPage() {
     where: { status: "ATIVO" },
     orderBy: { id: "desc" },
   });
-  // Somente produtos ativos no site
+  // Somente produtos ativos no site — primeiros 30 por código
   const produtosPublicos = produtos
-    .filter((produto: any) => produto.ativoSite !== false);
+    .filter((produto: any) => produto.ativoSite === true)
+    .sort((a: any, b: any) => (a.codigo ?? a.id) - (b.codigo ?? b.id))
+    .slice(0, 30);
 
   return (
     <div className="flex flex-col min-h-screen max-w-full overflow-x-hidden">

@@ -27,8 +27,14 @@ export async function registrarParticipante(formData: FormData) {
   const usernameFace = String(formData.get("usernameFace") || "").trim();
 
   if (!rifaId) return { success: false, error: "Campanha de rifa inválida." };
-  if (!nome || !telefone || !usernameInsta) {
-    return { success: false, error: "Nome, WhatsApp e usuário do Instagram são obrigatórios." };
+  if (!nome || nome.split(/\s+/).length < 2 || nome.length < 5) {
+    return { success: false, error: "Informe seu nome completo (nome e sobrenome)." };
+  }
+  if (telefone.replace(/\D/g, "").length !== 11) {
+    return { success: false, error: "Telefone inválido. Use DDD + 9 dígitos." };
+  }
+  if (!/^@[a-zA-Z0-9._]{2,30}$/.test(usernameInsta)) {
+    return { success: false, error: "Instagram inválido. Use o formato @seu_perfil." };
   }
 
   try {
