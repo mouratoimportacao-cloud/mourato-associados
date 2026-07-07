@@ -22,10 +22,12 @@ export default async function ProdutosPage() {
     where: { status: "ATIVO" },
     orderBy: { id: "desc" },
   });
-  // Primeiros 30 produtos por código (#1 em diante)
-  const produtosPublicos = produtos
-    .sort((a: any, b: any) => (a.codigo ?? a.id) - (b.codigo ?? b.id))
-    .slice(0, 30);
+  // Primeiros 30 por código + produtos com vitrine=true que não estejam nos 30
+  const ordenados = produtos.sort((a: any, b: any) => (a.codigo ?? a.id) - (b.codigo ?? b.id));
+  const primeiros30 = ordenados.slice(0, 30);
+  const ids30 = new Set(primeiros30.map((p: any) => p.id));
+  const vitrineExtra = ordenados.filter((p: any) => p.vitrine === true && !ids30.has(p.id));
+  const produtosPublicos = [...primeiros30, ...vitrineExtra];
 
   return (
     <div className="flex flex-col min-h-screen max-w-full overflow-x-hidden">
