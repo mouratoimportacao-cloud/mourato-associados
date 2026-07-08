@@ -650,6 +650,7 @@ export default function GerenciadorRifas({
                                   ? "AGUARDANDO"
                                   : bilhete.statusPagto}
                               </span>
+                              <p className="text-[10px] font-bold text-gray-700 mt-1">{bilhete.nome}</p>
                             </td>
                             <td className="px-6 py-4 text-right space-x-2">
                               {bilhete.statusPagto === "AGUARDANDO_PAGAMENTO" && (
