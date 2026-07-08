@@ -346,7 +346,7 @@ export default function RifaWizard({
         <div className="relative space-y-6 text-center">
           <a
             href="/produtos"
-            className="absolute top-0 right-0 text-zinc-500 hover:text-white transition-colors text-lg leading-none"
+            className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-900 border border-gold/20 text-zinc-400 hover:text-gold hover:border-gold/50 transition-all text-sm"
             aria-label="Fechar"
           >
             ✕
