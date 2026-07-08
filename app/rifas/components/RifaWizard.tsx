@@ -343,7 +343,14 @@ export default function RifaWizard({
 
       {/* ETAPA 3: BILHETE E PAGAMENTO */}
       {step === 3 && generatedTicket && (
-        <div className="space-y-6 text-center">
+        <div className="relative space-y-6 text-center">
+          <a
+            href="/produtos"
+            className="absolute top-0 right-0 text-zinc-500 hover:text-white transition-colors text-lg leading-none"
+            aria-label="Fechar"
+          >
+            ✕
+          </a>
           <div className="space-y-2">
             <span className="text-4xl">🎟️✨</span>
             <h3 className="text-xl font-serif font-black tracking-tight text-white">
@@ -417,15 +424,7 @@ export default function RifaWizard({
                 </div>
               </div>
 
-              <div className="bg-zinc-950/50 p-4 rounded-xl border border-gold/10 space-y-2 text-center">
-                <p className="text-[11px] text-zinc-400">
-                  ⚠️ <strong>Atenção:</strong> Seu bilhete ficará com o status{" "}
-                  <span className="text-gold font-bold">AGUARDANDO PAGAMENTO</span> até que o administrador confirme o recebimento do Pix.
-                </p>
-                <p className="text-[11px] text-zinc-400">
-                  Fique atento ao seu WhatsApp, enviaremos atualizações por lá!
-                </p>
-              </div>
+
             </div>
           ) : (
             <div className="bg-green-950/20 border border-green-500/30 rounded-2xl p-6 space-y-3">
@@ -440,21 +439,12 @@ export default function RifaWizard({
           )}
 
           <div className="pt-4">
-            <button
-              onClick={() => {
-                setStep(1);
-                setNome("");
-                setTelefone("");
-                setUsernameInsta("");
-                setUsernameFace("");
-                setClickedInsta(false);
-                setClickedFace(false);
-                setGeneratedTicket(null);
-              }}
-              className="bg-zinc-950 text-gold border border-gold/20 hover:bg-gold/10 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-xl cursor-pointer transition-colors"
+            <a
+              href="/produtos"
+              className="inline-block bg-zinc-950 text-gold border border-gold/20 hover:bg-gold/10 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-xl cursor-pointer transition-colors"
             >
-              Participar Novamente
-            </button>
+              Finalizar
+            </a>
           </div>
         </div>
       )}
