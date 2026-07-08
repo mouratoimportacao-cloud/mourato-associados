@@ -107,13 +107,13 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
   const checkboxLabelColor = theme === "dark" ? "text-zinc-300" : "text-gray-600";
 
   return (
-    <div className={containerClasses}>
+    <div className={`${containerClasses} w-full min-w-0 overflow-hidden`}>
       {/* FILTER BAR HEADER */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center gap-2 font-bold text-xs uppercase tracking-widest cursor-pointer hover:text-gold transition-colors ${textPrimary}`}
+          className={`flex items-center gap-2 font-bold text-xs uppercase tracking-widest cursor-pointer hover:text-gold transition-colors shrink-0 ${textPrimary}`}
         >
           <span>🔍</span> Filtros Avançados
           {activeCount > 0 && (
@@ -123,26 +123,26 @@ export default function FiltrosProdutos({ theme = "light", onChange }: FiltrosPr
           )}
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {activeCount > 0 && (
             <button
               type="button"
               onClick={handleClearAll}
-              className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 cursor-pointer"
+              className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 cursor-pointer hidden sm:block"
             >
-              Limpar Filtros
+              Limpar
             </button>
           )}
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+            className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
               theme === "dark"
                 ? "bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300"
                 : "bg-gray-100 border-gray-200 hover:bg-gray-250 text-gray-700"
             }`}
           >
-            {isOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
+            {isOpen ? "Ocultar" : "Mostrar"}
           </button>
         </div>
       </div>

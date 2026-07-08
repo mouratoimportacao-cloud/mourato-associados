@@ -456,7 +456,7 @@ export default function PainelLojistaClient({
     { id: "produtos", label: "Produtos", icon: "🛍️" },
     { id: "estoque", label: "Estoque", icon: "📦" },
     { id: "carrinho", label: "Carrinho", icon: "🛒", badge: cart.length },
-    { id: "financeiro", label: "Financeiro", icon: "📊" },
+    { id: "financeiro", label: "Finanças", icon: "📊" },
     { id: "perfil", label: "Perfil", icon: "👤" },
   ];
 
@@ -546,7 +546,7 @@ export default function PainelLojistaClient({
       )}
 
       {/* Conteúdo Centralizado ou em Painel de Tela Cheia */}
-      <div className="fixed inset-0 w-full bg-stone-50 flex overflow-hidden z-50">
+      <div className="fixed inset-0 w-full max-w-full bg-stone-50 flex overflow-hidden z-50">
         <aside className="hidden lg:flex lg:w-72 xl:w-80 flex-col bg-white text-stone-900 sticky top-0 h-screen border-r border-stone-200">
           <div className="p-6 border-b border-stone-200">
             <div className="flex items-center gap-3">
@@ -604,7 +604,7 @@ export default function PainelLojistaClient({
           </div>
         </aside>
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* HEADER DE LUXO (White & Stone) */}
           <header className="bg-white/95 backdrop-blur-md text-stone-900 px-4 py-4 flex items-center justify-between border-b border-stone-200 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
@@ -642,7 +642,7 @@ export default function PainelLojistaClient({
         </header>
 
         {/* CONTAINER DO CONTEÚDO ATIVO */}
-        <main className="flex-grow overflow-y-auto p-4 pb-28">
+        <main className="flex-grow overflow-y-auto overflow-x-hidden p-3 sm:p-4 pb-28 min-w-0">
 
           {/* ─────────────────────────────────────────────────────────────────── */}
           {/* TELA 1: INÍCIO (HUB DO LOJISTA)                                     */}

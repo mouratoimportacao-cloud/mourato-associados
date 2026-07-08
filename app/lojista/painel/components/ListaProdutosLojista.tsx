@@ -156,8 +156,8 @@ export default function ListaProdutosLojista({
 
   return (
     <>
-      <section className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
-        <div className="border-b border-gray-100 bg-gray-50 px-3 sm:px-6 py-3 sm:py-4 space-y-3">
+      <section className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden w-full min-w-0">
+        <div className="border-b border-gray-100 bg-gray-50 px-2 sm:px-6 py-3 sm:py-4 space-y-3 w-full min-w-0">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-sm sm:text-lg font-bold text-gray-800">Produtos do Fornecedor</h2>
@@ -167,12 +167,14 @@ export default function ListaProdutosLojista({
           {/* Busca rápida */}
           <input
             type="text"
-            placeholder="🔍 Buscar por nome, marca ou código..."
+            placeholder="🔍 Buscar nome, marca ou código"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-xs font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
           />
-          <FiltrosProdutos theme="light" onChange={setFiltros} />
+          <div className="w-full overflow-x-auto">
+            <FiltrosProdutos theme="light" onChange={setFiltros} />
+          </div>
         </div>
 
         <div className="max-h-[72vh] overflow-y-auto hidden md:block">
@@ -252,37 +254,33 @@ export default function ListaProdutosLojista({
         </div>
 
         {/* MOBILE LIST VIEW - Compacto e intuitivo */}
-        <div className="md:hidden divide-y divide-stone-100 max-h-[70vh] overflow-y-auto">
+        <div className="md:hidden divide-y divide-stone-100 max-h-[70vh] overflow-y-auto w-full">
           {produtosFiltrados.map((produto) => (
-            <div key={produto.id} className={`flex items-center gap-3 p-3 ${produto.estoque <= 0 ? 'opacity-50' : ''}`}>
-              {/* Imagem pequena */}
-              <button type="button" onClick={() => setSelectedProduto(produto)} className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-50">
-                <OptimizedImage src={produto.imagem} alt={produto.nome} fill sizes="56px" className="object-cover" fallbackText="M&A" />
+            <div key={produto.id} className={`flex items-center gap-2 p-2 w-full ${produto.estoque <= 0 ? 'opacity-50' : ''}`}>
+              <button type="button" onClick={() => setSelectedProduto(produto)} className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-50">
+                <OptimizedImage src={produto.imagem} alt={produto.nome} fill sizes="44px" className="object-cover" fallbackText="M&A" />
               </button>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-bold text-stone-900 truncate">{produto.nome}</h3>
-                <p className="text-[10px] text-stone-500 truncate">{produto.marca} · {produto.volume}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs font-black text-stone-900">{moeda(produto.precoAtacado)}</span>
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <h3 className="text-[11px] font-bold text-stone-900 truncate">{produto.nome}</h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[11px] font-black text-stone-900">{moeda(produto.precoAtacado)}</span>
                   <span className={`text-[10px] font-bold ${produto.estoque > 0 ? 'text-green-600' : 'text-red-500'}`}>
                     {produto.estoque > 0 ? `${produto.estoque} un.` : 'Esgotado'}
                   </span>
                 </div>
               </div>
 
-              {/* Botão adicionar */}
               <button
                 type="button"
                 onClick={() => onAddToCart(produto.id, 1)}
                 disabled={produto.estoque <= 0}
-                className={`shrink-0 h-10 w-10 flex items-center justify-center rounded-full text-lg transition-all ${
+                className={`shrink-0 h-9 w-9 flex items-center justify-center rounded-full text-base font-bold ${
                   produto.estoque > 0
-                    ? 'bg-zinc-950 text-white active:scale-90 shadow-sm'
+                    ? 'bg-zinc-950 text-white active:scale-90'
                     : 'bg-stone-100 text-stone-300 pointer-events-none'
                 }`}
-                aria-label="Adicionar ao pedido"
+                aria-label="Adicionar"
               >
                 +
               </button>
