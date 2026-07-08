@@ -23,12 +23,11 @@ type Produto = {
 
 export default function CatalogoPrincipal({ produtos, lojistaId }: { produtos: Produto[]; lojistaId?: number | null }) {
   const searchParams = useSearchParams();
-  // Vitrine: produtos marcados com vitrine=true, ordenados por código, limitados a 30
+  // Vitrine: produtos marcados com vitrine=true, em ordem aleatória
   const produtosVitrine = useMemo(
     () => produtos
       .filter((produto) => Boolean(produto.vitrine))
-      .sort((a, b) => (a.codigo ?? a.id) - (b.codigo ?? b.id))
-      .slice(0, 30),
+      .sort(() => Math.random() - 0.5),
     [produtos]
   );
   const busca = searchParams.get('busca')?.trim() ?? '';
