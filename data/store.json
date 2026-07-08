@@ -24355,7 +24355,7 @@
         "id": 1,
         "nome": "Lojista Teste",
         "email": "lojista@teste.com",
-        "senha": "123",
+        "senha": "$2b$10$3uPcl3Kjne2B.fDmQZw1cOwLagshySPTImK.6hwa/0/72Z3A547rm",
         "tipo": "lojista",
         "status": "aprovado",
         "codigoRevenda": "LOJ10",
@@ -24372,6 +24372,24 @@
         "senha": "$2b$10$BipuNdsNszaNtCw4RxBJMOE4pEZudLY7DSRBZhH0fLQAnXPmFnThy",
         "tipo": "admin",
         "createdAt": "2026-07-02T15:51:09.518Z"
+      },
+      {
+        "id": 3,
+        "nome": "Lojista Teste",
+        "email": "teste@lojista.com",
+        "senha": "$2b$10$./PSQRpJz9XVLGReQtRdFuPkUhXyYHQ6DEc9k1VLyOW7nM0T7YzWq",
+        "tipo": "lojista",
+        "documento": "529.982.247-25",
+        "telefone": "(11) 99999-0000",
+        "endereco": "Rua Teste, 123",
+        "cidade": "São Paulo",
+        "estado": "SP",
+        "cep": "01001-000",
+        "status": "aprovado",
+        "codigoRevenda": "TESTE01",
+        "limiteAprovado": 5000,
+        "estoquePessoal": {},
+        "createdAt": "2026-07-08T22:03:52.075Z"
       }
     ],
     "Despesa": [],
@@ -24393,7 +24411,7 @@
   "seq": {
     "Produto": 622,
     "Pedido": 1,
-    "Usuario": 2,
+    "Usuario": 3,
     "Despesa": 0,
     "FechamentoMensal": 0,
     "Emprestimo": 0,
