@@ -263,22 +263,21 @@ export async function registrarIntencaoCompraCarrinho(
     });
 
     // P3 — Notificação WhatsApp para o admin
-    if (!origemRevenda) {
-      const waMensagem = encodeURIComponent(
-        `🛒 *Novo Pedido #${checkoutRef}*\n` +
-        `👤 ${clienteInfo?.nome || "Cliente"}\n` +
-        `📱 ${clienteInfo?.contato || "-"}\n` +
-        `📦 ${produtosNomes}\n` +
-        `💰 R$ ${totalGeral.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}\n` +
-        `📍 ${clienteInfo?.cidade || "-"}/${clienteInfo?.estado || "-"}`
-      );
-      try {
-        await fetch(`https://api.callmebot.com/whatsapp.php?phone=5511978990034&text=${waMensagem}&apikey=3748355`, {
-          method: "GET",
-          signal: AbortSignal.timeout(5000),
-        }).catch(() => {});
-      } catch { /* notificação não bloqueia o fluxo */ }
-    }
+    const waMensagem = encodeURIComponent(
+      `🛒 *Novo Pedido #${checkoutRef}*\n` +
+      `${origemRevenda ? "🏪 Via Revenda" : "🌐 Site Público"}\n` +
+      `👤 ${clienteInfo?.nome || "Cliente"}\n` +
+      `📱 ${clienteInfo?.contato || "-"}\n` +
+      `📦 ${produtosNomes}\n` +
+      `💰 R$ ${totalGeral.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}\n` +
+      `📍 ${clienteInfo?.cidade || "-"}/${clienteInfo?.estado || "-"}`
+    );
+    try {
+      await fetch(`https://api.callmebot.com/whatsapp.php?phone=5511978990034&text=${waMensagem}&apikey=3748355`, {
+        method: "GET",
+        signal: AbortSignal.timeout(5000),
+      }).catch(() => {});
+    } catch { /* notificação não bloqueia o fluxo */ }
 
     try {
       revalidatePath("/admin");

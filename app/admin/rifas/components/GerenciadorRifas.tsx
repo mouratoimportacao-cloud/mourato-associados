@@ -562,16 +562,15 @@ export default function GerenciadorRifas({
                 </div>
               </div>
 
-              {/* Filtro e Lista de Participantes */}
+              {/* Filtro e Lista */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-sm font-bold text-gray-700">Participantes</h4>
-                  <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg text-[10px] font-bold">
+                <div className="overflow-x-auto">
+                  <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg text-[10px] font-bold w-fit min-w-full">
                     {["TODOS", "PAGO", "AGUARDANDO_PAGAMENTO", "CANCELADO"].map((status) => (
                       <button
                         key={status}
                         onClick={() => setStatusFilter(status)}
-                        className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap ${
                           statusFilter === status
                             ? "bg-white text-gray-800 shadow-sm"
                             : "text-gray-500 hover:text-gray-800"
@@ -589,7 +588,7 @@ export default function GerenciadorRifas({
                       <tr>
                         <th className="px-6 py-4">Bilhete</th>
                         <th className="px-6 py-4">Nome / WhatsApp</th>
-                        <th className="px-6 py-4">Redes Sociais</th>
+                        <th className="px-6 py-4 hidden md:table-cell">Redes Sociais</th>
                         <th className="px-6 py-4">Status</th>
                         <th className="px-6 py-4 text-right">Ações</th>
                       </tr>
@@ -618,23 +617,26 @@ export default function GerenciadorRifas({
                                 {bilhete.telefone}
                               </a>
                             </td>
-                            <td className="px-6 py-4 space-y-0.5">
-                              <p className="text-[11px]">
-                                📸 <strong>Insta:</strong>{" "}
-                                <a
-                                  href={`https://instagram.com/${bilhete.usernameInsta.replace("@", "")}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-luxury-gold hover:underline font-semibold"
-                                >
-                                  {bilhete.usernameInsta}
-                                </a>
-                              </p>
-                              {bilhete.usernameFace && (
-                                <p className="text-[11px] text-gray-500">
-                                  👥 <strong>Face:</strong> {bilhete.usernameFace}
-                                </p>
-                              )}
+                            <td className="px-6 py-4 hidden md:table-cell">
+                              <div className="flex gap-4">
+                                <div className="text-center">
+                                  <p className="text-sm">📸</p>
+                                  <a
+                                    href={`https://instagram.com/${bilhete.usernameInsta.replace("@", "")}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] text-luxury-gold font-semibold hover:underline"
+                                  >
+                                    {bilhete.usernameInsta}
+                                  </a>
+                                </div>
+                                {bilhete.usernameFace && (
+                                  <div className="text-center">
+                                    <p className="text-sm">👥</p>
+                                    <p className="text-[10px] text-gray-500 font-semibold">{bilhete.usernameFace}</p>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4">
                               <span
@@ -650,7 +652,7 @@ export default function GerenciadorRifas({
                                   ? "AGUARDANDO"
                                   : bilhete.statusPagto}
                               </span>
-                              <p className="text-[10px] font-bold text-gray-700 mt-1">{bilhete.nome}</p>
+
                             </td>
                             <td className="px-6 py-4 text-right space-x-2">
                               {bilhete.statusPagto === "AGUARDANDO_PAGAMENTO" && (
