@@ -26,6 +26,8 @@ export default function CarrinhoWidget() {
   const [lojistaInfo, setLojistaInfo] = useState<{ id: number; nome: string } | null>(null);
   const [isPending, startTransition] = useTransition();
   const [checkoutSuccess, setCheckoutSuccess] = useState<{ message: string } | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const params = useParams<{ codigo?: string }>();
 
   // Estados do formulário de entrega do cliente
@@ -90,7 +92,9 @@ export default function CarrinhoWidget() {
     const handleOpen = () => {
       loadCart();
       setIsOpen(true);
-      setCheckoutSuccess(null); // Reseta mensagens de sucesso anteriores
+      setCheckoutSuccess(null);
+      setCheckoutError(null);
+      setCheckoutLoading(false);
       setShowAddressForm(false);
     };
 
@@ -186,6 +190,9 @@ export default function CarrinhoWidget() {
       }
 
       // 2. Cria preferência no Mercado Pago para vendas diretas do site público
+      setCheckoutLoading(true);
+      setCheckoutError(null);
+
       const mpItems = cartItems.map((item) => ({
         nome: item.nome,
         quantidade: item.quantidade,
@@ -195,14 +202,13 @@ export default function CarrinhoWidget() {
       const mp = await criarPreferenciaPagamento(mpItems, clienteInfo, res.checkoutRef);
 
       if (mp.success && mp.url) {
-        // Limpa carrinho e redireciona para Mercado Pago
         localStorage.removeItem("ma-cart");
         setCartItems([]);
         window.dispatchEvent(new CustomEvent("cart-updated"));
         window.location.href = mp.url;
       } else {
-        // Mercado Pago falhou mas pedido foi registrado
-        setCheckoutSuccess({ message: res.message + " (Pagamento será confirmado via WhatsApp)" });
+        setCheckoutLoading(false);
+        setCheckoutError(mp.error || "Não foi possível conectar ao pagamento.");
         localStorage.removeItem("ma-cart");
         setCartItems([]);
         window.dispatchEvent(new CustomEvent("cart-updated"));
@@ -331,7 +337,46 @@ export default function CarrinhoWidget() {
 
         {/* Content */}
         <div className="flex-grow overflow-y-auto p-6 space-y-6">
-          {checkoutSuccess ? (
+          {checkoutLoading ? (
+            /* TELA DE LOADING — Preparando pagamento */
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-6 py-12">
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full border-4 border-zinc-800 border-t-gold animate-spin" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-serif text-white">Preparando seu pagamento...</h3>
+                <p className="text-xs text-zinc-500 max-w-[260px]">Estamos conectando com o Mercado Pago. Isso leva só alguns segundos.</p>
+              </div>
+            </div>
+          ) : checkoutError ? (
+            /* TELA DE ERRO — Algo deu errado */
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-6 py-12">
+              <div className="text-5xl">😕</div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-serif text-white">Ops, algo não saiu como esperado</h3>
+                <p className="text-xs text-zinc-400 max-w-[280px] leading-relaxed">
+                  Não conseguimos abrir o pagamento agora, mas seu pedido já foi registrado. Você pode tentar novamente ou finalizar pelo WhatsApp.
+                </p>
+              </div>
+              <div className="w-full max-w-[260px] space-y-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setCheckoutError(null); setIsOpen(false); }}
+                  className="w-full btn-luxury cursor-pointer py-3"
+                >
+                  Voltar ao Catálogo
+                </button>
+                <a
+                  href="https://wa.me/5511978990034?text=Ol%C3%A1%2C+fiz+um+pedido+no+site+e+preciso+de+ajuda+com+o+pagamento."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center border border-zinc-800 hover:border-green-600 text-zinc-300 hover:text-green-400 font-bold tracking-widest text-[10px] uppercase py-3 rounded-full transition-all"
+                >
+                  Falar no WhatsApp
+                </a>
+              </div>
+            </div>
+          ) : checkoutSuccess ? (
             <div className="flex flex-col items-center space-y-4 p-6">
               <div className="h-16 w-16 bg-green-950/50 border border-green-500/30 rounded-full flex items-center justify-center text-green-500">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
