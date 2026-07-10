@@ -3,7 +3,7 @@
 import { MercadoPagoConfig, Preference } from "mercadopago";
 
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN || "",
+  accessToken: (process.env.MERCADO_PAGO_ACCESS_TOKEN || "").trim(),
 });
 
 interface ItemCheckout {
@@ -29,7 +29,7 @@ export async function criarPreferenciaPagamento(
   clienteInfo: ClienteInfo,
   checkoutRef?: string
 ) {
-  if (!process.env.MERCADO_PAGO_ACCESS_TOKEN) {
+  if (!process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim()) {
     return { success: false, url: null, error: "Mercado Pago não configurado" };
   }
 

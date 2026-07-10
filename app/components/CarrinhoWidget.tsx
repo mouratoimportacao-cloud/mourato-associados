@@ -189,6 +189,15 @@ export default function CarrinhoWidget() {
         return;
       }
 
+      // Se anti-duplicação bloqueou (checkoutRef vazio), mostra sucesso
+      if (!res.checkoutRef) {
+        setCheckoutSuccess({ message: res.message });
+        localStorage.removeItem("ma-cart");
+        setCartItems([]);
+        window.dispatchEvent(new CustomEvent("cart-updated"));
+        return;
+      }
+
       // 2. Cria preferência no Mercado Pago para vendas diretas do site público
       setCheckoutLoading(true);
       setCheckoutError(null);
@@ -202,6 +211,7 @@ export default function CarrinhoWidget() {
       const mp = await criarPreferenciaPagamento(mpItems, clienteInfo, res.checkoutRef);
 
       if (mp.success && mp.url) {
+        // Mantém loading visível durante redirect - não reseta estado
         localStorage.removeItem("ma-cart");
         setCartItems([]);
         window.dispatchEvent(new CustomEvent("cart-updated"));
