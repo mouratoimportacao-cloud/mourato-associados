@@ -74,6 +74,21 @@ export async function registrarIntencaoCompra(produtoId: number, lojistaId?: num
 
   }
 
+  // Proteção anti-duplicação (site público)
+  if (!origemRevenda) {
+    const pedidosRecentes = await prisma.pedido.findMany({
+      where: { produtoId: produto.id, usuarioId: 0 },
+    });
+    const agora = Date.now();
+    const duplicado = pedidosRecentes.some((p: any) => {
+      const createdAt = new Date(p.createdAt).getTime();
+      return Number.isFinite(createdAt) && agora - createdAt < 30000;
+    });
+    if (duplicado) {
+      return { success: true, message: "Pedido já registrado para este produto. Entraremos em contato em breve." };
+    }
+  }
+
   await prisma.pedido.create({
     data: {
       usuarioId: lojistaId || 0,
@@ -163,6 +178,24 @@ export async function registrarIntencaoCompraCarrinho(
         return { success: false, message: "Canal de revenda indisponível no momento." };
       }
       lojistaId = lojista.id;
+    }
+
+    // Proteção anti-duplicação: verifica pedido com mesmos itens nos últimos 30s
+    const pedidosRecentes = await prisma.pedido.findMany({
+      where: { usuarioId: lojistaId || 0 },
+    });
+    const agora = Date.now();
+    const idsItens = itens.map(i => i.id).sort().join(",");
+    const duplicado = pedidosRecentes.some((p: any) => {
+      const createdAt = new Date(p.createdAt).getTime();
+      return (
+        Number.isFinite(createdAt) &&
+        agora - createdAt < 30000 &&
+        ["intencao de compra", "aguardando lojista"].includes(String(p.status || ""))
+      );
+    });
+    if (duplicado) {
+      return { success: true, checkoutRef: "", message: "Pedido já registrado. Aguarde o processamento." };
     }
 
     const checkoutRef = Math.random().toString(36).substring(2, 8).toUpperCase();
