@@ -12,7 +12,7 @@ export const metadata = {
   description: "Explore nossa curadoria de perfumes de nicho, cosméticos de luxo e skincare avançado.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // Cache por 60 segundos, revalida em background
 
 export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
