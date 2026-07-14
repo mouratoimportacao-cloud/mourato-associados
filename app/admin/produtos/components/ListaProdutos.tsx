@@ -63,6 +63,7 @@ export default function ListaProdutos({ produtos, onEditProduct, onEntradaEstoqu
   const [buscaFocada, setBuscaFocada] = useState(false);
   const [marcaSelecionada, setMarcaSelecionada] = useState("todos");
   const [ordenacao, setOrdenacao] = useState<"codigo" | "nome" | "estoque" | "preco">("codigo");
+  const [filtroSite, setFiltroSite] = useState<"todos" | "ativo" | "oculto">("todos");
   const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
   const [filtros, setFiltros] = useState<any>({
     origem: "todos",
@@ -125,6 +126,10 @@ export default function ListaProdutos({ produtos, onEditProduct, onEntradaEstoqu
     const termo = normalizarBusca(busca);
 
     const filtered = produtos.filter((produto) => {
+      // Filtro "No site"
+      if (filtroSite === "ativo" && produto.ativoSite === false) return false;
+      if (filtroSite === "oculto" && produto.ativoSite !== false) return false;
+
       if (marcaSelecionada !== "todos" && normalizarBusca(produto.marca || "Sem marca") !== marcaSelecionada) {
         return false;
       }
@@ -200,7 +205,7 @@ export default function ListaProdutos({ produtos, onEditProduct, onEntradaEstoqu
         default: return 0;
       }
     });
-  }, [produtos, filtros, busca, marcaSelecionada, ordenacao]);
+  }, [produtos, filtros, busca, marcaSelecionada, ordenacao, filtroSite]);
 
   const produtosPorMarca = useMemo(() => {
     const grupos = new Map<string, Produto[]>();
@@ -264,7 +269,7 @@ export default function ListaProdutos({ produtos, onEditProduct, onEntradaEstoqu
             </div>
           )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_10rem_10rem_auto] gap-3 items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_10rem_8rem_10rem_auto] gap-3 items-center">
           <div className="relative">
             <input
               type="search"
@@ -315,12 +320,22 @@ export default function ListaProdutos({ produtos, onEditProduct, onEntradaEstoqu
             <option value="estoque">Ordenar: Maior Estoque</option>
             <option value="preco">Ordenar: Maior Preço</option>
           </select>
-          {(busca || marcaSelecionada !== "todos") && (
+          <select
+            value={filtroSite}
+            onChange={(event) => setFiltroSite(event.target.value as any)}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+          >
+            <option value="todos">Site: Todos</option>
+            <option value="ativo">No site</option>
+            <option value="oculto">Ocultos</option>
+          </select>
+          {(busca || marcaSelecionada !== "todos" || filtroSite !== "todos") && (
             <button
               type="button"
               onClick={() => {
                 setBusca("");
                 setMarcaSelecionada("todos");
+                setFiltroSite("todos");
               }}
               className="rounded-lg border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-100"
             >
