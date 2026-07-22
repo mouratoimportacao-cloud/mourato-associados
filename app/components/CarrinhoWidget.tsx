@@ -301,7 +301,6 @@ export default function CarrinhoWidget() {
         setCheckoutLoading(true);
 
         const mp = new window.MercadoPago(publicKey);
-        const deviceId = (window as any).MP_DEVICE_SESSION_ID || "";
         const tokenResult = await mp.createCardToken({
           cardNumber: cleanNumber,
           cardExpirationMonth: expMonth?.trim(),
@@ -323,8 +322,7 @@ export default function CarrinhoWidget() {
           mpItems,
           clienteInfoAtual,
           checkoutRefAtual || undefined,
-          cardCpf,
-          deviceId
+          cardCpf
         );
 
         setCheckoutLoading(false);

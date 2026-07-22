@@ -81,8 +81,7 @@ export async function processarPagamentoCartao(
   items: ItemCheckout[],
   clienteInfo: ClienteInfo,
   checkoutRef?: string,
-  cpf?: string,
-  deviceId?: string
+  cpf?: string
 ) {
   if (!process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim()) {
     return { success: false, error: "Mercado Pago não configurado" };
@@ -135,7 +134,6 @@ export async function processarPagamentoCartao(
         },
         notification_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://mouratoassociados.com.br"}/api/mercado-pago/webhook`,
         statement_descriptor: "MOURATO&ASSOC",
-        ...(deviceId ? { additional_info: { ip_address: "" }, device_fingerprint: { os: "unknown", system_clock: Date.now(), vendor_ids: [], vendor_specific_attributes: {}, version: "unknown", fingerprint_id: deviceId } } : {}),
       },
     });
 
