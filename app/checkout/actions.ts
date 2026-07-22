@@ -94,6 +94,20 @@ export async function processarPagamentoCartao(
     const nomes = clienteInfo.nome.trim().split(" ");
     const firstName = nomes[0];
     const lastName = nomes.slice(1).join(" ") || firstName;
+    const cleanPhone = clienteInfo.contato.replace(/\D/g, "");
+    const emailPagador = `${firstName.toLowerCase().replace(/[^a-z0-9]/g, "")}.${cleanPhone.slice(-4)}@mouratoassociados.com.br`;
+    const mpItems = items.map((item, i) => ({
+      id: `item-${i}`,
+      title: item.nome,
+      description: item.nome,
+      quantity: item.quantidade,
+      unit_price: item.preco,
+    }));
+    const mpAddress = {
+      zip_code: clienteInfo.cep.replace(/\D/g, ""),
+      street_name: clienteInfo.rua,
+      street_number: clienteInfo.numero,
+    };
 
     const result = await payment.create({
       body: {
@@ -104,33 +118,20 @@ export async function processarPagamentoCartao(
         payment_method_id: bandeira,
         external_reference: checkoutRef,
         additional_info: {
-          items: items.map((item, i) => ({
-            id: `item-${i}`,
-            title: item.nome,
-            description: item.nome,
-            quantity: item.quantidade,
-            unit_price: item.preco,
-          })),
+          items: mpItems,
           payer: {
             first_name: firstName,
             last_name: lastName,
-            address: {
-              zip_code: clienteInfo.cep.replace(/\D/g, ""),
-              street_name: clienteInfo.rua,
-              street_number: clienteInfo.numero,
-            },
+            phone: { area_code: cleanPhone.slice(0, 2), number: cleanPhone.slice(2) },
+            address: mpAddress,
           },
         },
         payer: {
-          email: `pagador-${clienteInfo.contato.replace(/\D/g, "")}@mouratoassociados.com.br`,
+          email: emailPagador,
           first_name: firstName,
           last_name: lastName,
           identification: { type: "CPF", number: (cpf || "").replace(/\D/g, "") },
-          address: {
-            zip_code: clienteInfo.cep.replace(/\D/g, ""),
-            street_name: clienteInfo.rua,
-            street_number: clienteInfo.numero,
-          },
+          address: mpAddress,
         },
         notification_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://mouratoassociados.com.br"}/api/mercado-pago/webhook`,
         statement_descriptor: "MOURATO&ASSOC",
@@ -183,6 +184,15 @@ export async function gerarPixCarrinho(
     const total = items.reduce((acc, i) => acc + i.preco * i.quantidade, 0);
     const descricao = items.length === 1 ? items[0].nome : `Pedido Mourato & Associados (${items.length} itens)`;
     const cleanPhone = clienteInfo.contato.replace(/\D/g, "");
+    const nomesPix = clienteInfo.nome.trim().split(" ");
+    const firstNamePix = nomesPix[0] || "Cliente";
+    const lastNamePix = nomesPix.slice(1).join(" ") || "Mourato";
+    const emailPix = `${firstNamePix.toLowerCase().replace(/[^a-z0-9]/g, "")}.${cleanPhone.slice(-4)}@mouratoassociados.com.br`;
+    const mpAddressPix = {
+      zip_code: clienteInfo.cep.replace(/\D/g, ""),
+      street_name: clienteInfo.rua,
+      street_number: clienteInfo.numero,
+    };
 
     const result = await payment.create({
       body: {
@@ -190,15 +200,26 @@ export async function gerarPixCarrinho(
         description: descricao,
         payment_method_id: "pix",
         external_reference: checkoutRef,
-        payer: {
-          email: `pagador-${cleanPhone}@mouratoassociados.com.br`,
-          first_name: clienteInfo.nome.split(" ")[0] || "Cliente",
-          last_name: clienteInfo.nome.split(" ").slice(1).join(" ") || "Mourato",
-          address: {
-            zip_code: clienteInfo.cep.replace(/\D/g, ""),
-            street_name: clienteInfo.rua,
-            street_number: clienteInfo.numero,
+        additional_info: {
+          items: items.map((item, i) => ({
+            id: `item-${i}`,
+            title: item.nome,
+            description: item.nome,
+            quantity: item.quantidade,
+            unit_price: item.preco,
+          })),
+          payer: {
+            first_name: firstNamePix,
+            last_name: lastNamePix,
+            phone: { area_code: cleanPhone.slice(0, 2), number: cleanPhone.slice(2) },
+            address: mpAddressPix,
           },
+        },
+        payer: {
+          email: emailPix,
+          first_name: firstNamePix,
+          last_name: lastNamePix,
+          address: mpAddressPix,
         },
         notification_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://mouratoassociados.com.br"}/api/mercado-pago/webhook`,
       },
