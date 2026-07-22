@@ -120,20 +120,34 @@ export async function processarPagamentoCartao(
     });
 
     const status = result.status;
+    const detail = result.status_detail || "";
+
+    const mensagens: Record<string, string> = {
+      cc_rejected_bad_filled_card_number: "Número do cartão incorreto. Verifique e tente novamente.",
+      cc_rejected_bad_filled_date: "Data de validade incorreta. Verifique e tente novamente.",
+      cc_rejected_bad_filled_other: "Dados do cartão incorretos. Verifique e tente novamente.",
+      cc_rejected_bad_filled_security_code: "CVV incorreto. Verifique e tente novamente.",
+      cc_rejected_blacklist: "Cartão não autorizado. Use outro cartão ou pague via Pix.",
+      cc_rejected_call_for_authorize: "Cartão requer autorização. Ligue para o banco e tente novamente.",
+      cc_rejected_card_disabled: "Cartão desativado. Entre em contato com seu banco.",
+      cc_rejected_duplicated_payment: "Pagamento duplicado detectado. Aguarde alguns minutos.",
+      cc_rejected_high_risk: "Pagamento recusado por segurança. Use outro cartão ou pague via Pix.",
+      cc_rejected_insufficient_amount: "Saldo insuficiente. Verifique o limite do cartão.",
+      cc_rejected_invalid_installments: "Número de parcelas inválido para este cartão.",
+      cc_rejected_max_attempts: "Limite de tentativas atingido. Tente novamente amanhã ou use Pix.",
+      cc_rejected_other_reason: "Pagamento recusado pelo banco. Use outro cartão ou pague via Pix.",
+    };
 
     if (status === "approved") {
       return { success: true, status: "approved", error: null };
     } else if (status === "in_process" || status === "pending") {
       return { success: true, status: "pending", error: null };
     } else {
-      return { success: false, status, error: result.status_detail || "Pagamento recusado" };
+      return { success: false, status, error: mensagens[detail] || `Pagamento recusado. Use outro cartão ou pague via Pix.` };
     }
   } catch (error: any) {
-    const errStr = JSON.stringify(error, Object.getOwnPropertyNames(error));
-    console.error("Erro pagamento cartão MP COMPLETO:", errStr);
-    const cause = error?.cause;
-    const detail = cause ? JSON.stringify(cause) : "";
-    return { success: false, status: "error", error: errStr.substring(0, 500) };
+    console.error("Erro pagamento cartão MP:", error);
+    return { success: false, status: "error", error: error.message || "Erro ao processar cartão" };
   }
 }
 
