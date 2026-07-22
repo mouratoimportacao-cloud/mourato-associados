@@ -294,7 +294,9 @@ export default function CarrinhoWidget() {
       try {
         setCheckoutLoading(true);
 
+        console.log("[MP] publicKey:", publicKey.substring(0, 20) + "...");
         const mp = new window.MercadoPago(publicKey);
+        console.log("[MP] mp criado, tokenizando...");
         const tokenResult = await mp.createCardToken({
           cardNumber: cleanNumber,
           cardExpirationMonth: expMonth?.trim(),
@@ -304,6 +306,7 @@ export default function CarrinhoWidget() {
           identification: { type: "CPF", number: cleanCpf },
         });
 
+        console.log("[MP] token gerado:", tokenResult?.id ? "ok" : "VAZIO", tokenResult);
         if (!tokenResult?.id) {
           throw new Error("Não foi possível tokenizar o cartão. Verifique os dados e tente novamente.");
         }
