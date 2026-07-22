@@ -132,6 +132,12 @@ export default function CarrinhoWidget() {
     script.onload = () => setSdkReady(true);
     script.onerror = () => setCardError("Falha ao carregar SDK do Mercado Pago. Recarregue a página.");
     document.head.appendChild(script);
+
+    // Device ID para antifraude do MP
+    const dfScript = document.createElement("script");
+    dfScript.src = `https://www.mercadopago.com/v2/security.js`;
+    dfScript.setAttribute("view", "checkout");
+    document.head.appendChild(dfScript);
   }, [etapa]);
   const loadCart = () => {
     try {
@@ -295,6 +301,7 @@ export default function CarrinhoWidget() {
         setCheckoutLoading(true);
 
         const mp = new window.MercadoPago(publicKey);
+        const deviceId = (window as any).MP_DEVICE_SESSION_ID || "";
         const tokenResult = await mp.createCardToken({
           cardNumber: cleanNumber,
           cardExpirationMonth: expMonth?.trim(),
@@ -316,7 +323,8 @@ export default function CarrinhoWidget() {
           mpItems,
           clienteInfoAtual,
           checkoutRefAtual || undefined,
-          cardCpf
+          cardCpf,
+          deviceId
         );
 
         setCheckoutLoading(false);
