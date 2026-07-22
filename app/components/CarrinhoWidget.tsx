@@ -324,6 +324,7 @@ export default function CarrinhoWidget() {
 
         setCheckoutLoading(false);
 
+        console.log("[MP] resposta servidor:", res);
         if (res.success) {
           localStorage.removeItem("ma-cart");
           setCartItems([]);
@@ -334,7 +335,10 @@ export default function CarrinhoWidget() {
               : "Pagamento em análise. Você receberá a confirmação em breve."
           });
         } else {
-          setCheckoutError(res.error || "Pagamento recusado. Verifique os dados do cartão.");
+          setCardError(res.error || "Pagamento recusado.");
+          setCheckoutLoading(false);
+          setEtapa("pagamento");
+          setMetodoPagamento("cartao");
         }
       } catch (err: any) {
         setCheckoutLoading(false);
