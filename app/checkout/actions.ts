@@ -80,7 +80,8 @@ export async function processarPagamentoCartao(
   parcelas: number,
   items: ItemCheckout[],
   clienteInfo: ClienteInfo,
-  checkoutRef?: string
+  checkoutRef?: string,
+  cpf?: string
 ) {
   if (!process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim()) {
     return { success: false, error: "Mercado Pago não configurado" };
@@ -106,7 +107,7 @@ export async function processarPagamentoCartao(
           email: `pagador-${clienteInfo.contato.replace(/\D/g, "")}@mouratoassociados.com.br`,
           first_name: firstName,
           last_name: lastName,
-          identification: { type: "CPF", number: "00000000000" },
+          identification: { type: "CPF", number: (cpf || "").replace(/\D/g, "") },
           address: {
             zip_code: clienteInfo.cep.replace(/\D/g, ""),
             street_name: clienteInfo.rua,

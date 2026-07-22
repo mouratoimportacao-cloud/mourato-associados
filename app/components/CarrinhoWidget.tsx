@@ -77,6 +77,7 @@ export default function CarrinhoWidget() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardParcelas, setCardParcelas] = useState(1);
+  const [cardCpf, setCardCpf] = useState("");
   const [cardError, setCardError] = useState("");
   const [bandeira, setBandeira] = useState<{ id: string; nome: string } | null>(null);
   // Pix
@@ -106,7 +107,7 @@ export default function CarrinhoWidget() {
       setValidationError("");
       setEtapa("itens");
       setMetodoPagamento(null);
-      setCardNumber(""); setCardName(""); setCardExpiry(""); setCardCvv(""); setCardParcelas(1); setCardError(""); setBandeira(null);
+      setCardNumber(""); setCardName(""); setCardExpiry(""); setCardCvv(""); setCardCpf(""); setCardParcelas(1); setCardError(""); setBandeira(null);
       setPixQrCode(null); setPixQrBase64(null); setPixCopiado(false);
       setCheckoutRefAtual(null); setClienteInfoAtual(null);
     }, 0);
@@ -269,6 +270,8 @@ export default function CarrinhoWidget() {
     if (cardExpiry.length < 5) { setCardError("Data de validade inválida."); return; }
     if (cardCvv.length < 3) { setCardError("CVV inválido."); return; }
     if (!bandeira) { setCardError("Bandeira do cartão não reconhecida."); return; }
+    const cleanCpf = cardCpf.replace(/\D/g, "");
+    if (cleanCpf.length !== 11) { setCardError("CPF inválido. Digite 11 dígitos."); return; }
 
     const [expMonth, expYear] = cardExpiry.split("/");
     const publicKey = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY || "";
@@ -301,6 +304,7 @@ export default function CarrinhoWidget() {
           cardExpirationYear: `20${expYear?.trim()}`,
           securityCode: cardCvv,
           cardholderName: cardName.trim(),
+          identification: { type: "CPF", number: cleanCpf },
         });
 
         const mpItems = cartItems.map(i => ({ nome: i.nome, quantidade: i.quantidade, preco: i.preco }));
@@ -310,7 +314,8 @@ export default function CarrinhoWidget() {
           cardParcelas,
           mpItems,
           clienteInfoAtual,
-          checkoutRefAtual || undefined
+          checkoutRefAtual || undefined,
+          cardCpf
         );
 
         setCheckoutLoading(false);
@@ -631,6 +636,21 @@ export default function CarrinhoWidget() {
                         className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
                       />
                     </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">CPF do Titular *</label>
+                    <input
+                      type="text" inputMode="numeric" placeholder="000.000.000-00" maxLength={14}
+                      value={cardCpf}
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g, "").substring(0, 11);
+                        const f = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+                                   .replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3")
+                                   .replace(/(\d{3})(\d{1,3})/, "$1.$2");
+                        setCardCpf(f);
+                      }}
+                      className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Parcelas</label>
