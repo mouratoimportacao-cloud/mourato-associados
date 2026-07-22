@@ -283,7 +283,7 @@ export default function CarrinhoWidget() {
     if (cleanCpf.length !== 11) { setCardError("CPF inválido. Digite 11 dígitos."); return; }
 
     const [expMonth, expYear] = cardExpiry.split("/");
-    const publicKey = (process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY || "").trim();
+    const publicKey = (process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY || "").trim().replace(/^"|"$/g, "").replace(/^'|'$/g, "");
 
     if (!sdkReady || !window.MercadoPago) {
       setCardError("SDK do Mercado Pago ainda carregando. Aguarde um instante e tente novamente.");
