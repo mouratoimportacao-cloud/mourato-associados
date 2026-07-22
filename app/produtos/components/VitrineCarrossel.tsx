@@ -19,9 +19,12 @@ function precoPromocional(produto: any) {
 function ProdutoCard({ produto }: { produto: any }) {
   const promoPrice = precoPromocional(produto);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
     <article className="relative w-56 sm:w-64 shrink-0 overflow-hidden rounded-2xl border border-zinc-900 bg-neutral-950 shadow-2xl transition-colors hover:border-gold/30">
-      {produto.promocaoAtiva && produto.descontoPercentual ? (
+      {mounted && produto.promocaoAtiva && produto.descontoPercentual ? (
         <div className="absolute left-3 top-3 z-10 rounded-full bg-red-600 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
           -{produto.descontoPercentual}%
         </div>

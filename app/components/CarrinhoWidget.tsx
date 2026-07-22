@@ -3,8 +3,30 @@
 import { useEffect, useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { obterLojistaPorCodigo, registrarIntencaoCompraCarrinho } from "../produtos/actions";
-import { criarPreferenciaPagamento } from "../checkout/actions";
+import { processarPagamentoCartao, gerarPixCarrinho } from "../checkout/actions";
 import OptimizedImage from "./OptimizedImage";
+
+declare global {
+  interface Window { MercadoPago: any; }
+}
+
+const BANDEIRAS: { id: string; nome: string; regex: RegExp }[] = [
+  { id: "visa",      nome: "Visa",             regex: /^4/ },
+  { id: "master",    nome: "Mastercard",        regex: /^5[1-5]|^2[2-7]/ },
+  { id: "elo",       nome: "Elo",              regex: /^(4011|4312|4389|4514|4576|5041|5066|5067|509|6277|6362|6363|650|6516|6550)/ },
+  { id: "amex",      nome: "American Express", regex: /^3[47]/ },
+  { id: "hipercard", nome: "Hipercard",         regex: /^606282|^3841/ },
+  { id: "diners",    nome: "Diners Club",       regex: /^3(0[0-5]|[68])/ },
+];
+
+function detectarBandeira(numero: string) {
+  const clean = numero.replace(/\D/g, "");
+  return BANDEIRAS.find(b => b.regex.test(clean)) || null;
+}
+
+function formatarCartao(valor: string) {
+  return valor.replace(/\D/g, "").substring(0, 16).replace(/(\d{4})/g, "$1 ").trim();
+}
 
 interface CartItem {
   id: number;
@@ -45,6 +67,26 @@ export default function CarrinhoWidget() {
   const [loadingCep, setLoadingCep] = useState(false);
   const [validationError, setValidationError] = useState("");
 
+  // Estados do pagamento transparente
+  type Etapa = "itens" | "endereco" | "pagamento" | "pix";
+  const [etapa, setEtapa] = useState<Etapa>("itens");
+  const [metodoPagamento, setMetodoPagamento] = useState<"cartao" | "pix" | null>(null);
+  // Cartão
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardParcelas, setCardParcelas] = useState(1);
+  const [cardError, setCardError] = useState("");
+  const [bandeira, setBandeira] = useState<{ id: string; nome: string } | null>(null);
+  // Pix
+  const [pixQrCode, setPixQrCode] = useState<string | null>(null);
+  const [pixQrBase64, setPixQrBase64] = useState<string | null>(null);
+  const [pixCopiado, setPixCopiado] = useState(false);
+  // Ref do checkout atual
+  const [checkoutRefAtual, setCheckoutRefAtual] = useState<string | null>(null);
+  const [clienteInfoAtual, setClienteInfoAtual] = useState<any>(null);
+
   // Reseta campos ao finalizar com sucesso
   useEffect(() => {
     if (!checkoutSuccess) return;
@@ -62,12 +104,25 @@ export default function CarrinhoWidget() {
       setEstado("");
       setCepError("");
       setValidationError("");
+      setEtapa("itens");
+      setMetodoPagamento(null);
+      setCardNumber(""); setCardName(""); setCardExpiry(""); setCardCvv(""); setCardParcelas(1); setCardError(""); setBandeira(null);
+      setPixQrCode(null); setPixQrBase64(null); setPixCopiado(false);
+      setCheckoutRefAtual(null); setClienteInfoAtual(null);
     }, 0);
 
     return () => window.clearTimeout(resetTimeout);
   }, [checkoutSuccess]);
 
-  // Sincroniza itens do localStorage
+  // Carrega SDK do Mercado Pago dinamicamente quando chega na etapa de pagamento
+  useEffect(() => {
+    if (etapa !== "pagamento") return;
+    if (window.MercadoPago) return;
+    const script = document.createElement("script");
+    script.src = "https://sdk.mercadopago.com/js/v2";
+    script.async = true;
+    document.head.appendChild(script);
+  }, [etapa]);
   const loadCart = () => {
     try {
       const cartRaw = localStorage.getItem("ma-cart");
@@ -96,6 +151,8 @@ export default function CarrinhoWidget() {
       setCheckoutError(null);
       setCheckoutLoading(false);
       setShowAddressForm(false);
+      setEtapa("itens");
+      setMetodoPagamento(null);
     };
 
     const handleUpdate = () => {
@@ -179,8 +236,7 @@ export default function CarrinhoWidget() {
         return;
       }
 
-      // Se for compra via canal de lojista, cada lojista cobra de sua forma distinta
-      // Não redirecionamos para o Mercado Pago do Admin!
+      // Se for compra via canal de lojista
       if (params.codigo) {
         setCheckoutSuccess({ message: res.message });
         localStorage.removeItem("ma-cart");
@@ -189,7 +245,7 @@ export default function CarrinhoWidget() {
         return;
       }
 
-      // Se anti-duplicação bloqueou (checkoutRef vazio), mostra sucesso
+      // Se anti-duplicação bloqueou
       if (!res.checkoutRef) {
         setCheckoutSuccess({ message: res.message });
         localStorage.removeItem("ma-cart");
@@ -198,30 +254,89 @@ export default function CarrinhoWidget() {
         return;
       }
 
-      // 2. Cria preferência no Mercado Pago para vendas diretas do site público
-      setCheckoutLoading(true);
-      setCheckoutError(null);
+      // Salva ref e info do cliente para usar no pagamento
+      setCheckoutRefAtual(res.checkoutRef);
+      setClienteInfoAtual(clienteInfo);
+      setEtapa("pagamento");
+    });
+  };
 
-      const mpItems = cartItems.map((item) => ({
-        nome: item.nome,
-        quantidade: item.quantidade,
-        preco: item.preco,
-      }));
+  const handlePagarCartao = () => {
+    setCardError("");
+    const cleanNumber = cardNumber.replace(/\s/g, "");
+    if (cleanNumber.length < 13) { setCardError("Número do cartão inválido."); return; }
+    if (!cardName.trim()) { setCardError("Informe o nome do titular."); return; }
+    if (cardExpiry.length < 5) { setCardError("Data de validade inválida."); return; }
+    if (cardCvv.length < 3) { setCardError("CVV inválido."); return; }
+    if (!bandeira) { setCardError("Bandeira do cartão não reconhecida."); return; }
 
-      const mp = await criarPreferenciaPagamento(mpItems, clienteInfo, res.checkoutRef);
+    const [expMonth, expYear] = cardExpiry.split("/");
+    const publicKey = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY || "";
 
-      if (mp.success && mp.url) {
-        // Mantém loading visível durante redirect - não reseta estado
-        localStorage.removeItem("ma-cart");
-        setCartItems([]);
-        window.dispatchEvent(new CustomEvent("cart-updated"));
-        window.location.href = mp.url;
-      } else {
+    if (!window.MercadoPago) {
+      setCardError("SDK do Mercado Pago não carregado. Recarregue a página.");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        setCheckoutLoading(true);
+        const mp = new window.MercadoPago(publicKey);
+        const token = await mp.createCardToken({
+          cardNumber: cleanNumber,
+          cardExpirationMonth: expMonth?.trim(),
+          cardExpirationYear: `20${expYear?.trim()}`,
+          securityCode: cardCvv,
+          cardholderName: cardName.trim(),
+        });
+
+        const mpItems = cartItems.map(i => ({ nome: i.nome, quantidade: i.quantidade, preco: i.preco }));
+        const res = await processarPagamentoCartao(
+          token.id,
+          bandeira.id,
+          cardParcelas,
+          mpItems,
+          clienteInfoAtual,
+          checkoutRefAtual || undefined
+        );
+
         setCheckoutLoading(false);
-        setCheckoutError(mp.error || "Não foi possível conectar ao pagamento.");
+
+        if (res.success) {
+          localStorage.removeItem("ma-cart");
+          setCartItems([]);
+          window.dispatchEvent(new CustomEvent("cart-updated"));
+          setCheckoutSuccess({
+            message: res.status === "approved"
+              ? "Pagamento aprovado! Em breve entraremos em contato para combinar a entrega."
+              : "Pagamento em análise. Você receberá a confirmação em breve."
+          });
+        } else {
+          setCheckoutError(res.error || "Pagamento recusado. Verifique os dados do cartão.");
+        }
+      } catch (err: any) {
+        setCheckoutLoading(false);
+        setCheckoutError(err.message || "Erro ao processar cartão.");
+      }
+    });
+  };
+
+  const handleGerarPix = () => {
+    startTransition(async () => {
+      setCheckoutLoading(true);
+      const mpItems = cartItems.map(i => ({ nome: i.nome, quantidade: i.quantidade, preco: i.preco }));
+      const res = await gerarPixCarrinho(mpItems, clienteInfoAtual, checkoutRefAtual || undefined);
+      setCheckoutLoading(false);
+
+      if (res.success && res.qrCode) {
+        setPixQrCode(res.qrCode);
+        setPixQrBase64(res.qrCodeBase64);
+        setEtapa("pix");
         localStorage.removeItem("ma-cart");
         setCartItems([]);
         window.dispatchEvent(new CustomEvent("cart-updated"));
+      } else {
+        setCheckoutError(res.error || "Não foi possível gerar o Pix.");
       }
     });
   };
@@ -359,32 +474,201 @@ export default function CarrinhoWidget() {
               </div>
             </div>
           ) : checkoutError ? (
-            /* TELA DE ERRO — Algo deu errado */
+            /* TELA DE ERRO */
             <div className="h-full flex flex-col items-center justify-center text-center space-y-6 py-12">
               <div className="text-5xl">😕</div>
               <div className="space-y-2">
                 <h3 className="text-lg font-serif text-white">Ops, algo não saiu como esperado</h3>
                 <p className="text-xs text-zinc-400 max-w-[280px] leading-relaxed">
-                  Não conseguimos abrir o pagamento agora, mas seu pedido já foi registrado. Você pode tentar novamente ou finalizar pelo WhatsApp.
+                  Não conseguimos processar o pagamento agora, mas seu pedido já foi registrado. Você pode tentar novamente ou finalizar pelo WhatsApp.
                 </p>
               </div>
               <div className="w-full max-w-[260px] space-y-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setCheckoutError(null); setIsOpen(false); }}
-                  className="w-full btn-luxury cursor-pointer py-3"
-                >
-                  Voltar ao Catálogo
+                <button type="button" onClick={() => { setCheckoutError(null); setEtapa("pagamento"); }} className="w-full btn-luxury cursor-pointer py-3">
+                  Tentar Novamente
                 </button>
-                <a
-                  href="https://wa.me/5511978990034?text=Ol%C3%A1%2C+fiz+um+pedido+no+site+e+preciso+de+ajuda+com+o+pagamento."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center border border-zinc-800 hover:border-green-600 text-zinc-300 hover:text-green-400 font-bold tracking-widest text-[10px] uppercase py-3 rounded-full transition-all"
-                >
+                <a href="https://wa.me/5511978990034?text=Ol%C3%A1%2C+fiz+um+pedido+no+site+e+preciso+de+ajuda+com+o+pagamento." target="_blank" rel="noopener noreferrer" className="block w-full text-center border border-zinc-800 hover:border-green-600 text-zinc-300 hover:text-green-400 font-bold tracking-widest text-[10px] uppercase py-3 rounded-full transition-all">
                   Falar no WhatsApp
                 </a>
               </div>
+            </div>
+
+          ) : etapa === "pix" ? (
+            /* TELA PIX — QR Code */
+            <div className="flex flex-col items-center space-y-5 py-4">
+              <div className="text-center space-y-1">
+                <h3 className="text-lg font-serif text-white font-bold">Pague com Pix</h3>
+                <p className="text-xs text-zinc-400">Escaneie o QR Code ou copie o código abaixo</p>
+              </div>
+              {pixQrBase64 && (
+                <div className="bg-white p-3 rounded-xl">
+                  <img src={`data:image/png;base64,${pixQrBase64}`} alt="QR Code Pix" className="w-48 h-48" />
+                </div>
+              )}
+              {pixQrCode && (
+                <div className="w-full space-y-2">
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Código Pix Copia e Cola</p>
+                  <div className="bg-neutral-900 border border-zinc-800 rounded-lg p-3 text-[10px] text-zinc-300 break-all leading-relaxed">
+                    {pixQrCode}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { navigator.clipboard.writeText(pixQrCode); setPixCopiado(true); setTimeout(() => setPixCopiado(false), 3000); }}
+                    className="w-full border border-zinc-700 hover:border-gold text-zinc-300 hover:text-gold font-bold tracking-widest text-[10px] uppercase py-2.5 rounded-full transition-all cursor-pointer"
+                  >
+                    {pixCopiado ? "✅ Código Copiado!" : "Copiar Código Pix"}
+                  </button>
+                </div>
+              )}
+              <p className="text-[10px] text-zinc-500 text-center leading-relaxed max-w-[260px]">
+                Após o pagamento, confirmaremos seu pedido em até alguns minutos.
+              </p>
+              <button type="button" onClick={() => setIsOpen(false)} className="w-full btn-luxury cursor-pointer py-3">
+                Fechar
+              </button>
+            </div>
+
+          ) : etapa === "pagamento" ? (
+            /* TELA DE ESCOLHA + PAGAMENTO */
+            <div className="space-y-5">
+              <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+                <h3 className="text-sm font-serif font-bold text-gold uppercase tracking-wider">Forma de Pagamento</h3>
+                <button type="button" onClick={() => { setEtapa("endereco"); setShowAddressForm(true); setMetodoPagamento(null); }} className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer">
+                  ← Voltar
+                </button>
+              </div>
+
+              {/* Seleção do método */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMetodoPagamento("cartao")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all cursor-pointer ${
+                    metodoPagamento === "cartao" ? "border-gold bg-gold/10 text-gold" : "border-zinc-800 text-zinc-400 hover:border-zinc-600"
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Cartão</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMetodoPagamento("pix")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all cursor-pointer ${
+                    metodoPagamento === "pix" ? "border-gold bg-gold/10 text-gold" : "border-zinc-800 text-zinc-400 hover:border-zinc-600"
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11.354 2.646a.9.9 0 0 1 1.292 0l2.122 2.122a3.1 3.1 0 0 0 2.19.908h.63a.9.9 0 0 1 .9.9v.63a3.1 3.1 0 0 0 .908 2.19l2.122 2.122a.9.9 0 0 1 0 1.292l-2.122 2.122a3.1 3.1 0 0 0-.908 2.19v.63a.9.9 0 0 1-.9.9h-.63a3.1 3.1 0 0 0-2.19.908l-2.122 2.122a.9.9 0 0 1-1.292 0l-2.122-2.122a3.1 3.1 0 0 0-2.19-.908h-.63a.9.9 0 0 1-.9-.9v-.63a3.1 3.1 0 0 0-.908-2.19L2.482 13.28a.9.9 0 0 1 0-1.292l2.122-2.122A3.1 3.1 0 0 0 5.512 7.676v-.63a.9.9 0 0 1 .9-.9h.63a3.1 3.1 0 0 0 2.19-.908z"/>
+                  </svg>
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Pix</span>
+                </button>
+              </div>
+
+              {/* Formulário Cartão */}
+              {metodoPagamento === "cartao" && (
+                <div className="space-y-3 text-xs">
+                  {cardError && (
+                    <p className="text-xs text-red-500 font-bold bg-red-950/20 border border-red-900/30 p-2.5 rounded-lg">⚠️ {cardError}</p>
+                  )}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Número do Cartão</label>
+                    <div className="relative">
+                      <input
+                        type="text" inputMode="numeric" maxLength={19}
+                        placeholder="0000 0000 0000 0000"
+                        value={cardNumber}
+                        onChange={e => { const f = formatarCartao(e.target.value); setCardNumber(f); setBandeira(detectarBandeira(f)); }}
+                        className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold pr-20"
+                      />
+                      {bandeira && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gold">{bandeira.nome}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nome no Cartão</label>
+                    <input
+                      type="text" placeholder="Como está no cartão"
+                      value={cardName}
+                      onChange={e => setCardName(e.target.value.toUpperCase())}
+                      className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold uppercase"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Validade</label>
+                      <input
+                        type="text" placeholder="MM/AA" maxLength={5}
+                        value={cardExpiry}
+                        onChange={e => {
+                          const v = e.target.value.replace(/\D/g, "").substring(0, 4);
+                          setCardExpiry(v.length > 2 ? `${v.substring(0,2)}/${v.substring(2)}` : v);
+                        }}
+                        className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">CVV</label>
+                      <input
+                        type="text" inputMode="numeric" placeholder="123" maxLength={4}
+                        value={cardCvv}
+                        onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").substring(0, 4))}
+                        className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Parcelas</label>
+                    <select
+                      value={cardParcelas}
+                      onChange={e => setCardParcelas(Number(e.target.value))}
+                      className="w-full bg-neutral-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold"
+                    >
+                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                        <option key={n} value={n}>{n}x {n === 1 ? "sem juros" : ""}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="pt-3 border-t border-zinc-900 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
+                      <span className="text-base font-serif text-gold font-black">{formatMoeda(subtotal)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handlePagarCartao}
+                      disabled={isPending}
+                      className={`w-full btn-luxury flex items-center justify-center gap-2 cursor-pointer py-4 ${isPending ? "opacity-70 pointer-events-none" : ""}`}
+                    >
+                      {isPending ? "Processando..." : "Pagar com Cartão"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Botão Pix */}
+              {metodoPagamento === "pix" && (
+                <div className="space-y-4">
+                  <div className="bg-neutral-900 border border-zinc-800 rounded-xl p-4 text-center space-y-2">
+                    <p className="text-xs text-zinc-300">Você será redirecionado para um QR Code Pix gerado na hora.</p>
+                    <p className="text-[10px] text-zinc-500">O pagamento é confirmado automaticamente.</p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
+                    <span className="text-base font-serif text-gold font-black">{formatMoeda(subtotal)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGerarPix}
+                    disabled={isPending}
+                    className={`w-full btn-luxury flex items-center justify-center gap-2 cursor-pointer py-4 ${isPending ? "opacity-70 pointer-events-none" : ""}`}
+                  >
+                    {isPending ? "Gerando Pix..." : "Gerar QR Code Pix"}
+                  </button>
+                </div>
+              )}
             </div>
           ) : checkoutSuccess ? (
             <div className="flex flex-col items-center space-y-4 p-6">
@@ -415,14 +699,14 @@ export default function CarrinhoWidget() {
                 Continuar Comprando
               </button>
             </div>
-          ) : showAddressForm ? (
+          ) : etapa === "endereco" ? (
             /* Form de Entrega */
             <form onSubmit={onSubmitCheckout} className="space-y-4 text-white text-left">
               <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
                 <h3 className="text-sm font-serif font-bold text-gold uppercase tracking-wider">Dados de Entrega & Contato</h3>
                 <button
                   type="button"
-                  onClick={() => setShowAddressForm(false)}
+                  onClick={() => setEtapa("itens")}
                   className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
                   ← Voltar
@@ -679,7 +963,7 @@ export default function CarrinhoWidget() {
         </div>
 
         {/* Footer */}
-        {!checkoutSuccess && cartItems.length > 0 && !showAddressForm && (
+        {!checkoutSuccess && cartItems.length > 0 && etapa === "itens" && (
           <div className="p-6 border-t border-zinc-900 bg-neutral-950/80 space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Subtotal</span>
@@ -692,7 +976,7 @@ export default function CarrinhoWidget() {
 
             <button
               type="button"
-              onClick={() => setShowAddressForm(true)}
+              onClick={() => setEtapa("endereco")}
               disabled={isPending}
               className={`w-full btn-luxury flex items-center justify-center gap-2 cursor-pointer py-4.5 ${
                 isPending ? "opacity-75 pointer-events-none" : ""

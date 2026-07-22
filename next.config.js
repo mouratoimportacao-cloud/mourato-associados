@@ -13,7 +13,7 @@ const securityHeaders = [
   // Content Security Policy básica (pode ser ajustada conforme recursos externos)
   {
     key: 'Content-Security-Policy',
-    value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';",
+    value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-src https://www.mercadopago.com https://www.mercadolibre.com; frame-ancestors 'none';",
   },
   // Evita clickjacking
   { key: 'X-Frame-Options', value: 'DENY' },
