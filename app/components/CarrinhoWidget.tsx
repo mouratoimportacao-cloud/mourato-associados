@@ -107,7 +107,7 @@ export default function CarrinhoWidget() {
       setValidationError("");
       setEtapa("itens");
       setMetodoPagamento(null);
-      setCardNumber(""); setCardName(""); setCardExpiry(""); setCardCvv(""); setCardCpf(""); setCardParcelas(1); setCardError(""); setBandeira(null);
+      setCardNumber(""); setCardName(""); setCardExpiry(""); setCardCvv(""); setCardCpf(""); setCardParcelas(1); setCardError(""); setBandeira(null); setSdkReady(false);
       setPixQrCode(null); setPixQrBase64(null); setPixCopiado(false);
       setCheckoutRefAtual(null); setClienteInfoAtual(null);
     }, 0);
@@ -115,13 +115,22 @@ export default function CarrinhoWidget() {
     return () => window.clearTimeout(resetTimeout);
   }, [checkoutSuccess]);
 
+  const [sdkReady, setSdkReady] = useState(false);
+
   // Carrega SDK do Mercado Pago dinamicamente quando chega na etapa de pagamento
   useEffect(() => {
     if (etapa !== "pagamento") return;
-    if (window.MercadoPago) return;
+    if (window.MercadoPago) { setSdkReady(true); return; }
+    const existing = document.querySelector('script[src="https://sdk.mercadopago.com/js/v2"]');
+    if (existing) {
+      existing.addEventListener("load", () => setSdkReady(true));
+      return;
+    }
     const script = document.createElement("script");
     script.src = "https://sdk.mercadopago.com/js/v2";
     script.async = true;
+    script.onload = () => setSdkReady(true);
+    script.onerror = () => setCardError("Falha ao carregar SDK do Mercado Pago. Recarregue a página.");
     document.head.appendChild(script);
   }, [etapa]);
   const loadCart = () => {
@@ -276,8 +285,8 @@ export default function CarrinhoWidget() {
     const [expMonth, expYear] = cardExpiry.split("/");
     const publicKey = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY || "";
 
-    if (!window.MercadoPago) {
-      setCardError("SDK do Mercado Pago não carregado. Recarregue a página.");
+    if (!sdkReady || !window.MercadoPago) {
+      setCardError("SDK do Mercado Pago ainda carregando. Aguarde um instante e tente novamente.");
       return;
     }
 
@@ -285,20 +294,8 @@ export default function CarrinhoWidget() {
       try {
         setCheckoutLoading(true);
 
-        // Aguarda SDK carregar se ainda não estiver disponível
-        if (!window.MercadoPago) {
-          await new Promise<void>((resolve, reject) => {
-            let tentativas = 0;
-            const check = setInterval(() => {
-              tentativas++;
-              if (window.MercadoPago) { clearInterval(check); resolve(); }
-              if (tentativas > 20) { clearInterval(check); reject(new Error("SDK não carregou")); }
-            }, 300);
-          });
-        }
-
         const mp = new window.MercadoPago(publicKey);
-        const token = await mp.createCardToken({
+        const tokenResult = await mp.createCardToken({
           cardNumber: cleanNumber,
           cardExpirationMonth: expMonth?.trim(),
           cardExpirationYear: `20${expYear?.trim()}`,
@@ -307,9 +304,13 @@ export default function CarrinhoWidget() {
           identification: { type: "CPF", number: cleanCpf },
         });
 
+        if (!tokenResult?.id) {
+          throw new Error("Não foi possível tokenizar o cartão. Verifique os dados e tente novamente.");
+        }
+
         const mpItems = cartItems.map(i => ({ nome: i.nome, quantidade: i.quantidade, preco: i.preco }));
         const res = await processarPagamentoCartao(
-          token.id,
+          tokenResult.id,
           bandeira.id,
           cardParcelas,
           mpItems,
@@ -334,8 +335,12 @@ export default function CarrinhoWidget() {
         }
       } catch (err: any) {
         setCheckoutLoading(false);
+        const msg = err?.message || err?.cause?.message || JSON.stringify(err) || "Erro ao processar cartão.";
         console.error("Erro cartao detalhado:", err);
-        setCheckoutError(err.message || "Erro ao processar cartão.");
+        // Erros do createCardToken mostrar no formulário, não na tela de erro genérica
+        setCardError(msg);
+        setEtapa("pagamento");
+        setMetodoPagamento("cartao");
       }
     });
   };
@@ -673,10 +678,10 @@ export default function CarrinhoWidget() {
                     <button
                       type="button"
                       onClick={handlePagarCartao}
-                      disabled={isPending}
-                      className={`w-full btn-luxury flex items-center justify-center gap-2 cursor-pointer py-4 ${isPending ? "opacity-70 pointer-events-none" : ""}`}
+                      disabled={isPending || !sdkReady}
+                      className={`w-full btn-luxury flex items-center justify-center gap-2 cursor-pointer py-4 ${isPending || !sdkReady ? "opacity-70 pointer-events-none" : ""}`}
                     >
-                      {isPending ? "Processando..." : "Pagar com Cartão"}
+                      {isPending ? "Processando..." : !sdkReady ? "Carregando..." : "Pagar com Cartão"}
                     </button>
                   </div>
                 </div>
