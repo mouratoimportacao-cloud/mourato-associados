@@ -104,6 +104,24 @@ export async function processarPagamentoCartao(
         installments: parcelas,
         payment_method_id: bandeira,
         external_reference: checkoutRef,
+        additional_info: {
+          items: items.map((item, i) => ({
+            id: `item-${i}`,
+            title: item.nome,
+            description: item.nome,
+            quantity: item.quantidade,
+            unit_price: item.preco,
+          })),
+          payer: {
+            first_name: firstName,
+            last_name: lastName,
+            address: {
+              zip_code: clienteInfo.cep.replace(/\D/g, ""),
+              street_name: clienteInfo.rua,
+              street_number: clienteInfo.numero,
+            },
+          },
+        },
         payer: {
           email: `pagador-${clienteInfo.contato.replace(/\D/g, "")}@mouratoassociados.com.br`,
           first_name: firstName,
@@ -178,6 +196,11 @@ export async function gerarPixCarrinho(
           email: `pagador-${cleanPhone}@mouratoassociados.com.br`,
           first_name: clienteInfo.nome.split(" ")[0] || "Cliente",
           last_name: clienteInfo.nome.split(" ").slice(1).join(" ") || "Mourato",
+          address: {
+            zip_code: clienteInfo.cep.replace(/\D/g, ""),
+            street_name: clienteInfo.rua,
+            street_number: clienteInfo.numero,
+          },
         },
         notification_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://mouratoassociados.com.br"}/api/mercado-pago/webhook`,
       },
