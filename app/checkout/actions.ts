@@ -129,8 +129,10 @@ export async function processarPagamentoCartao(
       return { success: false, status, error: result.status_detail || "Pagamento recusado" };
     }
   } catch (error: any) {
-    console.error("Erro pagamento cartão MP:", error);
-    return { success: false, status: "error", error: error.message || "Erro ao processar cartão" };
+    console.error("Erro pagamento cartão MP:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const cause = error?.cause;
+    const detail = cause ? JSON.stringify(cause) : "";
+    return { success: false, status: "error", error: (error.message || "Erro ao processar cartão") + (detail ? ` | ${detail}` : "") };
   }
 }
 
