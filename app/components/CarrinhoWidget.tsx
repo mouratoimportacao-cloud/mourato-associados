@@ -281,6 +281,19 @@ export default function CarrinhoWidget() {
     startTransition(async () => {
       try {
         setCheckoutLoading(true);
+
+        // Aguarda SDK carregar se ainda não estiver disponível
+        if (!window.MercadoPago) {
+          await new Promise<void>((resolve, reject) => {
+            let tentativas = 0;
+            const check = setInterval(() => {
+              tentativas++;
+              if (window.MercadoPago) { clearInterval(check); resolve(); }
+              if (tentativas > 20) { clearInterval(check); reject(new Error("SDK não carregou")); }
+            }, 300);
+          });
+        }
+
         const mp = new window.MercadoPago(publicKey);
         const token = await mp.createCardToken({
           cardNumber: cleanNumber,
