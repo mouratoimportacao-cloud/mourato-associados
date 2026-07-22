@@ -334,6 +334,7 @@ export default function CarrinhoWidget() {
         }
       } catch (err: any) {
         setCheckoutLoading(false);
+        console.error("Erro cartao detalhado:", err);
         setCheckoutError(err.message || "Erro ao processar cartão.");
       }
     });
