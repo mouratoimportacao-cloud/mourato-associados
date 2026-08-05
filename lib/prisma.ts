@@ -47,11 +47,12 @@ async function getEnvConfig(): Promise<EnvConfig> {
 
 function getS3Client(cfg: EnvConfig) {
   return new S3Client({
-    region: cfg.S3_REGION,
+    region: cfg.S3_REGION || "sa-east-1",
     credentials: {
       accessKeyId: cfg.S3_ACCESS_KEY_ID,
       secretAccessKey: cfg.S3_SECRET_ACCESS_KEY,
     },
+    forcePathStyle: false,
   });
 }
 
