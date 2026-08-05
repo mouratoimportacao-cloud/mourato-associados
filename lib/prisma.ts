@@ -447,7 +447,7 @@ function withProdutoDefaults(produto: MemoryRow): MemoryRow {
 }
 
 function canPersistLocally() {
-  return process.env.VERCEL !== "1";
+  return process.env.VERCEL !== "1" && process.env.AWS_APP_ID === undefined;
 }
 
 function shouldUseS3() {
@@ -617,18 +617,22 @@ async function saveS3Store() {
 function saveLocalStore() {
   if (!canPersistLocally() || !globalStore.memoryDb || !globalStore.memorySeq) return;
 
-  mkdirSync(dirname(storePath), { recursive: true });
-  writeFileSync(
-    storePath,
-    JSON.stringify(
-      {
-        rows: globalStore.memoryDb,
-        seq: globalStore.memorySeq,
-      },
-      null,
-      2
-    )
-  );
+  try {
+    mkdirSync(dirname(storePath), { recursive: true });
+    writeFileSync(
+      storePath,
+      JSON.stringify(
+        {
+          rows: globalStore.memoryDb,
+          seq: globalStore.memorySeq,
+        },
+        null,
+        2
+      )
+    );
+  } catch (err) {
+    console.warn("saveLocalStore ignorado (filesystem read-only):", err);
+  }
 }
 
 async function syncToGithub(contentStr: string) {
