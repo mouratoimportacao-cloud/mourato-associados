@@ -198,7 +198,8 @@ export async function cadastrarLojista(formData: FormData) {
 
     return { success: true };
   } catch (error) {
-    console.error("Erro ao cadastrar lojista:", error);
-    return { success: false, error: "Não foi possível concluir o cadastro." };
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Erro ao cadastrar lojista:", msg);
+    return { success: false, error: `Erro interno: ${msg}` };
   }
 }
