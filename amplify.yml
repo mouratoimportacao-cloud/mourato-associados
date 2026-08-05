@@ -6,6 +6,7 @@ frontend:
         - npm ci
     build:
       commands:
+        - env | grep -E '^(S3_|JWT_|MERCADO_PAGO_|NEXT_PUBLIC_)' >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
