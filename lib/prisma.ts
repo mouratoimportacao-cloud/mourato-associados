@@ -451,10 +451,10 @@ function canPersistLocally() {
 }
 
 function shouldUseS3() {
-  return Boolean(
-    (process.env.S3_BUCKET || process.env.AWS_S3_BUCKET) &&
-    (process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID)
-  );
+  const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET;
+  const keyId = process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
+  console.log(`[shouldUseS3] bucket=${bucket} keyId=${keyId} result=${Boolean(bucket && keyId)}`);
+  return Boolean(bucket && keyId);
 }
 
 function loadLocalStore() {
