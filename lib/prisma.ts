@@ -1,6 +1,49 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+
+type EnvConfig = {
+  S3_BUCKET: string;
+  S3_REGION: string;
+  S3_ACCESS_KEY_ID: string;
+  S3_SECRET_ACCESS_KEY: string;
+};
+
+const globalEnv = globalThis as unknown as { _envConfig?: EnvConfig };
+
+async function getEnvConfig(): Promise<EnvConfig> {
+  if (globalEnv._envConfig) return globalEnv._envConfig;
+
+  const bucket = process.env.S3_BUCKET;
+  const region = process.env.S3_REGION;
+  const keyId = process.env.S3_ACCESS_KEY_ID;
+  const secret = process.env.S3_SECRET_ACCESS_KEY;
+
+  if (bucket && keyId && secret) {
+    globalEnv._envConfig = { S3_BUCKET: bucket, S3_REGION: region || "sa-east-1", S3_ACCESS_KEY_ID: keyId, S3_SECRET_ACCESS_KEY: secret };
+    return globalEnv._envConfig;
+  }
+
+  // Fallback: buscar do Secrets Manager em runtime
+  try {
+    const sm = new SecretsManagerClient({ region: "sa-east-1" });
+    const res = await sm.send(new GetSecretValueCommand({ SecretId: "mourato-associados/env" }));
+    const parsed = JSON.parse(res.SecretString || "{}") as Record<string, string>;
+    globalEnv._envConfig = {
+      S3_BUCKET: parsed.S3_BUCKET || "mourato-associados-db",
+      S3_REGION: parsed.S3_REGION || "sa-east-1",
+      S3_ACCESS_KEY_ID: parsed.S3_ACCESS_KEY_ID || "",
+      S3_SECRET_ACCESS_KEY: parsed.S3_SECRET_ACCESS_KEY || "",
+    };
+    console.log("[getEnvConfig] carregado do Secrets Manager, bucket=", globalEnv._envConfig.S3_BUCKET);
+  } catch (err) {
+    console.error("[getEnvConfig] falha ao buscar Secrets Manager:", err);
+    globalEnv._envConfig = { S3_BUCKET: "", S3_REGION: "sa-east-1", S3_ACCESS_KEY_ID: "", S3_SECRET_ACCESS_KEY: "" };
+  }
+
+  return globalEnv._envConfig!;
+}
 
 const s3Client = new S3Client({
   region: (process.env.S3_REGION || process.env.AWS_S3_REGION || "us-east-1").trim(),
@@ -450,11 +493,11 @@ function canPersistLocally() {
   return process.env.VERCEL !== "1" && process.env.AWS_APP_ID === undefined;
 }
 
-function shouldUseS3() {
-  const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET;
-  const keyId = process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
-  console.log(`[shouldUseS3] bucket=${bucket} keyId=${keyId} result=${Boolean(bucket && keyId)}`);
-  return Boolean(bucket && keyId);
+async function shouldUseS3() {
+  const cfg = await getEnvConfig();
+  const result = Boolean(cfg.S3_BUCKET && cfg.S3_ACCESS_KEY_ID && cfg.S3_SECRET_ACCESS_KEY);
+  console.log(`[shouldUseS3] bucket=${cfg.S3_BUCKET} keyId=${cfg.S3_ACCESS_KEY_ID ? "ok" : "missing"} result=${result}`);
+  return result;
 }
 
 function loadLocalStore() {
@@ -532,8 +575,9 @@ function loadLocalStore() {
 
 async function loadS3Store() {
   try {
-    const command = new GetObjectCommand({ Bucket: S3_BUCKET, Key: S3_KEY });
-    const response = await s3Client.send(command);
+    const cfg = await getEnvConfig();
+    const command = new GetObjectCommand({ Bucket: cfg.S3_BUCKET, Key: S3_KEY });
+    const response = await getS3Client(cfg).send(command);
     const body = await response.Body?.transformToString();
     if (!body) return loadLocalStore();
 
@@ -600,14 +644,15 @@ async function loadS3Store() {
 async function saveS3Store() {
   if (!globalStore.memoryDb || !globalStore.memorySeq) return;
   try {
+    const cfg = await getEnvConfig();
     const content = JSON.stringify({ rows: globalStore.memoryDb, seq: globalStore.memorySeq });
     const command = new PutObjectCommand({
-      Bucket: S3_BUCKET,
+      Bucket: cfg.S3_BUCKET,
       Key: S3_KEY,
       Body: content,
       ContentType: "application/json",
     });
-    await s3Client.send(command);
+    await getS3Client(cfg).send(command);
   } catch (error) {
     console.error("Falha ao salvar no S3, usando fallback local:", error);
     saveLocalStore();
@@ -704,12 +749,10 @@ async function persistStore() {
     2
   );
 
-  if (!shouldUseS3()) {
+  if (!(await shouldUseS3())) {
     saveLocalStore();
   } else {
     await saveS3Store();
-    // Invalidate cache so next read fetches fresh data from S3
-    // This handles multi-instance serverless environments (Vercel)
     globalStore.lastLoadedAt = 0;
   }
 
@@ -761,7 +804,7 @@ async function store() {
   const now = Date.now();
   const cacheDuration = 30000;
 
-  if (shouldUseS3()) {
+  if (await shouldUseS3()) {
     const cacheExpired = !globalStore.lastLoadedAt || (now - globalStore.lastLoadedAt > cacheDuration);
     if (!globalStore.memoryDb || cacheExpired) {
       const loadedStore = await loadS3Store();
