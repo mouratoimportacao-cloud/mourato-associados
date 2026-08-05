@@ -10,49 +10,51 @@ type EnvConfig = {
   S3_SECRET_ACCESS_KEY: string;
 };
 
-const globalEnv = globalThis as unknown as { _envConfig?: EnvConfig };
+const globalEnv = globalThis as unknown as { _envConfig?: EnvConfig; _envConfigLoading?: Promise<EnvConfig> };
 
 async function getEnvConfig(): Promise<EnvConfig> {
   if (globalEnv._envConfig) return globalEnv._envConfig;
+  if (globalEnv._envConfigLoading) return globalEnv._envConfigLoading;
 
-  const bucket = process.env.S3_BUCKET;
-  const region = process.env.S3_REGION;
-  const keyId = process.env.S3_ACCESS_KEY_ID;
-  const secret = process.env.S3_SECRET_ACCESS_KEY;
+  globalEnv._envConfigLoading = (async () => {
+    const bucket = process.env.S3_BUCKET;
+    const keyId = process.env.S3_ACCESS_KEY_ID;
+    const secret = process.env.S3_SECRET_ACCESS_KEY;
 
-  if (bucket && keyId && secret) {
-    globalEnv._envConfig = { S3_BUCKET: bucket, S3_REGION: region || "sa-east-1", S3_ACCESS_KEY_ID: keyId, S3_SECRET_ACCESS_KEY: secret };
-    return globalEnv._envConfig;
-  }
+    if (bucket && keyId && secret) {
+      globalEnv._envConfig = { S3_BUCKET: bucket, S3_REGION: "sa-east-1", S3_ACCESS_KEY_ID: keyId, S3_SECRET_ACCESS_KEY: secret };
+      return globalEnv._envConfig!;
+    }
 
-  // Fallback: buscar do Secrets Manager em runtime
-  try {
-    const sm = new SecretsManagerClient({ region: "sa-east-1" });
-    const res = await sm.send(new GetSecretValueCommand({ SecretId: "mourato-associados/env" }));
-    const parsed = JSON.parse(res.SecretString || "{}") as Record<string, string>;
-    globalEnv._envConfig = {
-      S3_BUCKET: parsed.S3_BUCKET || "mourato-associados-db",
-      S3_REGION: parsed.S3_REGION || "sa-east-1",
-      S3_ACCESS_KEY_ID: parsed.S3_ACCESS_KEY_ID || "",
-      S3_SECRET_ACCESS_KEY: parsed.S3_SECRET_ACCESS_KEY || "",
-    };
-    console.log("[getEnvConfig] carregado do Secrets Manager, bucket=", globalEnv._envConfig.S3_BUCKET);
-  } catch (err) {
-    console.error("[getEnvConfig] falha ao buscar Secrets Manager:", err);
-    globalEnv._envConfig = { S3_BUCKET: "", S3_REGION: "sa-east-1", S3_ACCESS_KEY_ID: "", S3_SECRET_ACCESS_KEY: "" };
-  }
+    try {
+      const sm = new SecretsManagerClient({ region: "sa-east-1" });
+      const res = await sm.send(new GetSecretValueCommand({ SecretId: "mourato-associados/env" }));
+      const parsed = JSON.parse(res.SecretString || "{}") as Record<string, string>;
+      globalEnv._envConfig = {
+        S3_BUCKET: parsed.S3_BUCKET || "mourato-associados-db",
+        S3_REGION: "sa-east-1",
+        S3_ACCESS_KEY_ID: parsed.S3_ACCESS_KEY_ID || "",
+        S3_SECRET_ACCESS_KEY: parsed.S3_SECRET_ACCESS_KEY || "",
+      };
+      console.log("[getEnvConfig] carregado do Secrets Manager, bucket=", globalEnv._envConfig.S3_BUCKET);
+    } catch (err) {
+      console.error("[getEnvConfig] falha ao buscar Secrets Manager:", err);
+      globalEnv._envConfig = { S3_BUCKET: "", S3_REGION: "sa-east-1", S3_ACCESS_KEY_ID: "", S3_SECRET_ACCESS_KEY: "" };
+    }
 
-  return globalEnv._envConfig!;
+    return globalEnv._envConfig!;
+  })();
+
+  return globalEnv._envConfigLoading;
 }
 
 function getS3Client(cfg: EnvConfig) {
   return new S3Client({
-    region: cfg.S3_REGION || "sa-east-1",
+    region: "sa-east-1",
     credentials: {
       accessKeyId: cfg.S3_ACCESS_KEY_ID,
       secretAccessKey: cfg.S3_SECRET_ACCESS_KEY,
     },
-    forcePathStyle: false,
   });
 }
 
