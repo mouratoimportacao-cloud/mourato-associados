@@ -22,7 +22,7 @@ async function getEnvConfig(): Promise<EnvConfig> {
     const secret = process.env.S3_SECRET_ACCESS_KEY;
 
     if (bucket && keyId && secret) {
-      globalEnv._envConfig = { S3_BUCKET: bucket, S3_REGION: "sa-east-1", S3_ACCESS_KEY_ID: keyId, S3_SECRET_ACCESS_KEY: secret };
+      globalEnv._envConfig = { S3_BUCKET: bucket, S3_REGION: "us-east-1", S3_ACCESS_KEY_ID: keyId, S3_SECRET_ACCESS_KEY: secret };
       return globalEnv._envConfig!;
     }
 
@@ -31,15 +31,15 @@ async function getEnvConfig(): Promise<EnvConfig> {
       const res = await sm.send(new GetSecretValueCommand({ SecretId: "mourato-associados/env" }));
       const parsed = JSON.parse(res.SecretString || "{}") as Record<string, string>;
       globalEnv._envConfig = {
-        S3_BUCKET: parsed.S3_BUCKET || "mourato-associados-db",
-        S3_REGION: "sa-east-1",
+        S3_BUCKET: parsed.S3_BUCKET || "mourato-associados-db-use1",
+        S3_REGION: "us-east-1",
         S3_ACCESS_KEY_ID: parsed.S3_ACCESS_KEY_ID || "",
         S3_SECRET_ACCESS_KEY: parsed.S3_SECRET_ACCESS_KEY || "",
       };
       console.log("[getEnvConfig] carregado do Secrets Manager, bucket=", globalEnv._envConfig.S3_BUCKET);
     } catch (err) {
       console.error("[getEnvConfig] falha ao buscar Secrets Manager:", err);
-      globalEnv._envConfig = { S3_BUCKET: "", S3_REGION: "sa-east-1", S3_ACCESS_KEY_ID: "", S3_SECRET_ACCESS_KEY: "" };
+      globalEnv._envConfig = { S3_BUCKET: "", S3_REGION: "us-east-1", S3_ACCESS_KEY_ID: "", S3_SECRET_ACCESS_KEY: "" };
     }
 
     return globalEnv._envConfig!;
@@ -50,7 +50,7 @@ async function getEnvConfig(): Promise<EnvConfig> {
 
 function getS3Client(cfg: EnvConfig) {
   return new S3Client({
-    region: "sa-east-1",
+    region: cfg.S3_REGION || "us-east-1",
     credentials: {
       accessKeyId: cfg.S3_ACCESS_KEY_ID,
       secretAccessKey: cfg.S3_SECRET_ACCESS_KEY,
